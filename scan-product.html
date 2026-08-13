@@ -22,11 +22,6 @@
 
     <title>CivicAI — Scan a Product</title>
 
-
-    <!-- =====================================================
-         GOOGLE FONTS
-    ====================================================== -->
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
     <link
@@ -40,36 +35,17 @@
         rel="stylesheet"
     >
 
-
-    <!-- =====================================================
-         FONT AWESOME
-    ====================================================== -->
-
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
-
-
-    <!-- =====================================================
-         CIVICAI GLOBAL CSS
-    ====================================================== -->
 
     <link
         rel="stylesheet"
         href="global.css"
     >
 
-
-    <!-- =====================================================
-         PAGE SPECIFIC CSS
-    ====================================================== -->
-
     <style>
-
-        /* =====================================================
-           SCAN PRODUCT PAGE
-        ===================================================== */
 
         .scan-product-page {
             min-height: 100vh;
@@ -77,11 +53,6 @@
             position: relative;
             overflow: hidden;
         }
-
-
-        /* =====================================================
-           BACKGROUND
-        ===================================================== */
 
         .scan-bg-glow {
             position: fixed;
@@ -105,11 +76,6 @@
             bottom: -150px;
             right: -150px;
         }
-
-
-        /* =====================================================
-           TOP HEADER
-        ===================================================== */
 
         .scan-page-header {
             max-width: 1200px;
@@ -168,11 +134,6 @@
             font-size: 16px;
         }
 
-
-        /* =====================================================
-           MAIN GRID
-        ===================================================== */
-
         .scanner-container {
             max-width: 1200px;
             margin: auto;
@@ -182,11 +143,6 @@
             align-items: stretch;
         }
 
-
-        /* =====================================================
-           GLASS CARD
-        ===================================================== */
-
         .scanner-card {
             background:
                 linear-gradient(
@@ -194,23 +150,14 @@
                     rgba(18,35,58,.92),
                     rgba(8,18,32,.94)
                 );
-
             border: 1px solid rgba(255,255,255,.09);
-
             border-radius: 28px;
-
             box-shadow:
                 0 30px 80px rgba(0,0,0,.35),
                 inset 0 1px 0 rgba(255,255,255,.04);
-
             overflow: hidden;
             position: relative;
         }
-
-
-        /* =====================================================
-           UPLOAD AREA
-        ===================================================== */
 
         .upload-card {
             padding: 25px;
@@ -235,7 +182,6 @@
             font-size: 12px;
         }
 
-
         .upload-zone {
             min-height: 390px;
             border: 1px dashed rgba(92,153,255,.38);
@@ -247,15 +193,12 @@
                     transparent 60%
                 ),
                 rgba(4,13,25,.6);
-
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-
             position: relative;
             overflow: hidden;
-
             transition: .3s ease;
         }
 
@@ -270,45 +213,32 @@
                 rgba(4,13,25,.7);
         }
 
-
         .upload-zone.dragging {
             border-color: #4facfe;
             transform: scale(.995);
         }
 
-
         .upload-content {
             padding: 30px;
         }
-
-
-        /* =====================================================
-           SCAN ICON
-        ===================================================== */
 
         .scan-icon-wrapper {
             width: 95px;
             height: 95px;
             margin: 0 auto 22px;
-
             border-radius: 28px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             background:
                 linear-gradient(
                     145deg,
                     rgba(79,172,254,.18),
                     rgba(139,92,246,.16)
                 );
-
             border: 1px solid rgba(100,170,255,.25);
-
             box-shadow:
                 0 0 40px rgba(79,172,254,.12);
-
             animation: scannerFloat 3s ease-in-out infinite;
         }
 
@@ -316,7 +246,6 @@
             font-size: 38px;
             color: #65b7ff;
         }
-
 
         @keyframes scannerFloat {
 
@@ -329,7 +258,6 @@
             }
 
         }
-
 
         .upload-content h3 {
             color: #fff;
@@ -346,11 +274,6 @@
             margin: 0 auto 22px;
         }
 
-
-        /* =====================================================
-           BUTTONS
-        ===================================================== */
-
         .scan-buttons {
             display: flex;
             justify-content: center;
@@ -362,32 +285,25 @@
             border: 0;
             cursor: pointer;
             text-decoration: none;
-
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 9px;
-
             padding: 13px 20px;
-
             border-radius: 13px;
-
             font-weight: 700;
             font-size: 13px;
-
             transition: .25s ease;
         }
 
         .scan-btn-primary {
             color: #fff;
-
             background:
                 linear-gradient(
                     135deg,
                     #2779ff,
                     #6845e8
                 );
-
             box-shadow:
                 0 12px 30px rgba(52,103,255,.25);
         }
@@ -408,15 +324,9 @@
             background: rgba(255,255,255,.09);
         }
 
-
         #productInput {
             display: none;
         }
-
-
-        /* =====================================================
-           IMAGE PREVIEW
-        ===================================================== */
 
         .preview-container {
             display: none;
@@ -438,15 +348,12 @@
         .preview-overlay {
             position: absolute;
             inset: auto 0 0 0;
-
             padding: 20px;
-
             background:
                 linear-gradient(
                     transparent,
                     rgba(2,8,18,.95)
                 );
-
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
@@ -458,41 +365,28 @@
             font-size: 14px;
         }
 
-
-        /* =====================================================
-           SCAN BUTTON
-        ===================================================== */
-
         .analyze-button {
             margin-top: 18px;
             width: 100%;
             padding: 16px;
-
             border: 0;
             border-radius: 15px;
-
             cursor: pointer;
-
             color: #fff;
-
             background:
                 linear-gradient(
                     135deg,
                     #2563eb,
                     #7c3aed
                 );
-
             font-size: 14px;
             font-weight: 800;
-
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-
             box-shadow:
                 0 15px 35px rgba(37,99,235,.2);
-
             transition: .25s ease;
         }
 
@@ -505,11 +399,6 @@
             cursor: not-allowed;
             transform: none;
         }
-
-
-        /* =====================================================
-           AI PANEL
-        ===================================================== */
 
         .ai-panel {
             padding: 25px;
@@ -533,16 +422,12 @@
         .ai-panel-title-icon {
             width: 42px;
             height: 42px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             border-radius: 13px;
-
             background: rgba(139,92,246,.13);
             border: 1px solid rgba(139,92,246,.2);
-
             color: #a78bfa;
         }
 
@@ -557,14 +442,10 @@
             display: inline-flex;
             align-items: center;
             gap: 7px;
-
             padding: 7px 10px;
-
             border-radius: 50px;
-
             background: rgba(50,220,140,.08);
             color: #58e6a0;
-
             font-size: 10px;
             font-weight: 800;
             letter-spacing: .7px;
@@ -578,44 +459,28 @@
             box-shadow: 0 0 10px #4ade80;
         }
 
-
-        /* =====================================================
-           AI EMPTY STATE
-        ===================================================== */
-
         .ai-empty {
             flex: 1;
-
             min-height: 390px;
-
             border-radius: 20px;
-
             background: rgba(255,255,255,.025);
-
             border: 1px solid rgba(255,255,255,.06);
-
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
             text-align: center;
-
             padding: 30px;
         }
 
         .ai-empty-orb {
             width: 100px;
             height: 100px;
-
             border-radius: 50%;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             margin-bottom: 22px;
-
             background:
                 radial-gradient(
                     circle,
@@ -623,9 +488,7 @@
                     rgba(139,92,246,.05) 65%,
                     transparent
                 );
-
             border: 1px solid rgba(100,160,255,.2);
-
             box-shadow:
                 0 0 60px rgba(79,172,254,.12);
         }
@@ -649,25 +512,15 @@
             line-height: 1.7;
         }
 
-
-        /* =====================================================
-           AI LOADING
-        ===================================================== */
-
         .ai-loading {
             display: none;
-
             min-height: 390px;
-
             border-radius: 20px;
-
             background: rgba(255,255,255,.025);
             border: 1px solid rgba(255,255,255,.06);
-
             align-items: center;
             justify-content: center;
             flex-direction: column;
-
             text-align: center;
         }
 
@@ -678,17 +531,12 @@
         .ai-scan-animation {
             width: 130px;
             height: 130px;
-
             border-radius: 50%;
-
             border: 1px solid rgba(79,172,254,.3);
-
             position: relative;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             margin-bottom: 25px;
         }
 
@@ -752,11 +600,8 @@
             width: 260px;
             max-width: 80%;
             height: 5px;
-
             margin-top: 20px;
-
             background: rgba(255,255,255,.07);
-
             border-radius: 50px;
             overflow: hidden;
         }
@@ -765,16 +610,13 @@
             display: block;
             width: 45%;
             height: 100%;
-
             background:
                 linear-gradient(
                     90deg,
                     #4facfe,
                     #8b5cf6
                 );
-
             border-radius: inherit;
-
             animation: loadingMove 1.5s ease-in-out infinite;
         }
 
@@ -790,11 +632,6 @@
 
         }
 
-
-        /* =====================================================
-           RESULTS
-        ===================================================== */
-
         .ai-results {
             display: none;
             flex-direction: column;
@@ -805,19 +642,15 @@
             display: flex;
         }
 
-
         .result-main {
             padding: 18px;
-
             border-radius: 18px;
-
             background:
                 linear-gradient(
                     135deg,
                     rgba(79,172,254,.09),
                     rgba(139,92,246,.07)
                 );
-
             border: 1px solid rgba(100,160,255,.12);
         }
 
@@ -844,11 +677,6 @@
             line-height: 1.6;
         }
 
-
-        /* =====================================================
-           RESULT GRID
-        ===================================================== */
-
         .result-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -857,11 +685,8 @@
 
         .result-box {
             padding: 15px;
-
             border-radius: 15px;
-
             background: rgba(255,255,255,.035);
-
             border: 1px solid rgba(255,255,255,.06);
         }
 
@@ -888,22 +713,14 @@
             display: block;
             color: #fff;
             font-size: 14px;
+            line-height: 1.45;
         }
-
-
-        /* =====================================================
-           WARNING
-        ===================================================== */
 
         .result-warning {
             padding: 15px;
-
             border-radius: 15px;
-
             background: rgba(245,158,11,.07);
-
             border: 1px solid rgba(245,158,11,.14);
-
             display: flex;
             gap: 12px;
         }
@@ -911,17 +728,12 @@
         .warning-icon {
             width: 36px;
             height: 36px;
-
             flex-shrink: 0;
-
             border-radius: 10px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             background: rgba(245,158,11,.12);
-
             color: #fbbf24;
         }
 
@@ -939,18 +751,10 @@
             line-height: 1.5;
         }
 
-
-        /* =====================================================
-           CONFIDENCE
-        ===================================================== */
-
         .confidence-box {
             padding: 15px;
-
             border-radius: 15px;
-
             background: rgba(52,211,153,.05);
-
             border: 1px solid rgba(52,211,153,.1);
         }
 
@@ -986,11 +790,6 @@
             transition: width .5s ease;
         }
 
-
-        /* =====================================================
-           ASK AI
-        ===================================================== */
-
         .ask-ai-box {
             margin-top: 4px;
             display: flex;
@@ -999,19 +798,12 @@
 
         .ask-ai-box input {
             flex: 1;
-
             min-width: 0;
-
             padding: 13px 15px;
-
             border-radius: 13px;
-
             border: 1px solid rgba(255,255,255,.08);
-
             background: rgba(255,255,255,.035);
-
             color: #fff;
-
             outline: none;
         }
 
@@ -1025,19 +817,15 @@
 
         .ask-ai-box button {
             width: 45px;
-
             border: 0;
             border-radius: 13px;
-
             background:
                 linear-gradient(
                     135deg,
                     #2563eb,
                     #7c3aed
                 );
-
             color: #fff;
-
             cursor: pointer;
         }
 
@@ -1045,11 +833,6 @@
             opacity: .5;
             cursor: not-allowed;
         }
-
-
-        /* =====================================================
-           RESET
-        ===================================================== */
 
         .reset-button {
             border: 0;
@@ -1064,28 +847,18 @@
             color: #fff;
         }
 
-
-        /* =====================================================
-           FEATURES STRIP
-        ===================================================== */
-
         .scanner-features {
             max-width: 1200px;
             margin: 25px auto 0;
-
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-
             gap: 12px;
         }
 
         .scanner-feature {
             padding: 17px;
-
             border-radius: 17px;
-
             background: rgba(255,255,255,.025);
-
             border: 1px solid rgba(255,255,255,.06);
         }
 
@@ -1109,11 +882,6 @@
             line-height: 1.5;
         }
 
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
         @media (max-width: 900px) {
 
             .scanner-container {
@@ -1125,7 +893,6 @@
             }
 
         }
-
 
         @media (max-width: 600px) {
 
@@ -1179,18 +946,9 @@
 
 <body>
 
-
-    <!-- =====================================================
-         BACKGROUND
-    ====================================================== -->
-
     <div class="scan-bg-glow one"></div>
     <div class="scan-bg-glow two"></div>
 
-
-    <!-- =====================================================
-         NAVIGATION
-    ====================================================== -->
 
     <header class="main-header">
 
@@ -1310,19 +1068,9 @@
     </header>
 
 
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
     <main>
 
         <section class="scan-product-page">
-
-
-            <!-- =================================================
-                 PAGE HEADER
-            ================================================== -->
 
             <div class="scan-page-header">
 
@@ -1358,17 +1106,8 @@
             </div>
 
 
-
-            <!-- =================================================
-                 SCANNER
-            ================================================== -->
-
             <div class="scanner-container">
 
-
-                <!-- =================================================
-                     LEFT — UPLOAD
-                ================================================== -->
 
                 <div class="scanner-card upload-card">
 
@@ -1389,9 +1128,6 @@
                         class="upload-zone"
                         id="uploadZone"
                     >
-
-
-                        <!-- DEFAULT -->
 
                         <div
                             class="upload-content"
@@ -1460,9 +1196,6 @@
                         </div>
 
 
-
-                        <!-- IMAGE PREVIEW -->
-
                         <div
                             class="preview-container"
                             id="previewContainer"
@@ -1518,13 +1251,7 @@
                 </div>
 
 
-
-                <!-- =================================================
-                     RIGHT — AI ANALYSIS
-                ================================================== -->
-
                 <div class="scanner-card ai-panel">
-
 
                     <div class="ai-panel-header">
 
@@ -1555,11 +1282,6 @@
                     </div>
 
 
-
-                    <!-- =================================================
-                         EMPTY
-                    ================================================== -->
-
                     <div
                         class="ai-empty"
                         id="aiEmpty"
@@ -1587,11 +1309,6 @@
 
                     </div>
 
-
-
-                    <!-- =================================================
-                         LOADING
-                    ================================================== -->
 
                     <div
                         class="ai-loading"
@@ -1627,18 +1344,10 @@
                     </div>
 
 
-
-                    <!-- =================================================
-                         RESULTS
-                    ================================================== -->
-
                     <div
                         class="ai-results"
                         id="aiResults"
                     >
-
-
-                        <!-- PRODUCT -->
 
                         <div class="result-main">
 
@@ -1661,11 +1370,7 @@
                         </div>
 
 
-
-                        <!-- DETAILS -->
-
                         <div class="result-grid">
-
 
                             <div class="result-box">
 
@@ -1745,9 +1450,6 @@
                         </div>
 
 
-
-                        <!-- WARNING -->
-
                         <div class="result-warning">
 
                             <div class="warning-icon">
@@ -1775,9 +1477,6 @@
                         </div>
 
 
-
-                        <!-- CONFIDENCE -->
-
                         <div class="confidence-box">
 
                             <div class="confidence-header">
@@ -1795,17 +1494,12 @@
 
                             <div class="confidence-bar">
 
-                                <span
-                                    id="confidenceBar"
-                                ></span>
+                                <span id="confidenceBar"></span>
 
                             </div>
 
                         </div>
 
-
-
-                        <!-- ASK AI -->
 
                         <div class="ask-ai-box">
 
@@ -1847,13 +1541,7 @@
             </div>
 
 
-
-            <!-- =================================================
-                 FEATURES
-            ================================================== -->
-
             <div class="scanner-features">
-
 
                 <div class="scanner-feature">
 
@@ -1918,7 +1606,6 @@
 
                 </div>
 
-
             </div>
 
         </section>
@@ -1926,24 +1613,9 @@
     </main>
 
 
-
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
-
     <script>
 
     "use strict";
-
-
-    /* =========================================================
-       CIVICAI — REAL PRODUCT AI SCANNER
-       FRONTEND
-       BACKEND ENDPOINT:
-       POST /api/analyze-product
-       POST /api/product-question
-       GET  /api/health
-    ========================================================= */
 
 
     document.addEventListener(
@@ -1951,235 +1623,125 @@
         () => {
 
 
-            /* =================================================
+            /* =====================================================
                ELEMENTS
-            ================================================= */
+            ===================================================== */
 
             const productInput =
-                document.getElementById(
-                    "productInput"
-                );
-
+                document.getElementById("productInput");
 
             const uploadButton =
-                document.getElementById(
-                    "uploadButton"
-                );
-
+                document.getElementById("uploadButton");
 
             const cameraButton =
-                document.getElementById(
-                    "cameraButton"
-                );
-
+                document.getElementById("cameraButton");
 
             const uploadZone =
-                document.getElementById(
-                    "uploadZone"
-                );
-
+                document.getElementById("uploadZone");
 
             const uploadContent =
-                document.getElementById(
-                    "uploadContent"
-                );
-
+                document.getElementById("uploadContent");
 
             const previewContainer =
-                document.getElementById(
-                    "previewContainer"
-                );
-
+                document.getElementById("previewContainer");
 
             const productPreview =
-                document.getElementById(
-                    "productPreview"
-                );
-
+                document.getElementById("productPreview");
 
             const previewName =
-                document.getElementById(
-                    "previewName"
-                );
-
+                document.getElementById("previewName");
 
             const changeImage =
-                document.getElementById(
-                    "changeImage"
-                );
-
+                document.getElementById("changeImage");
 
             const analyzeButton =
-                document.getElementById(
-                    "analyzeButton"
-                );
-
+                document.getElementById("analyzeButton");
 
             const aiEmpty =
-                document.getElementById(
-                    "aiEmpty"
-                );
-
+                document.getElementById("aiEmpty");
 
             const aiLoading =
-                document.getElementById(
-                    "aiLoading"
-                );
-
+                document.getElementById("aiLoading");
 
             const aiResults =
-                document.getElementById(
-                    "aiResults"
-                );
-
+                document.getElementById("aiResults");
 
             const loadingText =
-                document.getElementById(
-                    "loadingText"
-                );
-
+                document.getElementById("loadingText");
 
             const resetScanner =
-                document.getElementById(
-                    "resetScanner"
-                );
-
+                document.getElementById("resetScanner");
 
             const askAIButton =
-                document.getElementById(
-                    "askAIButton"
-                );
-
+                document.getElementById("askAIButton");
 
             const productQuestion =
-                document.getElementById(
-                    "productQuestion"
-                );
-
+                document.getElementById("productQuestion");
 
             const productName =
-                document.getElementById(
-                    "productName"
-                );
-
+                document.getElementById("productName");
 
             const productDescription =
-                document.getElementById(
-                    "productDescription"
-                );
-
+                document.getElementById("productDescription");
 
             const productCategory =
-                document.getElementById(
-                    "productCategory"
-                );
-
+                document.getElementById("productCategory");
 
             const productPrice =
-                document.getElementById(
-                    "productPrice"
-                );
-
+                document.getElementById("productPrice");
 
             const productCondition =
-                document.getElementById(
-                    "productCondition"
-                );
-
+                document.getElementById("productCondition");
 
             const productExpiry =
-                document.getElementById(
-                    "productExpiry"
-                );
-
+                document.getElementById("productExpiry");
 
             const productWarning =
-                document.getElementById(
-                    "productWarning"
-                );
-
+                document.getElementById("productWarning");
 
             const confidenceValue =
-                document.getElementById(
-                    "confidenceValue"
-                );
-
+                document.getElementById("confidenceValue");
 
             const confidenceBar =
-                document.getElementById(
-                    "confidenceBar"
-                );
-
+                document.getElementById("confidenceBar");
 
             const aiOnline =
-                document.querySelector(
-                    ".ai-online"
-                );
-
+                document.querySelector(".ai-online");
 
             const mobileMenuButton =
-                document.getElementById(
-                    "mobileMenuButton"
-                );
-
+                document.getElementById("mobileMenuButton");
 
             const mobileNavigation =
-                document.getElementById(
-                    "mobileNavigation"
-                );
+                document.getElementById("mobileNavigation");
 
 
-
-            /* =================================================
-               API CONFIGURATION
-
-               Same-origin API.
-
-               Local:
-               http://localhost:3000
-
-               Production:
-               current website domain
-            ================================================= */
+            /* =====================================================
+               API
+            ===================================================== */
 
             const API_BASE =
                 window.CIVICAI_API_URL || "";
 
 
-
-            /* =================================================
+            /* =====================================================
                STATE
-            ================================================= */
+            ===================================================== */
 
-            let selectedFile =
-                null;
+            let selectedFile = null;
 
+            let selectedImageBase64 = null;
 
-            let selectedImageBase64 =
-                null;
+            let currentAnalysis = null;
 
+            let isAnalyzing = false;
 
-            let currentAnalysis =
-                null;
+            let isAsking = false;
 
-
-            let isAnalyzing =
-                false;
-
-
-            let isAsking =
-                false;
-
-
-
-            /* =================================================
-               SAFETY CHECK
-            ================================================= */
 
             if (!productInput) {
 
                 console.error(
-                    "CivicAI: productInput element not found."
+                    "CivicAI: productInput not found."
                 );
 
                 return;
@@ -2187,13 +1749,11 @@
             }
 
 
-
-            /* =================================================
-               BACKEND HEALTH CHECK
-            ================================================= */
+            /* =====================================================
+               BACKEND HEALTH
+            ===================================================== */
 
             checkBackendHealth();
-
 
 
             async function checkBackendHealth() {
@@ -2224,9 +1784,7 @@
                     try {
 
                         data =
-                            JSON.parse(
-                                rawText
-                            );
+                            JSON.parse(rawText);
 
                     } catch {
 
@@ -2248,17 +1806,6 @@
                     }
 
 
-                    /*
-                     * Backend may return:
-                     *
-                     * {
-                     *   success: true,
-                     *   aiConfigured: true
-                     * }
-                     *
-                     * or similar structure.
-                     */
-
                     const aiConfigured =
                         data.aiConfigured !== false &&
                         data.success !== false;
@@ -2271,21 +1818,11 @@
                             "AI ONLINE"
                         );
 
-
-                        console.log(
-                            "CivicAI: Backend + AI connection OK."
-                        );
-
                     } else {
 
                         setAIStatus(
                             false,
                             "AI NOT CONFIGURED"
-                        );
-
-
-                        console.warn(
-                            "CivicAI: Backend is online but AI is not configured."
                         );
 
                     }
@@ -2309,10 +1846,9 @@
             }
 
 
-
-            /* =================================================
-               AI STATUS UI
-            ================================================= */
+            /* =====================================================
+               AI STATUS
+            ===================================================== */
 
             function setAIStatus(
                 online,
@@ -2324,20 +1860,15 @@
                 }
 
 
-                aiOnline.innerHTML =
-                    "";
+                aiOnline.innerHTML = "";
 
 
                 const dot =
-                    document.createElement(
-                        "span"
-                    );
+                    document.createElement("span");
 
 
                 const label =
-                    document.createTextNode(
-                        text
-                    );
+                    document.createTextNode(text);
 
 
                 if (online) {
@@ -2345,14 +1876,11 @@
                     dot.style.background =
                         "#4ade80";
 
-
                     dot.style.boxShadow =
                         "0 0 10px #4ade80";
 
-
                     aiOnline.style.color =
                         "#58e6a0";
-
 
                     aiOnline.style.background =
                         "rgba(50,220,140,.08)";
@@ -2362,14 +1890,11 @@
                     dot.style.background =
                         "#ef4444";
 
-
                     dot.style.boxShadow =
                         "0 0 10px #ef4444";
 
-
                     aiOnline.style.color =
                         "#f87171";
-
 
                     aiOnline.style.background =
                         "rgba(239,68,68,.08)";
@@ -2377,22 +1902,16 @@
                 }
 
 
-                aiOnline.appendChild(
-                    dot
-                );
+                aiOnline.appendChild(dot);
 
-
-                aiOnline.appendChild(
-                    label
-                );
+                aiOnline.appendChild(label);
 
             }
 
 
-
-            /* =================================================
-               UPLOAD BUTTON
-            ================================================= */
+            /* =====================================================
+               UPLOAD
+            ===================================================== */
 
             if (uploadButton) {
 
@@ -2404,10 +1923,7 @@
                             "capture"
                         );
 
-
-                        productInput.value =
-                            "";
-
+                        productInput.value = "";
 
                         productInput.click();
 
@@ -2417,10 +1933,9 @@
             }
 
 
-
-            /* =================================================
-               CAMERA BUTTON
-            ================================================= */
+            /* =====================================================
+               CAMERA
+            ===================================================== */
 
             if (cameraButton) {
 
@@ -2428,15 +1943,12 @@
                     "click",
                     () => {
 
-                        productInput.value =
-                            "";
-
+                        productInput.value = "";
 
                         productInput.setAttribute(
                             "capture",
                             "environment"
                         );
-
 
                         productInput.click();
 
@@ -2446,10 +1958,9 @@
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                FILE SELECT
-            ================================================= */
+            ===================================================== */
 
             productInput.addEventListener(
                 "change",
@@ -2464,76 +1975,55 @@
                     }
 
 
-                    await showPreview(
-                        file
-                    );
+                    await showPreview(file);
 
                 }
             );
 
 
-
-            /* =================================================
+            /* =====================================================
                SHOW PREVIEW
-            ================================================= */
+            ===================================================== */
 
-            async function showPreview(
-                file
-            ) {
+            async function showPreview(file) {
 
                 if (
                     !file.type ||
-                    !file.type.startsWith(
-                        "image/"
-                    )
+                    !file.type.startsWith("image/")
                 ) {
 
                     alert(
                         "Please select a valid image file."
                     );
 
-
                     return;
 
                 }
 
-
-                /*
-                 * Basic file-size protection.
-                 *
-                 * 15 MB maximum.
-                 */
 
                 const MAX_FILE_SIZE =
                     15 * 1024 * 1024;
 
 
-                if (
-                    file.size >
-                    MAX_FILE_SIZE
-                ) {
+                if (file.size > MAX_FILE_SIZE) {
 
                     alert(
-                        "Image is too large.\n\nPlease select an image smaller than 15 MB."
+                        "Image is too large.\n\n" +
+                        "Please select an image smaller than 15 MB."
                     );
-
 
                     return;
 
                 }
 
 
-                selectedFile =
-                    file;
+                selectedFile = file;
 
 
                 try {
 
                     selectedImageBase64 =
-                        await fileToBase64(
-                            file
-                        );
-
+                        await fileToBase64(file);
 
                 } catch (error) {
 
@@ -2542,19 +2032,13 @@
                         error
                     );
 
-
                     alert(
                         "Could not read the selected image."
                     );
 
+                    selectedFile = null;
 
-                    selectedFile =
-                        null;
-
-
-                    selectedImageBase64 =
-                        null;
-
+                    selectedImageBase64 = null;
 
                     return;
 
@@ -2583,10 +2067,6 @@
                     false;
 
 
-                /*
-                 * Reset AI state.
-                 */
-
                 aiResults.classList.remove(
                     "active"
                 );
@@ -2601,24 +2081,18 @@
                     "flex";
 
 
-                currentAnalysis =
-                    null;
+                currentAnalysis = null;
 
-
-                productQuestion.value =
-                    "";
+                productQuestion.value = "";
 
             }
 
 
+            /* =====================================================
+               BASE64
+            ===================================================== */
 
-            /* =================================================
-               FILE → BASE64
-            ================================================= */
-
-            function fileToBase64(
-                file
-            ) {
+            function fileToBase64(file) {
 
                 return new Promise(
                     (
@@ -2652,9 +2126,7 @@
                             };
 
 
-                        reader.readAsDataURL(
-                            file
-                        );
+                        reader.readAsDataURL(file);
 
                     }
                 );
@@ -2662,10 +2134,9 @@
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                CHANGE IMAGE
-            ================================================= */
+            ===================================================== */
 
             if (changeImage) {
 
@@ -2675,15 +2146,11 @@
 
                         event.stopPropagation();
 
-
                         productInput.removeAttribute(
                             "capture"
                         );
 
-
-                        productInput.value =
-                            "";
-
+                        productInput.value = "";
 
                         productInput.click();
 
@@ -2693,10 +2160,9 @@
             }
 
 
-
-            /* =================================================
-               DRAG & DROP
-            ================================================= */
+            /* =====================================================
+               DRAG DROP
+            ===================================================== */
 
             [
                 "dragenter",
@@ -2710,9 +2176,7 @@
 
                             event.preventDefault();
 
-
                             event.stopPropagation();
-
 
                             uploadZone.classList.add(
                                 "dragging"
@@ -2737,9 +2201,7 @@
 
                             event.preventDefault();
 
-
                             event.stopPropagation();
-
 
                             uploadZone.classList.remove(
                                 "dragging"
@@ -2766,34 +2228,25 @@
                     }
 
 
-                    await showPreview(
-                        file
-                    );
+                    await showPreview(file);
 
                 }
             );
 
 
-
-            /* =================================================
+            /* =====================================================
                ANALYZE BUTTON
-            ================================================= */
+            ===================================================== */
 
-            if (analyzeButton) {
-
-                analyzeButton.addEventListener(
-                    "click",
-                    analyzeProduct
-                );
-
-            }
+            analyzeButton.addEventListener(
+                "click",
+                analyzeProduct
+            );
 
 
-
-            /* =================================================
+            /* =====================================================
                ANALYZE PRODUCT
-               REAL BACKEND REQUEST
-            ================================================= */
+            ===================================================== */
 
             async function analyzeProduct() {
 
@@ -2808,12 +2261,9 @@
                 }
 
 
-                isAnalyzing =
-                    true;
+                isAnalyzing = true;
 
-
-                analyzeButton.disabled =
-                    true;
+                analyzeButton.disabled = true;
 
 
                 aiEmpty.style.display =
@@ -2838,17 +2288,20 @@
 
                     "Reading visible product information...",
 
-                    "Identifying product category...",
+                    "Identifying product and category...",
 
-                    "Checking condition and expiry...",
+                    "Estimating the current market price...",
+
+                    "Evaluating visible physical condition...",
+
+                    "Checking visible expiry information...",
 
                     "Checking visible safety information..."
 
                 ];
 
 
-                let messageIndex =
-                    0;
+                let messageIndex = 0;
 
 
                 loadingText.textContent =
@@ -2878,22 +2331,6 @@
 
                 try {
 
-                    console.log(
-                        "CivicAI: Sending image to /api/analyze-product"
-                    );
-
-
-                    /*
-                     * IMPORTANT:
-                     *
-                     * Correct backend endpoint:
-                     *
-                     * POST /api/analyze-product
-                     *
-                     * NOT:
-                     * /api/product-analyze
-                     */
-
                     const response =
                         await fetch(
                             `${API_BASE}/api/analyze-product`,
@@ -2910,10 +2347,8 @@
 
                                 body:
                                     JSON.stringify({
-
                                         image:
                                             selectedImageBase64
-
                                     })
                             }
                         );
@@ -2923,16 +2358,13 @@
                         await response.text();
 
 
-                    let data =
-                        null;
+                    let data = null;
 
 
                     try {
 
                         data =
-                            JSON.parse(
-                                rawText
-                            );
+                            JSON.parse(rawText);
 
                     } catch {
 
@@ -2969,15 +2401,6 @@
                     }
 
 
-                    /*
-                     * Backend should return:
-                     *
-                     * {
-                     *   success: true,
-                     *   analysis: {...}
-                     * }
-                     */
-
                     if (!data.analysis) {
 
                         throw new Error(
@@ -2988,7 +2411,7 @@
 
 
                     console.log(
-                        "CivicAI REAL AI RESPONSE:",
+                        "CIVICAI PRODUCT AI RESPONSE:",
                         data.analysis
                     );
 
@@ -2997,6 +2420,12 @@
                         normalizeProductAnalysis(
                             data.analysis
                         );
+
+
+                    console.log(
+                        "CIVICAI NORMALIZED RESPONSE:",
+                        currentAnalysis
+                    );
 
 
                     renderProductAnalysis(
@@ -3031,9 +2460,7 @@
                         "flex";
 
 
-                    showRealError(
-                        error
-                    );
+                    showRealError(error);
 
                 } finally {
 
@@ -3042,113 +2469,656 @@
                     );
 
 
-                    isAnalyzing =
-                        false;
+                    isAnalyzing = false;
 
-
-                    analyzeButton.disabled =
-                        false;
+                    analyzeButton.disabled = false;
 
                 }
 
             }
 
 
-
-            /* =================================================
-               NORMALIZE PRODUCT RESPONSE
-            ================================================= */
+            /* =====================================================
+               NORMALIZE RESPONSE
+               IMPORTANT FIX
+            ===================================================== */
 
             function normalizeProductAnalysis(
                 analysis
             ) {
 
                 /*
-                 * Supports common backend naming variations.
+                 * Product name
                  */
+
+                const productNameValue =
+                    firstUsefulValue(
+                        analysis.productName,
+                        analysis.name,
+                        analysis.product,
+                        analysis.title,
+                        analysis.product_title,
+                        analysis.itemName
+                    );
+
+
+                /*
+                 * Description
+                 */
+
+                const descriptionValue =
+                    firstUsefulValue(
+                        analysis.description,
+                        analysis.productDescription,
+                        analysis.details,
+                        analysis.product_details,
+                        analysis.summary
+                    );
+
+
+                /*
+                 * Category
+                 */
+
+                const categoryValue =
+                    firstUsefulValue(
+                        analysis.category,
+                        analysis.productCategory,
+                        analysis.type,
+                        analysis.productType,
+                        analysis.product_category
+                    );
+
+
+                /*
+                 * PRICE
+                 *
+                 * Supports many possible backend keys.
+                 */
+
+                let priceValue =
+                    firstUsefulValue(
+                        analysis.estimatedPrice,
+                        analysis.estimated_price,
+                        analysis.estimatedPriceRange,
+                        analysis.priceRange,
+                        analysis.price_range,
+                        analysis.marketPrice,
+                        analysis.market_price,
+                        analysis.currentMarketPrice,
+                        analysis.current_market_price,
+                        analysis.approximatePrice,
+                        analysis.approximate_price,
+                        analysis.price,
+                        analysis.mrp,
+                        analysis.MRP
+                    );
+
+
+                /*
+                 * If backend returns price object:
+                 *
+                 * {
+                 *   min: 500,
+                 *   max: 800
+                 * }
+                 */
+
+                if (
+                    priceValue &&
+                    typeof priceValue === "object"
+                ) {
+
+                    const min =
+                        priceValue.min ??
+                        priceValue.minimum ??
+                        priceValue.low;
+
+                    const max =
+                        priceValue.max ??
+                        priceValue.maximum ??
+                        priceValue.high;
+
+                    const currency =
+                        priceValue.currency ||
+                        "₹";
+
+
+                    if (
+                        min !== undefined &&
+                        max !== undefined
+                    ) {
+
+                        priceValue =
+                            `${currency}${min} – ${currency}${max} (estimated)`;
+
+                    } else if (
+                        min !== undefined
+                    ) {
+
+                        priceValue =
+                            `${currency}${min} (estimated)`;
+
+                    } else if (
+                        max !== undefined
+                    ) {
+
+                        priceValue =
+                            `${currency}${max} (estimated)`;
+
+                    } else {
+
+                        priceValue = "";
+
+                    }
+
+                }
+
+
+                /*
+                 * CONDITION
+                 */
+
+                let conditionValue =
+                    firstUsefulValue(
+                        analysis.condition,
+                        analysis.productCondition,
+                        analysis.product_condition,
+                        analysis.physicalCondition,
+                        analysis.physical_condition,
+                        analysis.itemCondition,
+                        analysis.item_condition,
+                        analysis.conditionStatus,
+                        analysis.condition_status
+                    );
+
+
+                /*
+                 * If backend returns:
+                 *
+                 * {
+                 *   condition: {
+                 *      status: "Good",
+                 *      details: "Minor scratches"
+                 *   }
+                 * }
+                 */
+
+                if (
+                    conditionValue &&
+                    typeof conditionValue === "object"
+                ) {
+
+                    const status =
+                        conditionValue.status ??
+                        conditionValue.value ??
+                        conditionValue.level ??
+                        conditionValue.condition;
+
+                    const details =
+                        conditionValue.details ??
+                        conditionValue.description ??
+                        conditionValue.notes;
+
+                    if (status && details) {
+
+                        conditionValue =
+                            `${status} — ${details}`;
+
+                    } else if (status) {
+
+                        conditionValue =
+                            String(status);
+
+                    } else if (details) {
+
+                        conditionValue =
+                            String(details);
+
+                    } else {
+
+                        conditionValue = "";
+
+                    }
+
+                }
+
+
+                /*
+                 * EXPIRY
+                 */
+
+                const expiryValue =
+                    firstUsefulValue(
+                        analysis.expiry,
+                        analysis.expiryDate,
+                        analysis.expiration,
+                        analysis.expirationDate,
+                        analysis.expiry_date,
+                        analysis.expiration_date,
+                        analysis.bestBefore,
+                        analysis.best_before
+                    );
+
+
+                /*
+                 * WARNING
+                 */
+
+                const warningValue =
+                    firstUsefulValue(
+                        analysis.warning,
+                        analysis.safetyWarning,
+                        analysis.safety_warning,
+                        analysis.safety,
+                        analysis.risk,
+                        analysis.risks,
+                        analysis.visibleWarning
+                    );
+
+
+                /*
+                 * CONFIDENCE
+                 */
+
+                const confidenceValue =
+                    normalizeConfidence(
+                        analysis.confidence ??
+                        analysis.confidenceScore ??
+                        analysis.confidence_score ??
+                        analysis.recognitionConfidence
+                    );
+
 
                 return {
 
                     productName:
                         safeText(
-                            analysis.productName ??
-                            analysis.name ??
-                            analysis.product ??
-                            analysis.title,
+                            productNameValue,
                             "Unknown product"
                         ),
 
-
                     description:
                         safeText(
-                            analysis.description ??
-                            analysis.productDescription ??
-                            analysis.details,
+                            descriptionValue,
                             "The AI could not determine a detailed description."
                         ),
 
-
                     category:
                         safeText(
-                            analysis.category ??
-                            analysis.productCategory ??
-                            analysis.type,
+                            categoryValue,
                             "Unknown"
                         ),
 
-
                     estimatedPrice:
-                        safeText(
-                            analysis.estimatedPrice ??
-                            analysis.price ??
-                            analysis.estimated_price,
-                            "Not available"
+                        formatPrice(
+                            priceValue
                         ),
-
 
                     condition:
-                        safeText(
-                            analysis.condition ??
-                            analysis.productCondition,
-                            "Not determined"
+                        formatCondition(
+                            conditionValue
                         ),
-
 
                     expiry:
-                        safeText(
-                            analysis.expiry ??
-                            analysis.expiryDate ??
-                            analysis.expiration ??
-                            analysis.expirationDate,
-                            "Not detected"
+                        formatExpiry(
+                            expiryValue
                         ),
-
 
                     warning:
                         safeText(
-                            analysis.warning ??
-                            analysis.safetyWarning ??
-                            analysis.safety ??
-                            analysis.risk,
+                            warningValue,
                             "No clear warning could be determined from the image."
                         ),
 
-
                     confidence:
-                        normalizeConfidence(
-                            analysis.confidence ??
-                            analysis.confidenceScore
-                        )
+                        confidenceValue
 
                 };
 
             }
 
 
+            /* =====================================================
+               FIRST USEFUL VALUE
+            ===================================================== */
 
-            /* =================================================
-               RENDER AI RESULT
-            ================================================= */
+            function firstUsefulValue(...values) {
+
+                for (
+                    const value of values
+                ) {
+
+                    if (
+                        value === null ||
+                        value === undefined
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    if (
+                        typeof value === "string" &&
+                        value.trim()
+                    ) {
+
+                        return value.trim();
+
+                    }
+
+
+                    if (
+                        typeof value === "number" &&
+                        Number.isFinite(value)
+                    ) {
+
+                        return value;
+
+                    }
+
+
+                    if (
+                        typeof value === "object"
+                    ) {
+
+                        return value;
+
+                    }
+
+                }
+
+
+                return null;
+
+            }
+
+
+            /* =====================================================
+               PRICE FORMAT
+            ===================================================== */
+
+            function formatPrice(value) {
+
+                if (
+                    value === null ||
+                    value === undefined ||
+                    value === ""
+                ) {
+
+                    return "Not available";
+
+                }
+
+
+                if (
+                    typeof value === "number" &&
+                    Number.isFinite(value)
+                ) {
+
+                    return `₹${value.toLocaleString("en-IN")} (estimated)`;
+
+                }
+
+
+                let text =
+                    String(value).trim();
+
+
+                if (!text) {
+
+                    return "Not available";
+
+                }
+
+
+                /*
+                 * Clean accidental JSON-ish output.
+                 */
+
+                text =
+                    text
+                        .replace(
+                            /^["']|["']$/g,
+                            ""
+                        )
+                        .trim();
+
+
+                /*
+                 * If backend gives:
+                 *
+                 * 500-800
+                 *
+                 * turn into:
+                 *
+                 * ₹500 – ₹800 (estimated)
+                 */
+
+                const rangeMatch =
+                    text.match(
+                        /₹?\s*(\d[\d,]*)\s*(?:-|–|to)\s*₹?\s*(\d[\d,]*)/i
+                    );
+
+
+                if (rangeMatch) {
+
+                    const min =
+                        rangeMatch[1];
+
+                    const max =
+                        rangeMatch[2];
+
+                    return `₹${min} – ₹${max} (estimated)`;
+
+                }
+
+
+                /*
+                 * If AI already returned ₹,
+                 * preserve it.
+                 */
+
+                if (
+                    /₹/.test(text)
+                ) {
+
+                    if (
+                        !/estimated/i.test(text)
+                    ) {
+
+                        return `${text} (estimated)`;
+
+                    }
+
+                    return text;
+
+                }
+
+
+                /*
+                 * Numeric price without currency.
+                 */
+
+                const numericMatch =
+                    text.match(
+                        /^\s*(\d[\d,]*(?:\.\d+)?)\s*$/
+                    );
+
+
+                if (numericMatch) {
+
+                    return `₹${numericMatch[1]} (estimated)`;
+
+                }
+
+
+                return text;
+
+            }
+
+
+            /* =====================================================
+               CONDITION FORMAT
+            ===================================================== */
+
+            function formatCondition(value) {
+
+                if (
+                    value === null ||
+                    value === undefined ||
+                    value === ""
+                ) {
+
+                    return "Not determined";
+
+                }
+
+
+                const text =
+                    String(value).trim();
+
+
+                if (!text) {
+
+                    return "Not determined";
+
+                }
+
+
+                /*
+                 * Normalize common AI outputs.
+                 */
+
+                const lower =
+                    text.toLowerCase();
+
+
+                if (
+                    lower === "new"
+                ) {
+
+                    return "New";
+
+                }
+
+
+                if (
+                    lower.includes("excellent")
+                ) {
+
+                    return "Excellent";
+
+                }
+
+
+                if (
+                    lower.includes("good")
+                ) {
+
+                    return "Good";
+
+                }
+
+
+                if (
+                    lower.includes("fair")
+                ) {
+
+                    return "Fair";
+
+                }
+
+
+                if (
+                    lower.includes("poor")
+                ) {
+
+                    return "Poor";
+
+                }
+
+
+                if (
+                    lower.includes("damaged")
+                ) {
+
+                    return "Damaged";
+
+                }
+
+
+                if (
+                    lower.includes("unable") ||
+                    lower.includes("cannot determine") ||
+                    lower.includes("not visible") ||
+                    lower.includes("unknown")
+                ) {
+
+                    return "Unable to determine";
+
+                }
+
+
+                return text;
+
+            }
+
+
+            /* =====================================================
+               EXPIRY FORMAT
+            ===================================================== */
+
+            function formatExpiry(value) {
+
+                if (
+                    value === null ||
+                    value === undefined ||
+                    value === ""
+                ) {
+
+                    return "Not detected";
+
+                }
+
+
+                const text =
+                    String(value).trim();
+
+
+                if (!text) {
+
+                    return "Not detected";
+
+                }
+
+
+                const lower =
+                    text.toLowerCase();
+
+
+                if (
+                    lower.includes("not detected") ||
+                    lower.includes("not visible") ||
+                    lower.includes("unknown") ||
+                    lower.includes("cannot determine") ||
+                    lower.includes("unable")
+                ) {
+
+                    return "Not detected";
+
+                }
+
+
+                return text;
+
+            }
+
+
+            /* =====================================================
+               RENDER RESULT
+            ===================================================== */
 
             function renderProductAnalysis(
                 analysis
@@ -3192,32 +3162,23 @@
             }
 
 
+            /* =====================================================
+               CONFIDENCE
+            ===================================================== */
 
-            /* =================================================
-               CONFIDENCE NORMALIZER
-            ================================================= */
-
-            function normalizeConfidence(
-                value
-            ) {
+            function normalizeConfidence(value) {
 
                 if (
                     typeof value === "number" &&
                     Number.isFinite(value)
                 ) {
 
-                    /*
-                     * If AI gives 0.94 instead of 94,
-                     * convert it to percentage.
-                     */
-
                     if (
                         value > 0 &&
                         value <= 1
                     ) {
 
-                        value =
-                            value * 100;
+                        value *= 100;
 
                     }
 
@@ -3226,9 +3187,7 @@
                         0,
                         Math.min(
                             100,
-                            Math.round(
-                                value
-                            )
+                            Math.round(value)
                         )
                     );
 
@@ -3243,29 +3202,18 @@
                         value.trim();
 
 
-                    /*
-                     * Decimal confidence:
-                     * "0.94"
-                     */
-
                     if (
                         /^0?\.\d+$/.test(
                             trimmed
                         )
                     ) {
 
-                        const decimal =
-                            Number(
-                                trimmed
-                            );
-
-
                         return Math.max(
                             0,
                             Math.min(
                                 100,
                                 Math.round(
-                                    decimal * 100
+                                    Number(trimmed) * 100
                                 )
                             )
                         );
@@ -3285,9 +3233,7 @@
                             0,
                             Math.min(
                                 100,
-                                Number(
-                                    match[1]
-                                )
+                                Number(match[1])
                             )
                         );
 
@@ -3299,9 +3245,16 @@
 
 
                     if (
-                        lower.includes(
-                            "high"
-                        )
+                        lower.includes("very high")
+                    ) {
+
+                        return 95;
+
+                    }
+
+
+                    if (
+                        lower.includes("high")
                     ) {
 
                         return 90;
@@ -3310,9 +3263,7 @@
 
 
                     if (
-                        lower.includes(
-                            "medium"
-                        )
+                        lower.includes("medium")
                     ) {
 
                         return 65;
@@ -3321,9 +3272,7 @@
 
 
                     if (
-                        lower.includes(
-                            "low"
-                        )
+                        lower.includes("low")
                     ) {
 
                         return 35;
@@ -3338,10 +3287,9 @@
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                SAFE TEXT
-            ================================================= */
+            ===================================================== */
 
             function safeText(
                 value,
@@ -3358,10 +3306,17 @@
                 }
 
 
+                if (
+                    typeof value === "object"
+                ) {
+
+                    return fallback;
+
+                }
+
+
                 const text =
-                    String(
-                        value
-                    ).trim();
+                    String(value).trim();
 
 
                 return (
@@ -3372,24 +3327,16 @@
             }
 
 
+            /* =====================================================
+               ERROR
+            ===================================================== */
 
-            /* =================================================
-               REAL ERROR
-               NO DEMO FALLBACK
-            ================================================= */
-
-            function showRealError(
-                error
-            ) {
+            function showRealError(error) {
 
                 const message =
                     error?.message ||
                     "Unknown AI connection error.";
 
-
-                /*
-                 * Helpful console information.
-                 */
 
                 console.error(
                     "CivicAI ERROR:",
@@ -3401,17 +3348,15 @@
                     "CivicAI AI Error:\n\n" +
                     message +
                     "\n\n" +
-                    "Please check that your backend server is running and your Groq API configuration is correct."
+                    "Please check your backend server, Gemini API configuration and /api/analyze-product endpoint."
                 );
 
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                ASK AI
-               REAL PRODUCT QUESTION
-            ================================================= */
+            ===================================================== */
 
             if (askAIButton) {
 
@@ -3421,7 +3366,6 @@
                 );
 
             }
-
 
 
             async function askProductQuestion() {
@@ -3439,14 +3383,11 @@
                 }
 
 
-                if (
-                    !selectedImageBase64
-                ) {
+                if (!selectedImageBase64) {
 
                     alert(
                         "Please scan a product first."
                     );
-
 
                     return;
 
@@ -3458,12 +3399,9 @@
                 }
 
 
-                isAsking =
-                    true;
+                isAsking = true;
 
-
-                askAIButton.disabled =
-                    true;
+                askAIButton.disabled = true;
 
 
                 const originalHTML =
@@ -3476,11 +3414,6 @@
 
                 try {
 
-                    console.log(
-                        "CivicAI: Sending product question..."
-                    );
-
-
                     const response =
                         await fetch(
                             `${API_BASE}/api/product-question`,
@@ -3488,13 +3421,11 @@
                                 method: "POST",
 
                                 headers: {
-
                                     "Content-Type":
                                         "application/json",
 
                                     "Accept":
                                         "application/json"
-
                                 },
 
                                 body:
@@ -3512,7 +3443,6 @@
                                             ""
 
                                     })
-
                             }
                         );
 
@@ -3527,9 +3457,7 @@
                     try {
 
                         data =
-                            JSON.parse(
-                                rawText
-                            );
+                            JSON.parse(rawText);
 
                     } catch {
 
@@ -3566,18 +3494,13 @@
                     }
 
 
-                    /*
-                     * REAL AI ANSWER
-                     */
-
                     alert(
                         "CivicAI AI:\n\n" +
                         data.answer
                     );
 
 
-                    productQuestion.value =
-                        "";
+                    productQuestion.value = "";
 
 
                 } catch (error) {
@@ -3598,13 +3521,9 @@
 
                 } finally {
 
-                    isAsking =
-                        false;
+                    isAsking = false;
 
-
-                    askAIButton.disabled =
-                        false;
-
+                    askAIButton.disabled = false;
 
                     askAIButton.innerHTML =
                         originalHTML;
@@ -3614,10 +3533,9 @@
             }
 
 
-
-            /* =================================================
-               ENTER KEY
-            ================================================= */
+            /* =====================================================
+               ENTER
+            ===================================================== */
 
             if (productQuestion) {
 
@@ -3631,7 +3549,6 @@
 
                             event.preventDefault();
 
-
                             askProductQuestion();
 
                         }
@@ -3642,10 +3559,9 @@
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                RESET
-            ================================================= */
+            ===================================================== */
 
             if (resetScanner) {
 
@@ -3653,88 +3569,62 @@
                     "click",
                     () => {
 
-                        productInput.value =
-                            "";
+                        productInput.value = "";
 
+                        productPreview.src = "";
 
-                        productPreview.src =
-                            "";
+                        selectedFile = null;
 
+                        selectedImageBase64 = null;
 
-                        selectedFile =
-                            null;
-
-
-                        selectedImageBase64 =
-                            null;
-
-
-                        currentAnalysis =
-                            null;
-
+                        currentAnalysis = null;
 
                         previewContainer.classList.remove(
                             "active"
                         );
 
-
                         uploadContent.style.display =
                             "block";
-
 
                         aiResults.classList.remove(
                             "active"
                         );
 
-
                         aiLoading.classList.remove(
                             "active"
                         );
 
-
                         aiEmpty.style.display =
                             "flex";
-
 
                         analyzeButton.disabled =
                             true;
 
-
-                        productQuestion.value =
-                            "";
-
+                        productQuestion.value = "";
 
                         confidenceValue.textContent =
                             "0%";
 
-
                         confidenceBar.style.width =
                             "0%";
-
 
                         productName.textContent =
                             "Unknown product";
 
-
                         productDescription.textContent =
                             "AI-generated product description will appear here.";
-
 
                         productCategory.textContent =
                             "Unknown";
 
-
                         productPrice.textContent =
                             "Not available";
-
 
                         productCondition.textContent =
                             "Not determined";
 
-
                         productExpiry.textContent =
                             "Not detected";
-
 
                         productWarning.textContent =
                             "No clear warning could be determined from the image.";
@@ -3745,10 +3635,9 @@
             }
 
 
-
-            /* =================================================
+            /* =====================================================
                MOBILE MENU
-            ================================================= */
+            ===================================================== */
 
             if (
                 mobileMenuButton &&
@@ -3766,10 +3655,6 @@
                     }
                 );
 
-
-                /*
-                 * Close menu after navigation click.
-                 */
 
                 const mobileLinks =
                     mobileNavigation.querySelectorAll(
@@ -3797,48 +3682,53 @@
             }
 
 
-
-            /* =================================================
-               INITIAL LOG
-            ================================================= */
+            /* =====================================================
+               DEBUG
+            ===================================================== */
 
             console.log(
                 "=========================================="
             );
-
 
             console.log(
                 "CIVICAI PRODUCT SCANNER"
             );
 
-
             console.log(
-                "REAL AI MODE ENABLED"
+                "REAL AI VISION MODE ENABLED"
             );
 
-
             console.log(
-                "Backend API:",
-                `${API_BASE || window.location.origin}`
+                "PRICE NORMALIZATION ENABLED"
             );
 
+            console.log(
+                "CONDITION NORMALIZATION ENABLED"
+            );
 
             console.log(
-                "Analyze endpoint:",
+                "EXPIRY NORMALIZATION ENABLED"
+            );
+
+            console.log(
+                "Backend:",
+                API_BASE ||
+                window.location.origin
+            );
+
+            console.log(
+                "Analyze:",
                 `${API_BASE || window.location.origin}/api/analyze-product`
             );
 
-
             console.log(
-                "Question endpoint:",
+                "Question:",
                 `${API_BASE || window.location.origin}/api/product-question`
             );
-
 
             console.log(
                 "=========================================="
             );
-
 
         }
     );
