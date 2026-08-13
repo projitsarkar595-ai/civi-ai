@@ -1,49 +1,30 @@
 // ============================================================
-// CIVICAI — COMPLETE SERVER.JS
+// CIVICAI — FINAL COMPLETE SERVER.JS
 // ============================================================
 //
-// FEATURES
+// CIVICAI BACKEND
+//
+// AI ARCHITECTURE
 // ------------------------------------------------------------
-// 1. Civic Problem AI
-//    POST /api/analyze
 //
-// 2. AI Help / Civic Chat
-//    POST /api/chat
+// AI LIFE HELPER        -> GROQ
+// NORMAL CHAT           -> GROQ
+// PRODUCT LIVE CHAT     -> GROQ
+// AUTHORITY ASSISTANT   -> GROQ
+// IMAGE CHAT            -> GROQ VISION
 //
-// 3. Product Scanner AI
-//    POST /api/analyze-product
+// CIVIC REPORT ANALYSIS -> GEMINI
+// PRODUCT SCANNER       -> GEMINI
 //
-// 4. Product AI Questions
-//    POST /api/product-question
+// EMAIL OTP             -> GMAIL / NODEMAILER
+// PHONE OTP             -> TWILIO
 //
-// 5. Gmail OTP
-//    POST /api/request-otp
-//    POST /api/verify-otp
+// REPORT STORAGE        -> JSON FILE
+// REPORT EMAIL          -> GMAIL
 //
-// 6. Phone OTP / Twilio
-//    POST /api/request-phone-otp
-//    POST /api/verify-phone-otp
-//
-// 7. Civic Reports
-//    POST /api/reports
-//    GET  /api/reports
-//    GET  /api/reports/:reportId
-//
-// 8. Gmail Complaint Sending
-//    POST /api/send-report
-//
-// 9. Health / Status
-//    GET /api/health
-//    GET /api/ai-status
-//    GET /api/product-status
-//
-// IMPORTANT
-// ------------------------------------------------------------
-// Only ONE app.listen() exists at the bottom.
 // ============================================================
 
 "use strict";
-
 
 // ============================================================
 // IMPORTS
@@ -57,77 +38,39 @@ import path from "path";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import twilio from "twilio";
-
-import {
-    fileURLToPath
-} from "url";
-
-
-// ============================================================
-// ENVIRONMENT
-// ============================================================
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
-
 // ============================================================
-// ES MODULE PATH
-// ============================================================
-
-const __filename =
-    fileURLToPath(import.meta.url);
-
-const __dirname =
-    path.dirname(__filename);
-
-
-// ============================================================
-// EXPRESS
+// PATH
 // ============================================================
 
-const app =
-    express();
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ============================================================
-// PORT
+// EXPRESS APP
 // ============================================================
+
+const app = express();
+
+app.disable("x-powered-by");
 
 const PORT =
     Number(process.env.PORT) || 3000;
 
-
 // ============================================================
-// SERVER SETTINGS
-// ============================================================
-
-app.disable("x-powered-by");
-
-
-// ============================================================
-// DIRECTORIES
+// DATA DIRECTORY
 // ============================================================
 
 const DATA_DIR =
-    path.join(
-        __dirname,
-        "data"
-    );
+    path.join(__dirname, "data");
 
 const REPORTS_FILE =
-    path.join(
-        DATA_DIR,
-        "reports.json"
-    );
+    path.join(DATA_DIR, "reports.json");
 
-
-// ============================================================
-// CREATE DATA DIRECTORY
-// ============================================================
-
-if (
-    !fs.existsSync(DATA_DIR)
-) {
+if (!fs.existsSync(DATA_DIR)) {
 
     fs.mkdirSync(
         DATA_DIR,
@@ -138,14 +81,7 @@ if (
 
 }
 
-
-// ============================================================
-// CREATE REPORT FILE
-// ============================================================
-
-if (
-    !fs.existsSync(REPORTS_FILE)
-) {
+if (!fs.existsSync(REPORTS_FILE)) {
 
     fs.writeFileSync(
         REPORTS_FILE,
@@ -155,97 +91,6 @@ if (
 
 }
 
-
-// ============================================================
-// GEMINI CONFIGURATION
-// ============================================================
-
-const GEMINI_API_KEY =
-    String(
-        process.env.GEMINI_API_KEY || ""
-    ).trim();
-
-
-// Recommended stable model
-const GEMINI_MODEL =
-    String(
-        process.env.GEMINI_MODEL ||
-        "gemini-2.5-flash"
-    ).trim();
-
-
-const GEMINI_API_URL =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-
-// ============================================================
-// EMAIL CONFIGURATION
-// ============================================================
-
-const EMAIL_USER =
-    String(
-        process.env.EMAIL_USER || ""
-    ).trim();
-
-const EMAIL_PASSWORD =
-    String(
-        process.env.EMAIL_PASSWORD || ""
-    ).trim();
-
-const EMAIL_FROM =
-    String(
-        process.env.EMAIL_FROM ||
-        EMAIL_USER
-    ).trim();
-
-
-// ============================================================
-// TWILIO CONFIGURATION
-// ============================================================
-
-const TWILIO_ACCOUNT_SID =
-    String(
-        process.env.TWILIO_ACCOUNT_SID || ""
-    ).trim();
-
-const TWILIO_AUTH_TOKEN =
-    String(
-        process.env.TWILIO_AUTH_TOKEN || ""
-    ).trim();
-
-const TWILIO_PHONE_NUMBER =
-    String(
-        process.env.TWILIO_PHONE_NUMBER || ""
-    ).trim();
-
-
-// ============================================================
-// OTP SETTINGS
-// ============================================================
-
-const OTP_EXPIRY_MS =
-    5 * 60 * 1000;
-
-const MAX_OTP_ATTEMPTS =
-    5;
-
-
-// ============================================================
-// OTP MEMORY STORAGE
-// ============================================================
-
-const otpStore =
-    new Map();
-
-
-// ============================================================
-// VERIFIED USERS
-// ============================================================
-
-const verifiedUsers =
-    new Map();
-
-
 // ============================================================
 // MIDDLEWARE
 // ============================================================
@@ -253,48 +98,25 @@ const verifiedUsers =
 app.use(
     cors({
         origin: true,
-        credentials: false
+        credentials: true
     })
 );
-
 
 app.use(
     express.json({
-        limit: "15mb"
+        limit: "25mb"
     })
 );
-
 
 app.use(
     express.urlencoded({
         extended: true,
-        limit: "15mb"
+        limit: "25mb"
     })
 );
 
-
 // ============================================================
-// SECURITY
-// Prevent direct access to /data
-// ============================================================
-
-app.use(
-    "/data",
-    (req, res) => {
-
-        return res
-            .status(403)
-            .json({
-                success: false,
-                error: "Forbidden."
-            });
-
-    }
-);
-
-
-// ============================================================
-// UTILITY — CLEAN TEXT
+// GENERAL HELPERS
 // ============================================================
 
 function cleanText(value) {
@@ -308,129 +130,39 @@ function cleanText(value) {
 
     }
 
-    return String(value)
-        .trim();
+    return String(value).trim();
 
 }
 
-
 // ============================================================
-// UTILITY — SECURE ID
+// SECURE ID
 // ============================================================
 
-function generateSecureId(
-    prefix = ""
-) {
+function generateSecureId(prefix = "") {
 
     return (
         prefix +
-        crypto
-            .randomBytes(16)
-            .toString("hex")
+        crypto.randomBytes(16).toString("hex")
     );
 
 }
 
-
 // ============================================================
-// CONFIG CHECKS
+// IMAGE HELPERS
 // ============================================================
 
-function hasGeminiKey() {
+function isImageDataUrl(image) {
 
-    return Boolean(
-        GEMINI_API_KEY
+    return (
+        typeof image === "string" &&
+        /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(image)
     );
 
 }
 
+function validateImage(image) {
 
-function hasEmailConfig() {
-
-    return Boolean(
-        EMAIL_USER &&
-        EMAIL_PASSWORD
-    );
-
-}
-
-
-function hasTwilioConfig() {
-
-    return Boolean(
-        TWILIO_ACCOUNT_SID &&
-        TWILIO_AUTH_TOKEN &&
-        TWILIO_PHONE_NUMBER
-    );
-
-}
-
-
-// ============================================================
-// EMAIL TRANSPORTER
-// ============================================================
-
-let emailTransporter =
-    null;
-
-
-if (
-    hasEmailConfig()
-) {
-
-    emailTransporter =
-        nodemailer.createTransport({
-
-            service: "gmail",
-
-            auth: {
-
-                user:
-                    EMAIL_USER,
-
-                pass:
-                    EMAIL_PASSWORD
-
-            }
-
-        });
-
-}
-
-
-// ============================================================
-// TWILIO CLIENT
-// ============================================================
-
-let twilioClient =
-    null;
-
-
-if (
-    hasTwilioConfig()
-) {
-
-    twilioClient =
-        twilio(
-            TWILIO_ACCOUNT_SID,
-            TWILIO_AUTH_TOKEN
-        );
-
-}
-
-
-// ============================================================
-// GEMINI IMAGE VALIDATION
-// ============================================================
-
-function validateImage(
-    image
-) {
-
-    if (
-        !image ||
-        typeof image !== "string"
-    ) {
+    if (!image) {
 
         return {
             valid: false,
@@ -439,12 +171,7 @@ function validateImage(
 
     }
 
-
-    if (
-        !image.startsWith(
-            "data:image/"
-        )
-    ) {
+    if (!isImageDataUrl(image)) {
 
         return {
             valid: false,
@@ -453,21 +180,20 @@ function validateImage(
 
     }
 
-
-    // Approximately 7 MB
+    // Approximate base64 request safety limit.
+    // Groq vision has its own request limits.
     if (
         image.length >
-        7_000_000
+        5_000_000
     ) {
 
         return {
             valid: false,
             error:
-                "Image is too large. Maximum size is approximately 7 MB."
+                "Image is too large. Please use a smaller image."
         };
 
     }
-
 
     return {
         valid: true
@@ -475,20 +201,12 @@ function validateImage(
 
 }
 
-
-// ============================================================
-// DATA URL → GEMINI IMAGE
-// ============================================================
-
-function imageToGeminiPart(
-    imageDataUrl
-) {
+function imageToGeminiPart(image) {
 
     const match =
-        imageDataUrl.match(
-            /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+        image.match(
+            /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i
         );
-
 
     if (!match) {
 
@@ -497,7 +215,6 @@ function imageToGeminiPart(
         );
 
     }
-
 
     return {
 
@@ -515,22 +232,1327 @@ function imageToGeminiPart(
 
 }
 
+// ============================================================
+// GEMINI CONFIGURATION
+// ============================================================
+//
+// ONLY:
+// Civic Report Analysis
+// Product Scanner
+//
+// ============================================================
+
+const GEMINI_API_KEY =
+    cleanText(
+        process.env.GEMINI_API_KEY
+    );
+
+//
+// Default kept configurable through .env.
+// If your existing Gemini model works, keep your
+// GEMINI_MODEL value in .env.
+//
+// Example:
+// GEMINI_MODEL=gemini-2.5-flash
+//
+
+const GEMINI_MODEL =
+    cleanText(
+        process.env.GEMINI_MODEL
+    ) ||
+    "gemini-2.5-flash";
+
+const GEMINI_API_URL =
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // ============================================================
-// EXTRACT GEMINI TEXT
+// GROQ CONFIGURATION
+// ============================================================
+//
+// NORMAL CHAT
+// PRODUCT CHAT
+// AUTHORITY
+// IMAGE CHAT
+//
 // ============================================================
 
-function extractGeminiText(
-    data
+const GROQ_API_KEY =
+    cleanText(
+        process.env.GROQ_API_KEY
+    );
+
+//
+// Current production text model.
+//
+const GROQ_TEXT_MODEL =
+    cleanText(
+        process.env.GROQ_TEXT_MODEL
+    ) ||
+    "llama-3.3-70b-versatile";
+
+//
+// Current Groq multimodal model.
+//
+const GROQ_VISION_MODEL =
+    cleanText(
+        process.env.GROQ_VISION_MODEL
+    ) ||
+    "meta-llama/llama-4-scout-17b-16e-instruct";
+
+const GROQ_API_URL =
+    "https://api.groq.com/openai/v1/chat/completions";
+
+// ============================================================
+// GMAIL CONFIGURATION
+// ============================================================
+
+const EMAIL_USER =
+    cleanText(
+        process.env.EMAIL_USER
+    );
+
+const EMAIL_PASSWORD =
+    cleanText(
+        process.env.EMAIL_PASSWORD
+    );
+
+const EMAIL_FROM =
+    cleanText(
+        process.env.EMAIL_FROM
+    ) ||
+    EMAIL_USER;
+
+let emailTransporter = null;
+
+if (
+    EMAIL_USER &&
+    EMAIL_PASSWORD
 ) {
+
+    try {
+
+        emailTransporter =
+            nodemailer.createTransport({
+
+                service: "gmail",
+
+                auth: {
+
+                    user:
+                        EMAIL_USER,
+
+                    pass:
+                        EMAIL_PASSWORD
+
+                },
+
+                connectionTimeout:
+                    20_000,
+
+                greetingTimeout:
+                    20_000,
+
+                socketTimeout:
+                    30_000
+
+            });
+
+    } catch (error) {
+
+        console.error(
+            "GMAIL INITIALIZATION ERROR:",
+            error?.message || error
+        );
+
+    }
+
+}
+
+// ============================================================
+// TWILIO CONFIGURATION
+// ============================================================
+
+const TWILIO_ACCOUNT_SID =
+    cleanText(
+        process.env.TWILIO_ACCOUNT_SID
+    );
+
+const TWILIO_AUTH_TOKEN =
+    cleanText(
+        process.env.TWILIO_AUTH_TOKEN
+    );
+
+const TWILIO_PHONE_NUMBER =
+    cleanText(
+        process.env.TWILIO_PHONE_NUMBER
+    );
+
+let twilioClient = null;
+
+if (
+    TWILIO_ACCOUNT_SID &&
+    TWILIO_AUTH_TOKEN &&
+    TWILIO_PHONE_NUMBER
+) {
+
+    try {
+
+        twilioClient =
+            twilio(
+                TWILIO_ACCOUNT_SID,
+                TWILIO_AUTH_TOKEN
+            );
+
+    } catch (error) {
+
+        console.error(
+            "TWILIO INITIALIZATION ERROR:",
+            error?.message || error
+        );
+
+    }
+
+}
+
+// ============================================================
+// CONFIG CHECK
+// ============================================================
+
+function hasGeminiKey() {
+
+    return Boolean(
+        GEMINI_API_KEY &&
+        GEMINI_API_KEY.length > 10
+    );
+
+}
+
+function hasGroqKey() {
+
+    return Boolean(
+        GROQ_API_KEY &&
+        GROQ_API_KEY.length > 10
+    );
+
+}
+
+function hasEmailConfig() {
+
+    return Boolean(
+        emailTransporter
+    );
+
+}
+
+function hasTwilioConfig() {
+
+    return Boolean(
+        twilioClient
+    );
+
+}
+
+// ============================================================
+// CHAT MEMORY
+// ============================================================
+
+const chatSessions =
+    new Map();
+
+const CHAT_SESSION_TTL =
+    30 * 60 * 1000;
+
+const MAX_CHAT_SESSIONS =
+    500;
+
+// ============================================================
+// CLEANUP CHAT MEMORY
+// ============================================================
+
+function cleanupChatSessions() {
+
+    const now =
+        Date.now();
+
+    for (
+        const [
+            id,
+            session
+        ]
+        of chatSessions
+    ) {
+
+        if (
+            !session ||
+            now -
+            session.updatedAt >
+            CHAT_SESSION_TTL
+        ) {
+
+            chatSessions.delete(
+                id
+            );
+
+        }
+
+    }
+
+    while (
+        chatSessions.size >
+        MAX_CHAT_SESSIONS
+    ) {
+
+        const oldest =
+            chatSessions
+                .keys()
+                .next()
+                .value;
+
+        if (!oldest) {
+
+            break;
+
+        }
+
+        chatSessions.delete(
+            oldest
+        );
+
+    }
+
+}
+
+// ============================================================
+// HISTORY NORMALIZER
+// ============================================================
+
+function normalizeHistory(history) {
+
+    if (
+        !Array.isArray(history)
+    ) {
+
+        return [];
+
+    }
+
+    return history
+        .slice(-20)
+        .map(
+            item => {
+
+                const role =
+                    item?.role === "assistant" ||
+                    item?.role === "model"
+                        ? "assistant"
+                        : "user";
+
+                const content =
+                    cleanText(
+                        item?.content ??
+                        item?.text ??
+                        item?.message
+                    );
+
+                if (!content) {
+
+                    return null;
+
+                }
+
+                return {
+
+                    role,
+
+                    content
+
+                };
+
+            }
+        )
+        .filter(Boolean);
+
+}
+
+// ============================================================
+// GET CHAT SESSION ID
+// ============================================================
+
+function getChatSessionId(body) {
+
+    const supplied =
+        cleanText(
+            body?.conversationId ||
+            body?.sessionId
+        );
+
+    const id =
+        supplied ||
+        generateSecureId(
+            "CHAT-"
+        );
+
+    if (
+        !chatSessions.has(id)
+    ) {
+
+        chatSessions.set(
+
+            id,
+
+            {
+
+                history: [],
+
+                updatedAt:
+                    Date.now()
+
+            }
+
+        );
+
+    }
+
+    return id;
+
+}
+
+// ============================================================
+// GROQ ERROR PARSER
+// ============================================================
+
+function getGroqErrorMessage(text) {
+
+    try {
+
+        const data =
+            JSON.parse(text);
+
+        return (
+            data?.error?.message ||
+            data?.error?.type ||
+            data?.message ||
+            "Groq API error."
+        );
+
+    } catch {
+
+        return (
+            text ||
+            "Groq API error."
+        );
+
+    }
+
+}
+
+// ============================================================
+// GROQ API
+// ============================================================
+
+async function callGroq({
+
+    systemPrompt,
+
+    userText,
+
+    history = [],
+
+    image = null,
+
+    temperature = 0.55,
+
+    maxTokens = 1800,
+
+    retries = 2
+
+}) {
+
+    if (
+        !hasGroqKey()
+    ) {
+
+        throw new Error(
+            "GROQ_API_KEY is missing. Add GROQ_API_KEY to your .env file."
+        );
+
+    }
+
+    const messages = [];
+
+    // --------------------------------------------------------
+    // SYSTEM
+    // --------------------------------------------------------
+
+    messages.push({
+
+        role: "system",
+
+        content:
+            systemPrompt ||
+            "You are a helpful AI assistant."
+
+    });
+
+    // --------------------------------------------------------
+    // HISTORY
+    // --------------------------------------------------------
+
+    const normalizedHistory =
+        normalizeHistory(
+            history
+        );
+
+    for (
+        const item
+        of normalizedHistory
+    ) {
+
+        messages.push({
+
+            role:
+                item.role === "assistant"
+                    ? "assistant"
+                    : "user",
+
+            content:
+                item.content
+
+        });
+
+    }
+
+    // --------------------------------------------------------
+    // USER
+    // --------------------------------------------------------
+
+    if (image) {
+
+        const validation =
+            validateImage(
+                image
+            );
+
+        if (
+            !validation.valid
+        ) {
+
+            throw new Error(
+                validation.error
+            );
+
+        }
+
+        messages.push({
+
+            role: "user",
+
+            content: [
+
+                {
+
+                    type: "text",
+
+                    text:
+                        userText ||
+                        "Please analyze this image."
+
+                },
+
+                {
+
+                    type: "image_url",
+
+                    image_url: {
+
+                        url:
+                            image
+
+                    }
+
+                }
+
+            ]
+
+        });
+
+    } else {
+
+        messages.push({
+
+            role: "user",
+
+            content:
+                userText || ""
+
+        });
+
+    }
+
+    // --------------------------------------------------------
+    // MODEL
+    // --------------------------------------------------------
+
+    const model =
+        image
+            ? GROQ_VISION_MODEL
+            : GROQ_TEXT_MODEL;
+
+    // --------------------------------------------------------
+    // RETRY LOOP
+    // --------------------------------------------------------
+
+    let lastError = null;
+
+    for (
+        let attempt = 0;
+        attempt <= retries;
+        attempt++
+    ) {
+
+        const controller =
+            new AbortController();
+
+        const timeout =
+            setTimeout(
+                () => {
+
+                    controller.abort();
+
+                },
+                60_000
+            );
+
+        try {
+
+            console.log(
+                `[GROQ] Request attempt ${attempt + 1}/${retries + 1}`
+            );
+
+            console.log(
+                `[GROQ] Model: ${model}`
+            );
+
+            const response =
+                await fetch(
+
+                    GROQ_API_URL,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            Authorization:
+                                `Bearer ${GROQ_API_KEY}`
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                model,
+
+                                messages,
+
+                                temperature,
+
+                                max_completion_tokens:
+                                    maxTokens,
+
+                                top_p:
+                                    1,
+
+                                stream:
+                                    false
+
+                            }),
+
+                        signal:
+                            controller.signal
+
+                    }
+
+                );
+
+            const responseText =
+                await response.text();
+
+            if (
+                !response.ok
+            ) {
+
+                const message =
+                    getGroqErrorMessage(
+                        responseText
+                    );
+
+                const error =
+                    new Error(
+                        `Groq API ${response.status}: ${message}`
+                    );
+
+                error.status =
+                    response.status;
+
+                throw error;
+
+            }
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(
+                        responseText
+                    );
+
+            } catch {
+
+                throw new Error(
+                    "Groq returned invalid JSON."
+                );
+
+            }
+
+            const answer =
+                data
+                    ?.choices?.[0]
+                    ?.message?.content;
+
+            if (
+                !answer ||
+                !String(answer).trim()
+            ) {
+
+                throw new Error(
+                    "Groq returned an empty response."
+                );
+
+            }
+
+            console.log(
+                "[GROQ] Response received successfully."
+            );
+
+            return {
+
+                answer:
+                    String(
+                        answer
+                    ).trim(),
+
+                model,
+
+                usage:
+                    data?.usage || null
+
+            };
+
+        } catch (error) {
+
+            lastError =
+                error;
+
+            console.error(
+                `[GROQ] Attempt ${attempt + 1} failed:`,
+                error?.message || error
+            );
+
+            // Do not retry authentication,
+            // bad request or permission errors.
+
+            const status =
+                Number(
+                    error?.status
+                );
+
+            if (
+                status === 400 ||
+                status === 401 ||
+                status === 403
+            ) {
+
+                break;
+
+            }
+
+            // Retry only if another attempt exists.
+
+            if (
+                attempt < retries
+            ) {
+
+                const delay =
+                    700 *
+                    Math.pow(
+                        2,
+                        attempt
+                    );
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            delay
+                        )
+                );
+
+            }
+
+        } finally {
+
+            clearTimeout(
+                timeout
+            );
+
+        }
+
+    }
+
+    if (
+        lastError?.name ===
+        "AbortError"
+    ) {
+
+        throw new Error(
+            "Groq request timed out after 60 seconds."
+        );
+
+    }
+
+    throw (
+        lastError ||
+        new Error(
+            "Groq request failed."
+        )
+    );
+
+}
+
+// ============================================================
+// AI LIFE HELPER PROMPT
+// ============================================================
+
+const NORMAL_CHAT_PROMPT = `
+
+You are CivicAI AI Life Helper.
+
+You are the main conversational AI assistant
+inside the CivicAI website.
+
+You are powered by Groq.
+
+============================================================
+CORE BEHAVIOR
+============================================================
+
+Have a completely natural conversation.
+
+Answer the user's actual question directly.
+
+Do not force users into a civic complaint.
+
+Do not automatically create reports.
+
+Do not automatically create formal complaints.
+
+Do not claim that a report was submitted
+unless the application actually submitted it.
+
+Do not invent actions that the application did not perform.
+
+============================================================
+YOU CAN HELP WITH
+============================================================
+
+General questions.
+
+Education.
+
+Study.
+
+Mathematics.
+
+Science.
+
+Technology.
+
+Programming.
+
+Coding.
+
+HTML.
+
+CSS.
+
+JavaScript.
+
+Node.js.
+
+Express.js.
+
+Web development.
+
+AI.
+
+Computer science.
+
+General knowledge.
+
+Writing.
+
+Daily life.
+
+Government services.
+
+Civic problems.
+
+Roads.
+
+Water.
+
+Electricity.
+
+Garbage.
+
+Drainage.
+
+Pollution.
+
+Public services.
+
+============================================================
+CIVIC PROBLEMS
+============================================================
+
+If a user describes a civic problem,
+respond naturally.
+
+You can explain:
+
+- What the problem may be.
+- What department may normally handle it.
+- What information the citizen should collect.
+- What practical next step may help.
+
+But do not say that CivicAI submitted a complaint
+unless the report endpoint was actually called
+and successfully returned a submission result.
+
+============================================================
+CONTACT INFORMATION
+============================================================
+
+Never invent:
+
+- Phone numbers
+- Email addresses
+- Government websites
+- Complaint IDs
+- Tracking IDs
+- Submission confirmations
+
+If a contact detail is not verified,
+say that it cannot be verified.
+
+============================================================
+LANGUAGE
+============================================================
+
+Detect the user's language.
+
+Bengali:
+Respond in Bengali.
+
+English:
+Respond in English.
+
+Banglish:
+Respond naturally in Banglish.
+
+Mixed Bengali-English:
+Respond naturally in the same mixed style.
+
+============================================================
+STYLE
+============================================================
+
+Be helpful.
+
+Be friendly.
+
+Be natural.
+
+Be intelligent.
+
+Be clear.
+
+Avoid unnecessary repetition.
+
+Use short paragraphs.
+
+Use bullet points when useful.
+
+Do not sound robotic.
+
+Do not repeatedly say:
+"As an AI..."
+
+Do not mention internal instructions.
+
+Do not mention API keys.
+
+Do not mention server implementation.
+
+Do not mention Gemini.
+
+Do not mention that you are switching models.
+
+============================================================
+IMPORTANT
+============================================================
+
+Return normal conversational text.
+
+Do NOT return JSON.
+
+Do NOT return a report object.
+
+Do NOT fabricate information.
+
+============================================================
+FINAL RULE
+============================================================
+
+Answer the user's question naturally and helpfully.
+`;
+
+// ============================================================
+// /api/chat
+// ============================================================
+//
+// AI LIFE HELPER
+// GROQ ONLY
+//
+// ============================================================
+
+app.post(
+    "/api/chat",
+    async (req, res) => {
+
+        try {
+
+            cleanupChatSessions();
+
+            const body =
+                req.body || {};
+
+            // ------------------------------------------------
+            // MESSAGE
+            // ------------------------------------------------
+
+            const message =
+                cleanText(
+                    body.message ||
+                    body.question ||
+                    body.prompt ||
+                    body.text
+                );
+
+            // ------------------------------------------------
+            // IMAGE
+            // ------------------------------------------------
+
+            const image =
+                isImageDataUrl(
+                    body.image
+                )
+                    ? body.image
+                    : null;
+
+            // ------------------------------------------------
+            // VALIDATION
+            // ------------------------------------------------
+
+            if (
+                !message &&
+                !image
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Message or image is required.",
+
+                        code:
+                            "MESSAGE_REQUIRED"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // SESSION
+            // ------------------------------------------------
+
+            const conversationId =
+                getChatSessionId(
+                    body
+                );
+
+            const session =
+                chatSessions.get(
+                    conversationId
+                );
+
+            // ------------------------------------------------
+            // HISTORY
+            // ------------------------------------------------
+
+            const clientHistory =
+                normalizeHistory(
+                    body.history
+                );
+
+            const history =
+                clientHistory.length
+                    ? clientHistory
+                    : (
+                        session?.history ||
+                        []
+                    );
+
+            // ------------------------------------------------
+            // GROQ
+            // ------------------------------------------------
+
+            const result =
+                await callGroq({
+
+                    systemPrompt:
+                        NORMAL_CHAT_PROMPT,
+
+                    userText:
+                        message ||
+                        "Please understand the attached image.",
+
+                    history,
+
+                    image,
+
+                    temperature:
+                        0.55,
+
+                    maxTokens:
+                        1800,
+
+                    retries:
+                        2
+
+                });
+
+            // ------------------------------------------------
+            // SAVE MEMORY
+            // ------------------------------------------------
+
+            const updatedHistory =
+                [
+
+                    ...history,
+
+                    {
+
+                        role:
+                            "user",
+
+                        content:
+                            message ||
+                            "[Image]"
+
+                    },
+
+                    {
+
+                        role:
+                            "assistant",
+
+                        content:
+                            result.answer
+
+                    }
+
+                ].slice(-20);
+
+            chatSessions.set(
+
+                conversationId,
+
+                {
+
+                    history:
+                        updatedHistory,
+
+                    updatedAt:
+                        Date.now()
+
+                }
+
+            );
+
+            // ------------------------------------------------
+            // RESPONSE
+            // ------------------------------------------------
+
+            return res.json({
+
+                success:
+                    true,
+
+                provider:
+                    "Groq",
+
+                model:
+                    result.model,
+
+                answer:
+                    result.answer,
+
+                message:
+                    result.answer,
+
+                reply:
+                    result.answer,
+
+                response:
+                    result.answer,
+
+                conversationId,
+
+                usage:
+                    result.usage || null
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "================================================"
+            );
+
+            console.error(
+                "AI LIFE HELPER / GROQ ERROR"
+            );
+
+            console.error(
+                error?.message || error
+            );
+
+            console.error(
+                "================================================"
+            );
+
+            const message =
+                String(
+                    error?.message ||
+                    ""
+                );
+
+            let statusCode =
+                500;
+
+            if (
+                message.includes(
+                    "401"
+                )
+            ) {
+
+                statusCode =
+                    401;
+
+            } else if (
+                message.includes(
+                    "403"
+                )
+            ) {
+
+                statusCode =
+                    403;
+
+            } else if (
+                message.includes(
+                    "400"
+                )
+            ) {
+
+                statusCode =
+                    400;
+
+            } else if (
+                message.includes(
+                    "429"
+                )
+            ) {
+
+                statusCode =
+                    429;
+
+            } else if (
+                message.includes(
+                    "timed out"
+                )
+            ) {
+
+                statusCode =
+                    504;
+
+            }
+
+            return res
+                .status(statusCode)
+                .json({
+
+                    success:
+                        false,
+
+                    provider:
+                        "Groq",
+
+                    error:
+                        message ||
+                        "Groq AI failed to generate a response.",
+
+                    code:
+                        "GROQ_CHAT_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+// ============================================================
+// GEMINI TEXT EXTRACTION
+// ============================================================
+
+function extractGeminiText(data) {
 
     const parts =
         data
-            ?.candidates
-            ?.[0]
-            ?.content
-            ?.parts;
-
+            ?.candidates?.[0]
+            ?.content?.parts;
 
     if (
         !Array.isArray(parts)
@@ -539,7 +1561,6 @@ function extractGeminiText(
         return "";
 
     }
-
 
     return parts
         .map(
@@ -554,117 +1575,179 @@ function extractGeminiText(
 
 }
 
-
 // ============================================================
 // GEMINI ERROR
 // ============================================================
 
-function getGeminiErrorMessage(
-    responseText
-) {
-
-    if (!responseText) {
-
-        return "Unknown Gemini API error.";
-
-    }
-
+function getGeminiError(text) {
 
     try {
 
         const data =
-            JSON.parse(
-                responseText
-            );
-
+            JSON.parse(text);
 
         return (
-            data
-                ?.error
-                ?.message
-            ||
-            data
-                ?.error
-                ?.status
-            ||
-            responseText
+            data?.error?.message ||
+            data?.error?.status ||
+            "Gemini API error."
         );
 
-    }
-    catch {
+    } catch {
 
-        return responseText;
+        return (
+            text ||
+            "Gemini API error."
+        );
 
     }
 
 }
 
-
 // ============================================================
-// GEMINI REQUEST
+// GEMINI API
 // ============================================================
 
-async function requestGemini(
-    requestBody,
-    options = {}
-) {
+async function callGemini({
 
-    const timeoutMs =
-        Number(
-            options.timeoutMs ||
-            25000
-        );
+    systemPrompt,
 
-    const retryCount =
-        Number(
-            options.retryCount ??
-            1
-        );
+    userText,
 
+    image = null,
+
+    jsonMode = false,
+
+    responseSchema = null,
+
+    maxOutputTokens = 1800,
+
+    retries = 1
+
+}) {
 
     if (
         !hasGeminiKey()
     ) {
 
         throw new Error(
-            "GEMINI_API_KEY is missing. Please check your .env file."
+            "GEMINI_API_KEY is missing."
         );
 
     }
 
+    const parts = [];
 
-    let lastError =
-        null;
+    if (userText) {
 
+        parts.push({
+
+            text:
+                userText
+
+        });
+
+    }
+
+    if (image) {
+
+        const validation =
+            validateImage(
+                image
+            );
+
+        if (
+            !validation.valid
+        ) {
+
+            throw new Error(
+                validation.error
+            );
+
+        }
+
+        parts.push(
+            imageToGeminiPart(
+                image
+            )
+        );
+
+    }
+
+    const requestBody = {
+
+        system_instruction: {
+
+            parts: [
+
+                {
+
+                    text:
+                        systemPrompt
+
+                }
+
+            ]
+
+        },
+
+        contents: [
+
+            {
+
+                role:
+                    "user",
+
+                parts
+
+            }
+
+        ],
+
+        generationConfig: {
+
+            maxOutputTokens
+
+        }
+
+    };
+
+    if (
+        jsonMode
+    ) {
+
+        requestBody
+            .generationConfig
+            .responseMimeType =
+            "application/json";
+
+        if (
+            responseSchema
+        ) {
+
+            requestBody
+                .generationConfig
+                .responseSchema =
+                responseSchema;
+
+        }
+
+    }
+
+    let lastError = null;
 
     for (
         let attempt = 0;
-        attempt <= retryCount;
+        attempt <= retries;
         attempt++
     ) {
 
-        const controller =
-            new AbortController();
-
-
-        const timeout =
-            setTimeout(
-                () =>
-                    controller.abort(),
-                timeoutMs
-            );
-
-
         try {
-
-            console.log(
-                `Gemini request ${attempt + 1}/${retryCount + 1}`
-            );
-
 
             const response =
                 await fetch(
+
                     GEMINI_API_URL,
+
                     {
 
                         method:
@@ -683,65 +1766,26 @@ async function requestGemini(
                         body:
                             JSON.stringify(
                                 requestBody
-                            ),
-
-                        signal:
-                            controller.signal
+                            )
 
                     }
-                );
 
+                );
 
             const responseText =
                 await response.text();
-
 
             if (
                 !response.ok
             ) {
 
-                const message =
-                    getGeminiErrorMessage(
-                        responseText
-                    );
-
-
-                if (
-                    (
-                        response.status === 429 ||
-                        response.status >= 500
-                    ) &&
-                    attempt < retryCount
-                ) {
-
-                    console.log(
-                        "Temporary Gemini error. Retrying..."
-                    );
-
-
-                    await new Promise(
-                        resolve =>
-                            setTimeout(
-                                resolve,
-                                1000
-                            )
-                    );
-
-
-                    continue;
-
-                }
-
-
                 throw new Error(
-                    `Gemini API ${response.status}: ${message}`
+                    `Gemini API ${response.status}: ${getGeminiError(responseText)}`
                 );
 
             }
 
-
             let data;
-
 
             try {
 
@@ -750,102 +1794,52 @@ async function requestGemini(
                         responseText
                     );
 
-            }
-            catch {
+            } catch {
 
                 throw new Error(
-                    "Gemini returned invalid JSON response."
+                    "Gemini returned invalid JSON."
                 );
 
             }
 
-
-            const text =
+            const answer =
                 extractGeminiText(
                     data
                 );
 
-
-            if (!text) {
-
-                const reason =
-                    data
-                        ?.candidates
-                        ?.[0]
-                        ?.finishReason;
-
+            if (!answer) {
 
                 throw new Error(
-                    `Gemini returned an empty response${
-                        reason
-                            ? ` (${reason})`
-                            : ""
-                    }`
+                    "Gemini returned an empty response."
                 );
 
             }
 
+            return answer;
 
-            return {
-
-                text,
-
-                raw:
-                    data
-
-            };
-
-        }
-        catch (error) {
+        } catch (error) {
 
             lastError =
                 error;
 
-
             if (
-                error?.name ===
-                "AbortError"
+                attempt < retries
             ) {
 
-                if (
-                    attempt < retryCount
-                ) {
-
-                    console.log(
-                        "Gemini timeout. Retrying..."
-                    );
-
-                    continue;
-
-                }
-
-
-                throw new Error(
-                    `Gemini request timed out after ${Math.round(timeoutMs / 1000)} seconds.`
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            1000 *
+                            (attempt + 1)
+                        )
                 );
 
             }
 
-
-            if (
-                attempt >= retryCount
-            ) {
-
-                throw error;
-
-            }
-
-        }
-        finally {
-
-            clearTimeout(
-                timeout
-            );
-
         }
 
     }
-
 
     throw (
         lastError ||
@@ -856,306 +1850,61 @@ async function requestGemini(
 
 }
 
-
 // ============================================================
-// BUILD GEMINI PARTS
-// ============================================================
-
-function buildGeminiParts({
-    userText,
-    image = null
-}) {
-
-    const parts =
-        [];
-
-
-    if (
-        cleanText(userText)
-    ) {
-
-        parts.push({
-
-            text:
-                userText
-
-        });
-
-    }
-
-
-    if (
-        image
-    ) {
-
-        const validation =
-            validateImage(
-                image
-            );
-
-
-        if (
-            !validation.valid
-        ) {
-
-            throw new Error(
-                validation.error
-            );
-
-        }
-
-
-        parts.push(
-            imageToGeminiPart(
-                image
-            )
-        );
-
-    }
-
-
-    if (
-        parts.length === 0
-    ) {
-
-        throw new Error(
-            "No input provided to Gemini."
-        );
-
-    }
-
-
-    return parts;
-
-}
-
-
-// ============================================================
-// GEMINI TEXT MODE
+// JSON PARSER
 // ============================================================
 
-async function callGeminiText({
-
-    systemPrompt,
-
-    userText,
-
-    image = null,
-
-    temperature = 0.4,
-
-    maxOutputTokens = 500,
-
-    timeoutMs = 20000
-
-}) {
-
-    const requestBody = {
-
-        system_instruction: {
-
-            parts: [
-
-                {
-
-                    text:
-                        systemPrompt
-
-                }
-
-            ]
-
-        },
-
-        contents: [
-
-            {
-
-                role:
-                    "user",
-
-                parts:
-                    buildGeminiParts({
-
-                        userText,
-
-                        image
-
-                    })
-
-            }
-
-        ],
-
-        generationConfig: {
-
-            temperature,
-
-            maxOutputTokens
-
-        }
-
-    };
-
-
-    const result =
-        await requestGemini(
-            requestBody,
-            {
-
-                timeoutMs,
-
-                retryCount:
-                    1
-
-            }
-        );
-
-
-    return result.text;
-
-}
-
-
-// ============================================================
-// REMOVE MARKDOWN
-// ============================================================
-
-function removeMarkdownCodeBlock(
-    text
-) {
+function parseAIJSON(text) {
 
     let cleaned =
-        cleanText(
-            text
-        );
-
+        cleanText(text);
 
     cleaned =
-        cleaned.replace(
-            /^```json\s*/i,
-            ""
-        );
+        cleaned
+            .replace(
+                /^```json\s*/i,
+                ""
+            )
+            .replace(
+                /^```\s*/i,
+                ""
+            )
+            .replace(
+                /\s*```$/i,
+                ""
+            );
 
-
-    cleaned =
-        cleaned.replace(
-            /^```\s*/i,
-            ""
-        );
-
-
-    cleaned =
-        cleaned.replace(
-            /\s*```$/i,
-            ""
-        );
-
-
-    return cleaned.trim();
-
-}
-
-
-// ============================================================
-// SAFE AI JSON PARSER
-// ============================================================
-
-function parseAIJSON(
-    content
-) {
-
-    if (!content) {
-
-        throw new Error(
-            "AI returned an empty response."
-        );
-
-    }
-
-
-    const cleaned =
-        removeMarkdownCodeBlock(
-            content
-        );
-
-
-    // Direct JSON
     try {
 
         return JSON.parse(
             cleaned
         );
 
-    }
-    catch {}
+    } catch {}
 
-
-
-    // Object
-    const objectStart =
+    const start =
         cleaned.indexOf("{");
 
-    const objectEnd =
+    const end =
         cleaned.lastIndexOf("}");
 
-
     if (
-        objectStart !== -1 &&
-        objectEnd > objectStart
+        start !== -1 &&
+        end > start
     ) {
 
         try {
 
             return JSON.parse(
                 cleaned.slice(
-                    objectStart,
-                    objectEnd + 1
+                    start,
+                    end + 1
                 )
             );
 
-        }
-        catch {}
+        } catch {}
 
     }
-
-
-    // Array
-    const arrayStart =
-        cleaned.indexOf("[");
-
-    const arrayEnd =
-        cleaned.lastIndexOf("]");
-
-
-    if (
-        arrayStart !== -1 &&
-        arrayEnd > arrayStart
-    ) {
-
-        try {
-
-            return JSON.parse(
-                cleaned.slice(
-                    arrayStart,
-                    arrayEnd + 1
-                )
-            );
-
-        }
-        catch {}
-
-    }
-
-
-    console.error(
-        "AI JSON PARSE FAILED:"
-    );
-
-    console.error(
-        content
-    );
-
 
     throw new Error(
         "AI returned invalid JSON."
@@ -1163,326 +1912,168 @@ function parseAIJSON(
 
 }
 
-
 // ============================================================
-// GEMINI JSON MODE
-// ============================================================
-
-async function callGeminiJSON({
-
-    systemPrompt,
-
-    userText,
-
-    image = null,
-
-    temperature = 0.2,
-
-    maxOutputTokens = 800,
-
-    timeoutMs = 25000
-
-}) {
-
-    const requestBody = {
-
-        system_instruction: {
-
-            parts: [
-
-                {
-
-                    text:
-                        systemPrompt
-
-                }
-
-            ]
-
-        },
-
-        contents: [
-
-            {
-
-                role:
-                    "user",
-
-                parts:
-                    buildGeminiParts({
-
-                        userText,
-
-                        image
-
-                    })
-
-            }
-
-        ],
-
-        generationConfig: {
-
-            temperature,
-
-            maxOutputTokens,
-
-            responseMimeType:
-                "application/json"
-
-        }
-
-    };
-
-
-    const result =
-        await requestGemini(
-            requestBody,
-            {
-
-                timeoutMs,
-
-                retryCount:
-                    1
-
-            }
-        );
-
-
-    return parseAIJSON(
-        result.text
-    );
-
-}
-
-
-// ============================================================
-// NORMALIZE TEXT
-// ============================================================
-
-function normalizeAIText(
-    value,
-    fallback = ""
-) {
-
-    const text =
-        cleanText(
-            value
-        );
-
-
-    return (
-        text ||
-        fallback
-    );
-
-}
-
-
-// ============================================================
-// ============================================================
-// CIVIC AI
-// ============================================================
+// CIVIC REPORT PROMPT
 // ============================================================
 
 const CIVIC_SYSTEM_PROMPT = `
 
-You are CivicAI, an advanced civic problem analysis assistant.
+You are CivicAI Civic Report Analysis AI.
 
-Analyze the citizen's description, image and location.
+Analyze the citizen's civic problem.
+
+Use the supplied:
+
+- description
+- image
+- location
+- reporter name
 
 Do not invent facts.
-Do not invent location.
-Do not invent evidence.
-If something is unclear, say so.
 
-If the user is greeting or asking a normal question,
-do not classify it as a civic complaint.
+Determine:
 
-Possible civic categories:
+problem
+category
+severity
+risk
+urgency
+department
+responsibleAuthority
+location
+confidence
+summary
+recommendation
+authorityReason
+officialComplaint
+problemDescription
+requestedAction
 
-Pothole
-Road Damage
-Garbage
-Waste Dumping
-Blocked Drain
-Sewage
-Water Leakage
-Water Supply
-Street Light
-Electric Pole
-Exposed Electrical Wire
-Traffic Signal
-Flooding
-Public Toilet
-Noise Issue
-Public Safety
-Public Infrastructure
-Other
+Severity must be one of:
 
-Severity:
 Low
 Medium
 High
 Critical
 
-Risk:
-Low
-Medium
-High
-Critical
+Use "Not provided" or "Not available"
+when information is unavailable.
 
-Urgency:
-Routine
-Soon
-Urgent
-Emergency
+Do not invent government contact information.
 
-Authority:
-Local
-Municipal
-District
-State
-Emergency
-
-Return ONLY JSON.
-
-Structure:
-
-{
-  "isCivicIssue": true,
-  "responseType": "civic_issue",
-  "problem": "",
-  "category": "",
-  "severity": "Low",
-  "risk": "Low",
-  "urgency": "Routine",
-  "department": "",
-  "authorityLevel": "Local",
-  "escalationRequired": false,
-  "location": "",
-  "confidence": "Medium",
-  "visibleEvidence": "",
-  "missingInformation": "",
-  "summary": "",
-  "recommendation": "",
-  "message": ""
-}
-
-Allowed responseType:
-greeting
-general_question
-civic_issue
-unclear
-
-Allowed confidence:
-High
-Medium
-Low
+Return ONLY valid JSON.
 
 `;
 
+// ============================================================
+// CIVIC SCHEMA
+// ============================================================
 
-function normalizeCivicAnalysis(
-    analysis,
-    location
-) {
+const CIVIC_SCHEMA = {
 
-    return {
+    type:
+        "object",
 
-        isCivicIssue:
-            analysis?.isCivicIssue === true,
+    properties: {
 
-        responseType:
-            normalizeAIText(
-                analysis?.responseType,
-                "unclear"
-            ),
+        problem: {
+            type:
+                "string"
+        },
 
-        problem:
-            normalizeAIText(
-                analysis?.problem
-            ),
+        category: {
+            type:
+                "string"
+        },
 
-        category:
-            normalizeAIText(
-                analysis?.category
-            ),
+        severity: {
+            type:
+                "string"
+        },
 
-        severity:
-            normalizeAIText(
-                analysis?.severity,
-                "Low"
-            ),
+        risk: {
+            type:
+                "string"
+        },
 
-        risk:
-            normalizeAIText(
-                analysis?.risk,
-                "Low"
-            ),
+        urgency: {
+            type:
+                "string"
+        },
 
-        urgency:
-            normalizeAIText(
-                analysis?.urgency,
-                "Routine"
-            ),
+        department: {
+            type:
+                "string"
+        },
 
-        department:
-            normalizeAIText(
-                analysis?.department,
-                "Municipal Authority"
-            ),
+        responsibleAuthority: {
+            type:
+                "string"
+        },
 
-        authorityLevel:
-            normalizeAIText(
-                analysis?.authorityLevel,
-                "Local"
-            ),
+        location: {
+            type:
+                "string"
+        },
 
-        escalationRequired:
-            analysis?.escalationRequired === true,
+        confidence: {
+            type:
+                "string"
+        },
 
-        location:
-            normalizeAIText(
-                analysis?.location,
-                location
-            ),
+        summary: {
+            type:
+                "string"
+        },
 
-        confidence:
-            normalizeAIText(
-                analysis?.confidence,
-                "Medium"
-            ),
+        recommendation: {
+            type:
+                "string"
+        },
 
-        visibleEvidence:
-            normalizeAIText(
-                analysis?.visibleEvidence
-            ),
+        authorityReason: {
+            type:
+                "string"
+        },
 
-        missingInformation:
-            normalizeAIText(
-                analysis?.missingInformation
-            ),
+        officialComplaint: {
+            type:
+                "string"
+        },
 
-        summary:
-            normalizeAIText(
-                analysis?.summary
-            ),
+        problemDescription: {
+            type:
+                "string"
+        },
 
-        recommendation:
-            normalizeAIText(
-                analysis?.recommendation
-            ),
+        requestedAction: {
+            type:
+                "string"
+        }
 
-        message:
-            normalizeAIText(
-                analysis?.message
-            )
+    },
 
-    };
+    required: [
 
-}
+        "problem",
+        "category",
+        "severity",
+        "risk",
+        "urgency",
+        "department",
+        "responsibleAuthority",
+        "location",
+        "confidence",
+        "summary",
+        "recommendation",
+        "authorityReason",
+        "officialComplaint",
+        "problemDescription",
+        "requestedAction"
 
+    ]
+
+};
 
 // ============================================================
 // /api/analyze
@@ -1492,75 +2083,32 @@ app.post(
     "/api/analyze",
     async (req, res) => {
 
-        const startedAt =
-            Date.now();
-
-
         try {
 
             const body =
                 req.body || {};
-
 
             const description =
                 cleanText(
                     body.description
                 );
 
-
             const location =
                 cleanText(
                     body.location
                 );
-
 
             const reporterName =
                 cleanText(
                     body.reporterName
                 );
 
-
-            let image =
-                null;
-
-
-            if (
-                typeof body.image === "string" &&
-                body.image.startsWith(
-                    "data:image/"
+            const image =
+                isImageDataUrl(
+                    body.image
                 )
-            ) {
-
-                const validation =
-                    validateImage(
-                        body.image
-                    );
-
-
-                if (
-                    !validation.valid
-                ) {
-
-                    return res
-                        .status(400)
-                        .json({
-
-                            success:
-                                false,
-
-                            error:
-                                validation.error
-
-                        });
-
-                }
-
-
-                image =
-                    body.image;
-
-            }
-
+                    ? body.image
+                    : null;
 
             if (
                 !description &&
@@ -1575,17 +2123,16 @@ app.post(
                             false,
 
                         error:
-                            "Please provide a civic problem description or image."
+                            "Description or image is required."
 
                     });
 
             }
 
-
             const userText = `
 
 Citizen:
-${reporterName || "Anonymous"}
+${reporterName || "Citizen"}
 
 Description:
 ${description || "No description provided."}
@@ -1593,15 +2140,12 @@ ${description || "No description provided."}
 Location:
 ${location || "Not provided."}
 
-Analyze this input.
-
-If an image is attached, inspect it carefully.
+Analyze this civic report.
 
 `;
 
-
-            const analysis =
-                await callGeminiJSON({
+            const raw =
+                await callGemini({
 
                     systemPrompt:
                         CIVIC_SYSTEM_PROMPT,
@@ -1610,54 +2154,46 @@ If an image is attached, inspect it carefully.
 
                     image,
 
-                    temperature:
-                        0.15,
+                    jsonMode:
+                        true,
+
+                    responseSchema:
+                        CIVIC_SCHEMA,
 
                     maxOutputTokens:
-                        900,
+                        2000,
 
-                    timeoutMs:
-                        25000
+                    retries:
+                        1
 
                 });
 
-
-            const normalized =
-                normalizeCivicAnalysis(
-                    analysis,
-                    location
+            const analysis =
+                parseAIJSON(
+                    raw
                 );
-
 
             return res.json({
 
                 success:
                     true,
 
-                source:
-                    "google-gemini",
+                provider:
+                    "Google Gemini",
 
                 model:
                     GEMINI_MODEL,
 
-                responseTimeMs:
-                    Date.now() -
-                    startedAt,
-
-                analysis:
-                    normalized
+                analysis
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "CIVIC AI ERROR:",
-                error?.message ||
-                error
+                "GEMINI CIVIC ANALYSIS ERROR:",
+                error?.message || error
             );
-
 
             const message =
                 String(
@@ -1665,46 +2201,28 @@ If an image is attached, inspect it carefully.
                     ""
                 );
 
-
-            if (
-                message
-                    .toLowerCase()
-                    .includes(
-                        "timed out"
-                    )
-            ) {
-
-                return res
-                    .status(504)
-                    .json({
-
-                        success:
-                            false,
-
-                        error:
-                            "CivicAI timed out. Please try again.",
-
-                        code:
-                            "AI_TIMEOUT"
-
-                    });
-
-            }
-
-
             return res
-                .status(500)
+                .status(
+                    message.includes("429")
+                        ? 429
+                        : 500
+                )
                 .json({
 
                     success:
                         false,
+
+                    provider:
+                        "Google Gemini",
 
                     error:
                         message ||
-                        "Civic AI analysis failed.",
+                        "Civic analysis failed.",
 
                     code:
-                        "AI_ANALYSIS_ERROR"
+                        message.includes("429")
+                            ? "GEMINI_QUOTA"
+                            : "GEMINI_ANALYSIS_ERROR"
 
                 });
 
@@ -1713,370 +2231,209 @@ If an image is attached, inspect it carefully.
     }
 );
 
-
 // ============================================================
-// ============================================================
-// AI HELP / CIVIC CHAT
-// ============================================================
-// ============================================================
-
-const CIVIC_CHAT_SYSTEM_PROMPT = `
-
-You are CivicAI, a helpful civic AI assistant.
-
-Help citizens with:
-
-Roads
-Garbage
-Drainage
-Water
-Electricity
-Street lights
-Sanitation
-Municipal services
-Public infrastructure
-Civic safety
-Government complaint procedures
-
-Answer naturally.
-
-Do not pretend to be a government officer.
-
-Do not invent official phone numbers.
-
-Do not invent official email addresses.
-
-Do not claim a complaint was submitted unless the backend
-actually submitted it.
-
-If information is uncertain, say so.
-
-Return normal conversational text.
-
-Do NOT return JSON.
-
-`;
-
-
-app.post(
-    "/api/chat",
-    async (req, res) => {
-
-        const startedAt =
-            Date.now();
-
-
-        try {
-
-            const message =
-                cleanText(
-                    req.body?.message
-                );
-
-
-            if (!message) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success:
-                            false,
-
-                        error:
-                            "Message is required."
-
-                    });
-
-            }
-
-
-            const reply =
-                await callGeminiText({
-
-                    systemPrompt:
-                        CIVIC_CHAT_SYSTEM_PROMPT,
-
-                    userText:
-                        message,
-
-                    temperature:
-                        0.45,
-
-                    maxOutputTokens:
-                        500,
-
-                    timeoutMs:
-                        18000
-
-                });
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                reply,
-
-                response:
-                    reply,
-
-                source:
-                    "google-gemini",
-
-                model:
-                    GEMINI_MODEL,
-
-                responseTimeMs:
-                    Date.now() -
-                    startedAt
-
-            });
-
-        }
-        catch (error) {
-
-            console.error(
-                "CHAT ERROR:",
-                error?.message ||
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success:
-                        false,
-
-                    error:
-                        error?.message ||
-                        "AI chat failed.",
-
-                    code:
-                        "CHAT_ERROR"
-
-                });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// ============================================================
-// PRODUCT AI
-// ============================================================
+// PRODUCT SCANNER PROMPT
 // ============================================================
 
 const PRODUCT_SYSTEM_PROMPT = `
 
-You are CivicAI Product Scanner.
+You are CivicAI Product Scanner AI.
 
-Analyze a consumer product from image, product name
-and user description.
+Analyze the consumer product using:
 
-Do not invent:
+- image
+- product name
+- description
 
-price
-ingredients
-expiry
+Do not invent information.
+
+If information cannot be read,
+return "Not available".
+
+Analyze:
+
+productName
+brand
+category
 manufacturer
-batch number
-medical benefits
-
-If information is unclear, say Not available.
-
-Possible categories:
-
-Food
-Beverage
-Medicine
-Cosmetic
-Personal Care
-Electronic
-Household
-Clothing
-Consumer Product
-Other
-Unknown
+price
+currency
+quantity
+ingredients
+manufacturingDate
+expiryDate
+batchNumber
+purpose
+benefits
+warnings
+consumerConcern
+visibleCondition
+missingInformation
+confidence
+summary
+recommendation
+message
 
 For medicine:
+
 Do not diagnose.
+
 Do not prescribe.
+
 Do not provide personalized dosage.
+
+Only explain visible label information
+and general safety information.
 
 Return ONLY valid JSON.
 
-Structure:
-
-{
-  "success": true,
-  "productName": "",
-  "brand": "",
-  "category": "",
-  "manufacturer": "",
-  "price": "",
-  "currency": "",
-  "quantity": "",
-  "ingredients": "",
-  "manufacturingDate": "",
-  "expiryDate": "",
-  "batchNumber": "",
-  "purpose": "",
-  "benefits": "",
-  "warnings": "",
-  "consumerConcern": "",
-  "visibleCondition": "",
-  "missingInformation": "",
-  "confidence": "Medium",
-  "summary": "",
-  "recommendation": "",
-  "message": ""
-}
-
-Confidence:
-High
-Medium
-Low
-
 `;
 
+// ============================================================
+// PRODUCT SCHEMA
+// ============================================================
 
-function normalizeProductAnalysis(
-    analysis
-) {
+const PRODUCT_SCHEMA = {
 
-    return {
+    type:
+        "object",
 
-        success:
-            true,
+    properties: {
 
-        productName:
-            normalizeAIText(
-                analysis?.productName,
-                "Unknown product"
-            ),
+        productName: {
+            type:
+                "string"
+        },
 
-        brand:
-            normalizeAIText(
-                analysis?.brand,
-                "Not available"
-            ),
+        brand: {
+            type:
+                "string"
+        },
 
-        category:
-            normalizeAIText(
-                analysis?.category,
-                "Unknown"
-            ),
+        category: {
+            type:
+                "string"
+        },
 
-        manufacturer:
-            normalizeAIText(
-                analysis?.manufacturer,
-                "Not available"
-            ),
+        manufacturer: {
+            type:
+                "string"
+        },
 
-        price:
-            normalizeAIText(
-                analysis?.price,
-                "Not visible"
-            ),
+        price: {
+            type:
+                "string"
+        },
 
-        currency:
-            normalizeAIText(
-                analysis?.currency
-            ),
+        currency: {
+            type:
+                "string"
+        },
 
-        quantity:
-            normalizeAIText(
-                analysis?.quantity,
-                "Not available"
-            ),
+        quantity: {
+            type:
+                "string"
+        },
 
-        ingredients:
-            normalizeAIText(
-                analysis?.ingredients,
-                "Not available"
-            ),
+        ingredients: {
+            type:
+                "string"
+        },
 
-        manufacturingDate:
-            normalizeAIText(
-                analysis?.manufacturingDate,
-                "Not available"
-            ),
+        manufacturingDate: {
+            type:
+                "string"
+        },
 
-        expiryDate:
-            normalizeAIText(
-                analysis?.expiryDate,
-                "Not available"
-            ),
+        expiryDate: {
+            type:
+                "string"
+        },
 
-        batchNumber:
-            normalizeAIText(
-                analysis?.batchNumber,
-                "Not available"
-            ),
+        batchNumber: {
+            type:
+                "string"
+        },
 
-        purpose:
-            normalizeAIText(
-                analysis?.purpose
-            ),
+        purpose: {
+            type:
+                "string"
+        },
 
-        benefits:
-            normalizeAIText(
-                analysis?.benefits
-            ),
+        benefits: {
+            type:
+                "string"
+        },
 
-        warnings:
-            normalizeAIText(
-                analysis?.warnings,
-                "No clear warning visible."
-            ),
+        warnings: {
+            type:
+                "string"
+        },
 
-        consumerConcern:
-            normalizeAIText(
-                analysis?.consumerConcern
-            ),
+        consumerConcern: {
+            type:
+                "string"
+        },
 
-        visibleCondition:
-            normalizeAIText(
-                analysis?.visibleCondition,
-                "Condition could not be fully verified."
-            ),
+        visibleCondition: {
+            type:
+                "string"
+        },
 
-        missingInformation:
-            normalizeAIText(
-                analysis?.missingInformation
-            ),
+        missingInformation: {
+            type:
+                "string"
+        },
 
-        confidence:
-            normalizeAIText(
-                analysis?.confidence,
-                "Medium"
-            ),
+        confidence: {
+            type:
+                "string"
+        },
 
-        summary:
-            normalizeAIText(
-                analysis?.summary
-            ),
+        summary: {
+            type:
+                "string"
+        },
 
-        recommendation:
-            normalizeAIText(
-                analysis?.recommendation
-            ),
+        recommendation: {
+            type:
+                "string"
+        },
 
-        message:
-            normalizeAIText(
-                analysis?.message
-            )
+        message: {
+            type:
+                "string"
+        }
 
-    };
+    },
 
-}
+    required: [
 
+        "productName",
+        "brand",
+        "category",
+        "manufacturer",
+        "price",
+        "currency",
+        "quantity",
+        "ingredients",
+        "manufacturingDate",
+        "expiryDate",
+        "batchNumber",
+        "purpose",
+        "benefits",
+        "warnings",
+        "consumerConcern",
+        "visibleCondition",
+        "missingInformation",
+        "confidence",
+        "summary",
+        "recommendation",
+        "message"
+
+    ]
+
+};
 
 // ============================================================
 // /api/analyze-product
@@ -2086,69 +2443,27 @@ app.post(
     "/api/analyze-product",
     async (req, res) => {
 
-        const startedAt =
-            Date.now();
-
-
         try {
 
             const body =
                 req.body || {};
-
 
             const productName =
                 cleanText(
                     body.productName
                 );
 
-
             const description =
                 cleanText(
                     body.description
                 );
 
-
-            let image =
-                null;
-
-
-            if (
-                typeof body.image === "string" &&
-                body.image.startsWith(
-                    "data:image/"
+            const image =
+                isImageDataUrl(
+                    body.image
                 )
-            ) {
-
-                const validation =
-                    validateImage(
-                        body.image
-                    );
-
-
-                if (
-                    !validation.valid
-                ) {
-
-                    return res
-                        .status(400)
-                        .json({
-
-                            success:
-                                false,
-
-                            error:
-                                validation.error
-
-                        });
-
-                }
-
-
-                image =
-                    body.image;
-
-            }
-
+                    ? body.image
+                    : null;
 
             if (
                 !image &&
@@ -2164,12 +2479,11 @@ app.post(
                             false,
 
                         error:
-                            "Please provide a product image, name or description."
+                            "Product image, name or description is required."
 
                     });
 
             }
-
 
             const userText = `
 
@@ -2179,25 +2493,12 @@ ${productName || "Not provided"}
 Description:
 ${description || "Not provided"}
 
-Analyze the product.
-
-If an image is attached, inspect:
-- label
-- brand
-- price
-- ingredients
-- dates
-- warnings
-- packaging
-- visible condition
-
-Do not invent information.
+Analyze this product.
 
 `;
 
-
-            const analysis =
-                await callGeminiJSON({
+            const raw =
+                await callGemini({
 
                     systemPrompt:
                         PRODUCT_SYSTEM_PROMPT,
@@ -2206,56 +2507,57 @@ Do not invent information.
 
                     image,
 
-                    temperature:
-                        0.15,
+                    jsonMode:
+                        true,
+
+                    responseSchema:
+                        PRODUCT_SCHEMA,
 
                     maxOutputTokens:
-                        1000,
+                        1800,
 
-                    timeoutMs:
-                        25000
+                    retries:
+                        1
 
                 });
 
-
-            const normalized =
-                normalizeProductAnalysis(
-                    analysis
+            const result =
+                parseAIJSON(
+                    raw
                 );
-
 
             return res.json({
 
                 success:
                     true,
 
-                source:
-                    "google-gemini",
+                provider:
+                    "Google Gemini",
 
                 model:
                     GEMINI_MODEL,
 
-                responseTimeMs:
-                    Date.now() -
-                    startedAt,
+                result,
 
                 product:
-                    normalized,
+                    result,
 
                 analysis:
-                    normalized
+                    result,
+
+                answer:
+                    result?.message ||
+                    result?.summary ||
+                    ""
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "PRODUCT AI ERROR:",
-                error?.message ||
-                error
+                "GEMINI PRODUCT SCANNER ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -2264,12 +2566,15 @@ Do not invent information.
                     success:
                         false,
 
+                    provider:
+                        "Google Gemini",
+
                     error:
                         error?.message ||
                         "Product analysis failed.",
 
                     code:
-                        "PRODUCT_AI_ERROR"
+                        "GEMINI_PRODUCT_ERROR"
 
                 });
 
@@ -2278,39 +2583,95 @@ Do not invent information.
     }
 );
 
-
 // ============================================================
-// PRODUCT QUESTION
+// PRODUCT LIVE HELPER
+// ============================================================
+//
+// GROQ ONLY
+//
 // ============================================================
 
-const PRODUCT_CHAT_SYSTEM_PROMPT = `
+const PRODUCT_CHAT_PROMPT = `
 
-You are CivicAI Product Assistant.
+You are CivicAI Product Live Helper.
 
-Answer questions about a consumer product.
+You are a conversational product assistant.
 
-Use only the supplied product information and image.
+Answer the user's actual product question directly.
 
-Do not invent:
-price
-ingredients
-expiry
-manufacturer
-medical information
+Use the supplied product analysis and image
+as context.
 
-For medicine:
+Do not invent product information.
+
+Never invent:
+
+- price
+- ingredients
+- expiry date
+- manufacturer
+- batch number
+- specifications
+
+If information is unavailable,
+say:
+
+"I don't have enough verified information."
+
+============================================================
+MEDICINE SAFETY
+============================================================
+
+If the product is medicine:
+
 Do not diagnose.
+
 Do not prescribe.
+
 Do not provide personalized dosage.
 
-If information is missing, say it is unavailable.
+Do not tell the user to change medication.
+
+Only explain visible label information
+and general safety information.
+
+For urgent medical situations,
+recommend contacting a qualified healthcare professional
+or appropriate emergency service.
+
+============================================================
+STYLE
+============================================================
+
+Use the user's language.
+
+Bengali -> Bengali.
+
+English -> English.
+
+Banglish -> Banglish.
+
+Mixed language -> natural mixed language.
+
+Be natural.
+
+Be helpful.
+
+Do not force the user into a complaint.
+
+Do not return JSON.
+
+Do not mention Gemini.
+
+Do not mention API implementation.
 
 Return normal conversational text.
 
-Do NOT return JSON.
-
 `;
 
+// ============================================================
+// /api/product-question
+// ============================================================
 
 app.post(
     "/api/product-question",
@@ -2321,13 +2682,11 @@ app.post(
             const body =
                 req.body || {};
 
-
             const question =
                 cleanText(
                     body.question ||
                     body.message
                 );
-
 
             if (!question) {
 
@@ -2345,16 +2704,13 @@ app.post(
 
             }
 
-
             const productName =
                 cleanText(
                     body.productName
                 );
 
-
             let productContext =
-                "No previous product analysis available.";
-
+                "No product analysis available.";
 
             if (
                 body.product &&
@@ -2370,53 +2726,22 @@ app.post(
 
             }
 
-
-            let image =
-                null;
-
-
-            if (
-                typeof body.image === "string" &&
-                body.image.startsWith(
-                    "data:image/"
+            const image =
+                isImageDataUrl(
+                    body.image
                 )
-            ) {
+                    ? body.image
+                    : null;
 
-                const validation =
-                    validateImage(
-                        body.image
-                    );
-
-
-                if (
-                    !validation.valid
-                ) {
-
-                    return res
-                        .status(400)
-                        .json({
-
-                            success:
-                                false,
-
-                            error:
-                                validation.error
-
-                        });
-
-                }
-
-
-                image =
-                    body.image;
-
-            }
-
+            const history =
+                normalizeHistory(
+                    body.history
+                );
 
             const userText = `
 
 Product:
-${productName || "Unknown"}
+${productName || "Unknown product"}
 
 Product analysis:
 ${productContext}
@@ -2424,60 +2749,67 @@ ${productContext}
 User question:
 ${question}
 
-Answer using the available information.
+Answer naturally.
 
 `;
 
-
-            const reply =
-                await callGeminiText({
+            const result =
+                await callGroq({
 
                     systemPrompt:
-                        PRODUCT_CHAT_SYSTEM_PROMPT,
+                        PRODUCT_CHAT_PROMPT,
 
                     userText,
+
+                    history,
 
                     image,
 
                     temperature:
-                        0.35,
+                        0.45,
 
-                    maxOutputTokens:
-                        500,
+                    maxTokens:
+                        1600,
 
-                    timeoutMs:
-                        18000
+                    retries:
+                        2
 
                 });
-
 
             return res.json({
 
                 success:
                     true,
 
-                reply,
-
-                response:
-                    reply,
-
-                source:
-                    "google-gemini",
+                provider:
+                    "Groq",
 
                 model:
-                    GEMINI_MODEL
+                    result.model,
+
+                answer:
+                    result.answer,
+
+                message:
+                    result.answer,
+
+                reply:
+                    result.answer,
+
+                response:
+                    result.answer,
+
+                usage:
+                    result.usage || null
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "PRODUCT QUESTION ERROR:",
-                error?.message ||
-                error
+                "GROQ PRODUCT CHAT ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -2486,12 +2818,15 @@ Answer using the available information.
                     success:
                         false,
 
+                    provider:
+                        "Groq",
+
                     error:
                         error?.message ||
-                        "Product AI question failed.",
+                        "Product chat failed.",
 
                     code:
-                        "PRODUCT_CHAT_ERROR"
+                        "GROQ_PRODUCT_CHAT_ERROR"
 
                 });
 
@@ -2500,25 +2835,208 @@ Answer using the available information.
     }
 );
 
+// ============================================================
+// AUTHORITY ASSISTANT
+// ============================================================
+
+const AUTHORITY_PROMPT = `
+
+You are CivicAI Authority Assistant.
+
+Help identify the appropriate authority
+for a civic problem.
+
+Use only the information supplied.
+
+Do not invent:
+
+- phone numbers
+- email addresses
+- government websites
+- complaint links
+
+If contact information is not verified,
+say:
+
+"Not verified."
+
+Answer naturally.
+
+Use the user's language.
+
+Bengali -> Bengali.
+
+English -> English.
+
+Banglish -> Banglish.
+
+`;
 
 // ============================================================
+// /api/authority
+// ============================================================
+
+app.post(
+    "/api/authority",
+    async (req, res) => {
+
+        try {
+
+            const body =
+                req.body || {};
+
+            const problem =
+                cleanText(
+                    body.problem ||
+                    body.description
+                );
+
+            const category =
+                cleanText(
+                    body.category
+                );
+
+            const location =
+                cleanText(
+                    body.location
+                );
+
+            if (
+                !problem &&
+                !category
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Problem or category is required."
+
+                    });
+
+            }
+
+            const userText = `
+
+Problem:
+${problem || "Not provided"}
+
+Category:
+${category || "Not provided"}
+
+Location:
+${location || "Not provided"}
+
+Suggest the responsible authority.
+
+`;
+
+            const result =
+                await callGroq({
+
+                    systemPrompt:
+                        AUTHORITY_PROMPT,
+
+                    userText,
+
+                    history: [],
+
+                    temperature:
+                        0.25,
+
+                    maxTokens:
+                        1200,
+
+                    retries:
+                        2
+
+                });
+
+            return res.json({
+
+                success:
+                    true,
+
+                provider:
+                    "Groq",
+
+                model:
+                    result.model,
+
+                authority:
+                    result.answer,
+
+                answer:
+                    result.answer
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "AUTHORITY ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    provider:
+                        "Groq",
+
+                    error:
+                        error?.message ||
+                        "Authority lookup failed."
+
+                });
+
+        }
+
+    }
+);
+
 // ============================================================
 // OTP SYSTEM
 // ============================================================
+
+const OTP_EXPIRY_MS =
+    5 * 60 * 1000;
+
+const MAX_OTP_ATTEMPTS =
+    5;
+
+const otpStore =
+    new Map();
+
+const verifiedUsers =
+    new Map();
+
+// ============================================================
+// OTP GENERATOR
 // ============================================================
 
 function generateOTP() {
 
     return String(
-        crypto
-            .randomInt(
-                100000,
-                1000000
-            )
+        crypto.randomInt(
+            100000,
+            1000000
+        )
     );
 
 }
 
+// ============================================================
+// SAVE OTP
+// ============================================================
 
 function saveOTP(
     identifier,
@@ -2526,7 +3044,9 @@ function saveOTP(
 ) {
 
     otpStore.set(
+
         identifier,
+
         {
 
             otp,
@@ -2538,10 +3058,14 @@ function saveOTP(
                 0
 
         }
+
     );
 
 }
 
+// ============================================================
+// VERIFY OTP
+// ============================================================
 
 function verifyStoredOTP(
     identifier,
@@ -2553,16 +3077,19 @@ function verifyStoredOTP(
             identifier
         );
 
-
     if (!record) {
 
         return {
-            success: false,
-            error: "OTP not found or expired."
+
+            success:
+                false,
+
+            error:
+                "OTP not found or expired."
+
         };
 
     }
-
 
     if (
         Date.now() -
@@ -2575,12 +3102,16 @@ function verifyStoredOTP(
         );
 
         return {
-            success: false,
-            error: "OTP expired."
+
+            success:
+                false,
+
+            error:
+                "OTP expired."
+
         };
 
     }
-
 
     if (
         record.attempts >=
@@ -2592,12 +3123,16 @@ function verifyStoredOTP(
         );
 
         return {
-            success: false,
-            error: "Too many OTP attempts."
+
+            success:
+                false,
+
+            error:
+                "Too many OTP attempts."
+
         };
 
     }
-
 
     if (
         record.otp !==
@@ -2607,30 +3142,34 @@ function verifyStoredOTP(
         record.attempts++;
 
         return {
-            success: false,
-            error: "Invalid OTP."
+
+            success:
+                false,
+
+            error:
+                "Invalid OTP."
+
         };
 
     }
 
-
     otpStore.delete(
         identifier
     );
-
 
     verifiedUsers.set(
         identifier,
         Date.now()
     );
 
-
     return {
-        success: true
+
+        success:
+            true
+
     };
 
 }
-
 
 // ============================================================
 // EMAIL OTP
@@ -2647,7 +3186,6 @@ app.post(
                     req.body?.email
                 )
                 .toLowerCase();
-
 
             if (
                 !email ||
@@ -2668,7 +3206,6 @@ app.post(
 
             }
 
-
             if (
                 !emailTransporter
             ) {
@@ -2681,55 +3218,87 @@ app.post(
                             false,
 
                         error:
-                            "Gmail OTP is not configured."
+                            "Gmail OTP is not configured. Check EMAIL_USER and EMAIL_PASSWORD."
 
                     });
 
             }
 
-
             const otp =
                 generateOTP();
-
 
             saveOTP(
                 email,
                 otp
             );
 
+            await emailTransporter
+                .sendMail({
 
-            await emailTransporter.sendMail({
+                    from:
+                        EMAIL_FROM,
 
-                from:
-                    EMAIL_FROM,
+                    to:
+                        email,
 
-                to:
-                    email,
+                    subject:
+                        "CivicAI Verification OTP",
 
-                subject:
-                    "CivicAI Verification OTP",
+                    text:
+                        `Your CivicAI verification OTP is ${otp}. It expires in 5 minutes.`,
 
-                text:
-                    `Your CivicAI verification OTP is ${otp}. It expires in 5 minutes.`,
+                    html:
+                        `
+                        <!DOCTYPE html>
 
-                html: `
+                        <html>
 
-                    <div style="font-family:Arial">
+                        <body
+                            style="
+                                font-family:Arial,sans-serif;
+                                background:#f5f7fb;
+                                padding:30px;
+                            "
+                        >
 
-                        <h2>CivicAI Verification</h2>
+                            <div
+                                style="
+                                    max-width:500px;
+                                    margin:auto;
+                                    background:white;
+                                    padding:30px;
+                                    border-radius:12px;
+                                "
+                            >
 
-                        <p>Your verification OTP is:</p>
+                                <h2>
+                                    CivicAI Verification
+                                </h2>
 
-                        <h1>${otp}</h1>
+                                <p>
+                                    Your CivicAI verification OTP is:
+                                </p>
 
-                        <p>This OTP expires in 5 minutes.</p>
+                                <h1
+                                    style="
+                                        letter-spacing:8px;
+                                    "
+                                >
+                                    ${otp}
+                                </h1>
 
-                    </div>
+                                <p>
+                                    This OTP expires in 5 minutes.
+                                </p>
 
-                `
+                            </div>
 
-            });
+                        </body>
 
+                        </html>
+                        `
+
+                });
 
             return res.json({
 
@@ -2741,14 +3310,12 @@ app.post(
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
                 "EMAIL OTP ERROR:",
-                error
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -2758,6 +3325,7 @@ app.post(
                         false,
 
                     error:
+                        error?.message ||
                         "Failed to send OTP."
 
                 });
@@ -2766,7 +3334,6 @@ app.post(
 
     }
 );
-
 
 // ============================================================
 // VERIFY EMAIL OTP
@@ -2782,12 +3349,10 @@ app.post(
             )
             .toLowerCase();
 
-
         const otp =
             cleanText(
                 req.body?.otp
             );
-
 
         if (
             !email ||
@@ -2808,13 +3373,11 @@ app.post(
 
         }
 
-
         const result =
             verifyStoredOTP(
                 email,
                 otp
             );
-
 
         if (
             !result.success
@@ -2827,7 +3390,6 @@ app.post(
                 );
 
         }
-
 
         return res.json({
 
@@ -2845,7 +3407,6 @@ app.post(
     }
 );
 
-
 // ============================================================
 // PHONE OTP
 // ============================================================
@@ -2860,7 +3421,6 @@ app.post(
                 cleanText(
                     req.body?.phone
                 );
-
 
             if (!phone) {
 
@@ -2878,7 +3438,6 @@ app.post(
 
             }
 
-
             if (
                 !twilioClient
             ) {
@@ -2891,36 +3450,34 @@ app.post(
                             false,
 
                         error:
-                            "Twilio is not configured."
+                            "Twilio is not configured correctly."
 
                     });
 
             }
 
-
             const otp =
                 generateOTP();
-
 
             saveOTP(
                 phone,
                 otp
             );
 
+            await twilioClient
+                .messages
+                .create({
 
-            await twilioClient.messages.create({
+                    body:
+                        `CivicAI verification OTP: ${otp}. Valid for 5 minutes.`,
 
-                body:
-                    `CivicAI verification OTP: ${otp}. Valid for 5 minutes.`,
+                    from:
+                        TWILIO_PHONE_NUMBER,
 
-                from:
-                    TWILIO_PHONE_NUMBER,
+                    to:
+                        phone
 
-                to:
-                    phone
-
-            });
-
+                });
 
             return res.json({
 
@@ -2932,14 +3489,12 @@ app.post(
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
                 "PHONE OTP ERROR:",
-                error
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -2949,6 +3504,7 @@ app.post(
                         false,
 
                     error:
+                        error?.message ||
                         "Failed to send phone OTP."
 
                 });
@@ -2957,7 +3513,6 @@ app.post(
 
     }
 );
-
 
 // ============================================================
 // VERIFY PHONE OTP
@@ -2972,12 +3527,10 @@ app.post(
                 req.body?.phone
             );
 
-
         const otp =
             cleanText(
                 req.body?.otp
             );
-
 
         if (
             !phone ||
@@ -2998,13 +3551,11 @@ app.post(
 
         }
 
-
         const result =
             verifyStoredOTP(
                 phone,
                 otp
             );
-
 
         if (
             !result.success
@@ -3017,7 +3568,6 @@ app.post(
                 );
 
         }
-
 
         return res.json({
 
@@ -3035,11 +3585,8 @@ app.post(
     }
 );
 
-
-// ============================================================
 // ============================================================
 // REPORT STORAGE
-// ============================================================
 // ============================================================
 
 function readReports() {
@@ -3052,21 +3599,16 @@ function readReports() {
                 "utf8"
             );
 
-
         const data =
             JSON.parse(
                 raw
             );
 
-
-        return Array.isArray(
-            data
-        )
+        return Array.isArray(data)
             ? data
             : [];
 
-    }
-    catch {
+    } catch {
 
         return [];
 
@@ -3074,23 +3616,29 @@ function readReports() {
 
 }
 
+// ============================================================
+// WRITE REPORTS
+// ============================================================
 
 function writeReports(
     reports
 ) {
 
     fs.writeFileSync(
+
         REPORTS_FILE,
+
         JSON.stringify(
             reports,
             null,
             2
         ),
+
         "utf8"
+
     );
 
 }
-
 
 // ============================================================
 // CREATE REPORT
@@ -3104,7 +3652,6 @@ app.post(
 
             const body =
                 req.body || {};
-
 
             const report = {
 
@@ -3140,14 +3687,23 @@ app.post(
                     ),
 
                 image:
-                    typeof body.image === "string"
+                    typeof body.image ===
+                    "string"
                         ? body.image
                         : null,
 
                 analysis:
                     body.analysis &&
-                    typeof body.analysis === "object"
+                    typeof body.analysis ===
+                    "object"
                         ? body.analysis
+                        : null,
+
+                authority:
+                    body.authority &&
+                    typeof body.authority ===
+                    "object"
+                        ? body.authority
                         : null,
 
                 status:
@@ -3158,7 +3714,6 @@ app.post(
                         .toISOString()
 
             };
-
 
             if (
                 !report.description &&
@@ -3180,20 +3735,16 @@ app.post(
 
             }
 
-
             const reports =
                 readReports();
-
 
             reports.push(
                 report
             );
 
-
             writeReports(
                 reports
             );
-
 
             return res.json({
 
@@ -3207,14 +3758,12 @@ app.post(
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
                 "CREATE REPORT ERROR:",
-                error
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -3233,7 +3782,6 @@ app.post(
     }
 );
 
-
 // ============================================================
 // GET ALL REPORTS
 // ============================================================
@@ -3244,7 +3792,6 @@ app.get(
 
         const reports =
             readReports();
-
 
         return res.json({
 
@@ -3261,7 +3808,6 @@ app.get(
     }
 );
 
-
 // ============================================================
 // GET SINGLE REPORT
 // ============================================================
@@ -3273,14 +3819,12 @@ app.get(
         const reports =
             readReports();
 
-
         const report =
             reports.find(
                 item =>
                     item.reportId ===
                     req.params.reportId
             );
-
 
         if (!report) {
 
@@ -3298,7 +3842,6 @@ app.get(
 
         }
 
-
         return res.json({
 
             success:
@@ -3311,9 +3854,8 @@ app.get(
     }
 );
 
-
 // ============================================================
-// SEND REPORT BY EMAIL
+// SEND REPORT EMAIL
 // ============================================================
 
 app.post(
@@ -3340,17 +3882,14 @@ app.post(
 
             }
 
-
             const body =
                 req.body || {};
-
 
             const to =
                 cleanText(
                     body.to ||
                     body.email
                 );
-
 
             if (!to) {
 
@@ -3368,41 +3907,40 @@ app.post(
 
             }
 
-
             const reportId =
                 cleanText(
                     body.reportId
                 );
-
 
             const description =
                 cleanText(
                     body.description
                 );
 
-
             const location =
                 cleanText(
                     body.location
                 );
 
-
             const analysis =
                 body.analysis &&
-                typeof body.analysis === "object"
+                typeof body.analysis ===
+                "object"
                     ? body.analysis
                     : {};
 
-
-            const subject =
-                reportId
-                    ? `CivicAI Complaint - ${reportId}`
-                    : "CivicAI Civic Complaint";
-
+            const authority =
+                body.authority &&
+                typeof body.authority ===
+                "object"
+                    ? body.authority
+                    : {};
 
             const text = `
 
 CIVICAI CIVIC COMPLAINT
+
+========================================
 
 Report ID:
 ${reportId || "Not available"}
@@ -3410,11 +3948,22 @@ ${reportId || "Not available"}
 Citizen:
 ${cleanText(body.reporterName) || "Anonymous"}
 
+Email:
+${cleanText(body.email) || "Not provided"}
+
+Phone:
+${cleanText(body.phone) || "Not provided"}
+
 Location:
 ${location || "Not provided"}
 
-Problem:
-${description || analysis.problem || "Not provided"}
+========================================
+
+PROBLEM
+
+${description ||
+    analysis.problem ||
+    "Not provided"}
 
 Category:
 ${analysis.category || "Not available"}
@@ -3428,36 +3977,60 @@ ${analysis.risk || "Not available"}
 Urgency:
 ${analysis.urgency || "Not available"}
 
+========================================
+
+AUTHORITY
+
 Department:
 ${analysis.department || "Not available"}
 
-Authority:
-${analysis.authorityLevel || "Not available"}
+Responsible Authority:
+${analysis.responsibleAuthority || "Not available"}
 
-Summary:
+Authority Result:
+${authority.authority || "Not available"}
+
+Authority Phone:
+${authority.phone || "Not verified"}
+
+Authority Email:
+${authority.email || "Not verified"}
+
+Authority Website:
+${authority.website || "Not verified"}
+
+========================================
+
+SUMMARY
+
 ${analysis.summary || "Not available"}
 
-Recommendation:
+RECOMMENDATION
+
 ${analysis.recommendation || "Not available"}
+
+========================================
 
 This complaint was generated through CivicAI.
 
 `;
 
+            await emailTransporter
+                .sendMail({
 
-            await emailTransporter.sendMail({
+                    from:
+                        EMAIL_FROM,
 
-                from:
-                    EMAIL_FROM,
+                    to,
 
-                to,
+                    subject:
+                        reportId
+                            ? `CivicAI Complaint - ${reportId}`
+                            : "CivicAI Civic Complaint",
 
-                subject,
+                    text
 
-                text
-
-            });
-
+                });
 
             return res.json({
 
@@ -3469,14 +4042,12 @@ This complaint was generated through CivicAI.
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "SEND REPORT ERROR:",
-                error
+                "SEND REPORT EMAIL ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -3486,7 +4057,8 @@ This complaint was generated through CivicAI.
                         false,
 
                     error:
-                        "Failed to send civic report."
+                        error?.message ||
+                        "Failed to send report."
 
                 });
 
@@ -3495,11 +4067,95 @@ This complaint was generated through CivicAI.
     }
 );
 
+// ============================================================
+// TEST GMAIL
+// ============================================================
+
+app.post(
+    "/api/test-email",
+    async (req, res) => {
+
+        try {
+
+            if (
+                !emailTransporter
+            ) {
+
+                return res
+                    .status(503)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Gmail is not configured."
+
+                    });
+
+            }
+
+            const to =
+                cleanText(
+                    req.body?.email
+                ) ||
+                EMAIL_USER;
+
+            await emailTransporter
+                .sendMail({
+
+                    from:
+                        EMAIL_FROM,
+
+                    to,
+
+                    subject:
+                        "CivicAI Gmail Test",
+
+                    text:
+                        "CivicAI Gmail integration is working successfully."
+
+                });
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Test email sent successfully.",
+
+                to
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "TEST EMAIL ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        error?.message ||
+                        "Test email failed."
+
+                });
+
+        }
+
+    }
+);
 
 // ============================================================
-// ============================================================
 // AI STATUS
-// ============================================================
 // ============================================================
 
 app.get(
@@ -3511,28 +4167,116 @@ app.get(
             success:
                 true,
 
-            ai: {
+            services: {
 
-                provider:
-                    "Google Gemini",
+                aiLifeHelper: {
 
-                model:
-                    GEMINI_MODEL,
+                    provider:
+                        "Groq",
 
-                configured:
-                    hasGeminiKey(),
+                    model:
+                        GROQ_TEXT_MODEL,
 
-                civicAI:
-                    true,
+                    configured:
+                        hasGroqKey()
 
-                chatAI:
-                    true,
+                },
 
-                productAI:
-                    true,
+                normalChat: {
 
-                imageAI:
-                    true
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                productChat: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                imageChat: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_VISION_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                civicAnalysis: {
+
+                    provider:
+                        "Google Gemini",
+
+                    model:
+                        GEMINI_MODEL,
+
+                    configured:
+                        hasGeminiKey()
+
+                },
+
+                productScanner: {
+
+                    provider:
+                        "Google Gemini",
+
+                    model:
+                        GEMINI_MODEL,
+
+                    configured:
+                        hasGeminiKey()
+
+                },
+
+                authorityLookup: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                }
+
+            },
+
+            otherServices: {
+
+                gmail: {
+
+                    configured:
+                        hasEmailConfig()
+
+                },
+
+                twilio: {
+
+                    configured:
+                        hasTwilioConfig()
+
+                }
 
             },
 
@@ -3545,54 +4289,8 @@ app.get(
     }
 );
 
-
 // ============================================================
-// PRODUCT STATUS
-// ============================================================
-
-app.get(
-    "/api/product-status",
-    (req, res) => {
-
-        return res.json({
-
-            success:
-                true,
-
-            productAI: {
-
-                provider:
-                    "Google Gemini",
-
-                model:
-                    GEMINI_MODEL,
-
-                configured:
-                    hasGeminiKey(),
-
-                scanner:
-                    true,
-
-                productChat:
-                    true,
-
-                imageAnalysis:
-                    true
-
-            },
-
-            serverTime:
-                new Date()
-                    .toISOString()
-
-        });
-
-    }
-);
-
-
-// ============================================================
-// HEALTH CHECK
+// HEALTH
 // ============================================================
 
 app.get(
@@ -3610,20 +4308,59 @@ app.get(
             service:
                 "CivicAI Backend",
 
-            aiProvider:
-                "Google Gemini",
+            ai: {
 
-            aiConfigured:
-                hasGeminiKey(),
+                aiLifeHelper:
+                    "Groq",
 
-            geminiModel:
-                GEMINI_MODEL,
+                normalChat:
+                    "Groq",
 
-            emailConfigured:
-                hasEmailConfig(),
+                productChat:
+                    "Groq",
 
-            phoneConfigured:
-                hasTwilioConfig(),
+                imageChat:
+                    "Groq",
+
+                civicAnalysis:
+                    "Google Gemini",
+
+                productScanner:
+                    "Google Gemini",
+
+                authority:
+                    "Groq"
+
+            },
+
+            configured: {
+
+                groq:
+                    hasGroqKey(),
+
+                gemini:
+                    hasGeminiKey(),
+
+                gmail:
+                    hasEmailConfig(),
+
+                twilio:
+                    hasTwilioConfig()
+
+            },
+
+            models: {
+
+                groqText:
+                    GROQ_TEXT_MODEL,
+
+                groqVision:
+                    GROQ_VISION_MODEL,
+
+                gemini:
+                    GEMINI_MODEL
+
+            },
 
             timestamp:
                 new Date()
@@ -3634,9 +4371,8 @@ app.get(
     }
 );
 
-
 // ============================================================
-// API INFORMATION
+// API INFO
 // ============================================================
 
 app.get(
@@ -3653,50 +4389,53 @@ app.get(
 
             endpoints: {
 
+                chat:
+                    "POST /api/chat",
+
+                analyze:
+                    "POST /api/analyze",
+
+                productScanner:
+                    "POST /api/analyze-product",
+
+                productChat:
+                    "POST /api/product-question",
+
+                authority:
+                    "POST /api/authority",
+
                 health:
                     "GET /api/health",
 
                 aiStatus:
                     "GET /api/ai-status",
 
-                civicAI:
-                    "POST /api/analyze",
-
-                chat:
-                    "POST /api/chat",
-
-                productAI:
-                    "POST /api/analyze-product",
-
-                productQuestion:
-                    "POST /api/product-question",
-
-                productStatus:
-                    "GET /api/product-status",
-
-                emailOTP:
-                    "POST /api/request-otp",
-
-                verifyEmailOTP:
-                    "POST /api/verify-otp",
-
-                phoneOTP:
-                    "POST /api/request-phone-otp",
-
-                verifyPhoneOTP:
-                    "POST /api/verify-phone-otp",
-
-                createReport:
+                reports:
                     "POST /api/reports",
 
-                reports:
+                getReports:
                     "GET /api/reports",
 
                 singleReport:
                     "GET /api/reports/:reportId",
 
                 sendReport:
-                    "POST /api/send-report"
+                    "POST /api/send-report",
+
+                testEmail:
+                    "POST /api/test-email",
+
+                requestOTP:
+                    "POST /api/request-otp",
+
+                verifyOTP:
+                    "POST /api/verify-otp",
+
+                requestPhoneOTP:
+                    "POST /api/request-phone-otp",
+
+                verifyPhoneOTP:
+                    "POST /api/verify-phone-otp"
 
             }
 
@@ -3705,21 +4444,93 @@ app.get(
     }
 );
 
+// ============================================================
+// STATIC FRONTEND SECURITY
+// ============================================================
+
+app.use(
+    (
+        req,
+        res,
+        next
+    ) => {
+
+        const blocked =
+            new Set([
+
+                "/server.js",
+
+                "/.env",
+
+                "/package.json",
+
+                "/package-lock.json"
+
+            ]);
+
+        if (
+            blocked.has(
+                req.path
+            )
+        ) {
+
+            return res
+                .status(403)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Forbidden."
+
+                });
+
+        }
+
+        if (
+            req.path.startsWith(
+                "/data/"
+            )
+        ) {
+
+            return res
+                .status(403)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Forbidden."
+
+                });
+
+        }
+
+        next();
+
+    }
+);
 
 // ============================================================
-// FRONTEND
+// STATIC FRONTEND
 // ============================================================
 
 app.use(
     express.static(
         __dirname,
         {
+
             dotfiles:
-                "deny"
+                "deny",
+
+            index:
+                "index.html"
+
         }
     )
 );
-
 
 // ============================================================
 // API 404
@@ -3747,7 +4558,6 @@ app.use(
     }
 );
 
-
 // ============================================================
 // GLOBAL ERROR HANDLER
 // ============================================================
@@ -3765,7 +4575,6 @@ app.use(
             error
         );
 
-
         if (
             res.headersSent
         ) {
@@ -3776,6 +4585,25 @@ app.use(
 
         }
 
+        if (
+            error instanceof SyntaxError &&
+            error.status === 400 &&
+            "body" in error
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Invalid JSON request body."
+
+                });
+
+        }
 
         return res
             .status(500)
@@ -3792,6 +4620,33 @@ app.use(
     }
 );
 
+// ============================================================
+// PROCESS ERROR HANDLING
+// ============================================================
+
+process.on(
+    "unhandledRejection",
+    error => {
+
+        console.error(
+            "UNHANDLED REJECTION:",
+            error
+        );
+
+    }
+);
+
+process.on(
+    "uncaughtException",
+    error => {
+
+        console.error(
+            "UNCAUGHT EXCEPTION:",
+            error
+        );
+
+    }
+);
 
 // ============================================================
 // START SERVER
@@ -3802,12 +4657,15 @@ app.listen(
     () => {
 
         console.log("");
+
         console.log(
             "=================================================="
         );
+
         console.log(
-            "             CIVICAI BACKEND"
+            "                 CIVICAI BACKEND"
         );
+
         console.log(
             "=================================================="
         );
@@ -3823,67 +4681,121 @@ app.listen(
         console.log("");
 
         console.log(
-            "FRONTEND:"
+            "AI SERVICES"
         );
 
         console.log(
-            `INDEX: http://localhost:${PORT}/`
-        );
-
-        console.log("");
-
-        console.log(
-            "AI SERVICES:"
+            "--------------------------------------------------"
         );
 
         console.log(
-            "Civic AI:",
+
+            "AI Life Helper     :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Normal Chat        :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Product Chat       :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Image Chat         :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_VISION_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Civic Report AI    :",
+
             hasGeminiKey()
-                ? "CONFIGURED"
-                : "NOT CONFIGURED"
+                ? `GEMINI (${GEMINI_MODEL})`
+                : "GEMINI NOT CONFIGURED"
+
         );
 
         console.log(
-            "AI Model:",
-            GEMINI_MODEL
+
+            "Product Scanner    :",
+
+            hasGeminiKey()
+                ? `GEMINI (${GEMINI_MODEL})`
+                : "GEMINI NOT CONFIGURED"
+
         );
 
         console.log(
-            "AI Help: ENABLED"
-        );
 
-        console.log(
-            "Product Scanner: ENABLED"
-        );
+            "Authority Lookup   :",
 
-        console.log(
-            "Image AI: ENABLED"
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
         );
 
         console.log("");
 
         console.log(
-            "OTHER SERVICES:"
+            "OTHER SERVICES"
         );
 
         console.log(
-            "Gmail:",
+            "--------------------------------------------------"
+        );
+
+        console.log(
+
+            "Gmail OTP          :",
+
             hasEmailConfig()
                 ? "CONFIGURED"
                 : "NOT CONFIGURED"
+
         );
 
         console.log(
-            "Twilio:",
+
+            "Twilio OTP         :",
+
             hasTwilioConfig()
                 ? "CONFIGURED"
                 : "NOT CONFIGURED"
+
         );
 
         console.log("");
 
         console.log(
-            "API:"
+            "API ENDPOINTS"
+        );
+
+        console.log(
+            "--------------------------------------------------"
         );
 
         console.log(
@@ -3898,9 +4810,7 @@ app.listen(
             `http://localhost:${PORT}/api/ai-status`
         );
 
-        console.log(
-            `http://localhost:${PORT}/api/product-status`
-        );
+        console.log("");
 
         console.log(
             "=================================================="
