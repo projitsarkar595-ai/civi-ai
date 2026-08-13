@@ -1881,839 +1881,956 @@ body.light-mode .icon-btn{
     id="helperToast">
 </div>
 
-
 <script>
-
 "use strict";
-
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    /* =========================================================
+       ELEMENTS
+    ========================================================= */
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenu = document.getElementById("mobileMenu");
 
-const sidebar =
-    document.getElementById("sidebar");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatContainer = document.getElementById("chatContainer");
 
-const mobileMenu =
-    document.getElementById("mobileMenu");
+    const chatInput = document.getElementById("chatInput");
+    const sendButton = document.getElementById("sendButton");
 
-const chatMessages =
-    document.getElementById("chatMessages");
+    const fileButton = document.getElementById("fileButton");
+    const fileInput = document.getElementById("fileInput");
+    const cameraButton = document.getElementById("cameraButton");
+    const voiceButton = document.getElementById("voiceButton");
 
-const chatContainer =
-    document.getElementById("chatContainer");
+    const typingIndicator =
+        document.getElementById("typingIndicator");
 
-const chatInput =
-    document.getElementById("chatInput");
+    const welcomeScreen =
+        document.getElementById("welcomeScreen");
 
-const sendButton =
-    document.getElementById("sendButton");
+    const newChatButton =
+        document.getElementById("newChatButton");
 
-const fileButton =
-    document.getElementById("fileButton");
+    const sidebarNewChat =
+        document.getElementById("sidebarNewChat");
 
-const fileInput =
-    document.getElementById("fileInput");
+    const clearHistoryButton =
+        document.getElementById("clearHistoryButton");
 
-const cameraButton =
-    document.getElementById("cameraButton");
+    const saveChatButton =
+        document.getElementById("saveChatButton");
 
-const voiceButton =
-    document.getElementById("voiceButton");
+    const exportChatButton =
+        document.getElementById("exportChatButton");
 
-const typingIndicator =
-    document.getElementById("typingIndicator");
+    const themeButton =
+        document.getElementById("themeButton");
 
-const welcomeScreen =
-    document.getElementById("welcomeScreen");
+    const attachmentPreview =
+        document.getElementById("attachmentPreview");
 
-const newChatButton =
-    document.getElementById("newChatButton");
+    const attachmentName =
+        document.getElementById("attachmentName");
 
-const sidebarNewChat =
-    document.getElementById("sidebarNewChat");
+    const attachmentIcon =
+        document.getElementById("attachmentIcon");
 
-const clearHistoryButton =
-    document.getElementById("clearHistoryButton");
+    const removeAttachment =
+        document.getElementById("removeAttachment");
 
-const saveChatButton =
-    document.getElementById("saveChatButton");
+    const recentSearchList =
+        document.getElementById("recentSearchList");
 
-const exportChatButton =
-    document.getElementById("exportChatButton");
+    const chatSearch =
+        document.getElementById("chatSearch");
 
-const themeButton =
-    document.getElementById("themeButton");
-
-const attachmentPreview =
-    document.getElementById("attachmentPreview");
-
-const attachmentName =
-    document.getElementById("attachmentName");
-
-const attachmentIcon =
-    document.getElementById("attachmentIcon");
-
-const removeAttachment =
-    document.getElementById("removeAttachment");
-
-const recentSearchList =
-    document.getElementById("recentSearchList");
-
-const chatSearch =
-    document.getElementById("chatSearch");
-
-const helperToast =
-    document.getElementById("helperToast");
+    const helperToast =
+        document.getElementById("helperToast");
 
 
-/* =========================================================
-   BACKEND
-========================================================= */
+    /* =========================================================
+       BACKEND ENDPOINTS
+       
+       IMPORTANT:
+       Normal Live Helper -> /api/chat -> Groq
+       Civic analysis       -> /api/analyze
+    ========================================================= */
 
-const API_ENDPOINT = "/api/analyze";
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let selectedFile = null;
-
-let messages = [];
-
-let recentSearches = [];
-
-let savedChats = [];
-
-let isSending = false;
-
-let activeRecognition = null;
+    const CHAT_API_ENDPOINT = "/api/chat";
+    const ANALYZE_API_ENDPOINT = "/api/analyze";
 
 
-/* =========================================================
-   STORAGE
-========================================================= */
+    /* =========================================================
+       STATE
+    ========================================================= */
 
-const STORAGE_MESSAGES =
-    "civicai_messages";
+    let selectedFile = null;
+    let messages = [];
+    let recentSearches = [];
+    let savedChats = [];
 
-const STORAGE_RECENT =
-    "civicai_recent";
-
-const STORAGE_SAVED =
-    "civicai_saved";
-
-const STORAGE_THEME =
-    "civicai_theme";
+    let isSending = false;
+    let activeRecognition = null;
 
 
-/* =========================================================
-   INITIALIZE
-========================================================= */
+    /* =========================================================
+       STORAGE
+    ========================================================= */
 
-loadStorage();
-
-renderRecentSearches();
-
-applySavedTheme();
-
-autoResizeTextarea();
+    const STORAGE_MESSAGES = "civicai_messages";
+    const STORAGE_RECENT = "civicai_recent";
+    const STORAGE_SAVED = "civicai_saved";
+    const STORAGE_THEME = "civicai_theme";
 
 
-/* =========================================================
-   STORAGE
-========================================================= */
+    /* =========================================================
+       INITIALIZE
+    ========================================================= */
 
-function loadStorage(){
-
-    try{
-
-        const savedMessages =
-            localStorage.getItem(
-                STORAGE_MESSAGES
-            );
-
-        const savedRecent =
-            localStorage.getItem(
-                STORAGE_RECENT
-            );
-
-        const saved =
-            localStorage.getItem(
-                STORAGE_SAVED
-            );
+    loadStorage();
+    renderRecentSearches();
+    applySavedTheme();
+    autoResizeTextarea();
 
 
-        if(savedMessages){
+    /* =========================================================
+       STORAGE
+    ========================================================= */
 
-            const parsed =
-                JSON.parse(savedMessages);
+    function loadStorage() {
 
-            if(Array.isArray(parsed)){
-                messages = parsed;
+        try {
+
+            const savedMessages =
+                localStorage.getItem(STORAGE_MESSAGES);
+
+            const savedRecent =
+                localStorage.getItem(STORAGE_RECENT);
+
+            const saved =
+                localStorage.getItem(STORAGE_SAVED);
+
+
+            if (savedMessages) {
+
+                const parsed =
+                    JSON.parse(savedMessages);
+
+                if (Array.isArray(parsed)) {
+                    messages = parsed;
+                }
+
+            }
+
+
+            if (savedRecent) {
+
+                const parsed =
+                    JSON.parse(savedRecent);
+
+                if (Array.isArray(parsed)) {
+                    recentSearches = parsed;
+                }
+
+            }
+
+
+            if (saved) {
+
+                const parsed =
+                    JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    savedChats = parsed;
+                }
+
+            }
+
+
+            if (messages.length) {
+                restoreMessages();
             }
 
         }
 
+        catch (error) {
 
-        if(savedRecent){
+            console.error(
+                "CivicAI storage error:",
+                error
+            );
 
-            const parsed =
-                JSON.parse(savedRecent);
-
-            if(Array.isArray(parsed)){
-                recentSearches = parsed;
-            }
-
-        }
-
-
-        if(saved){
-
-            const parsed =
-                JSON.parse(saved);
-
-            if(Array.isArray(parsed)){
-                savedChats = parsed;
-            }
+            messages = [];
+            recentSearches = [];
+            savedChats = [];
 
         }
 
-
-        if(messages.length){
-            restoreMessages();
-        }
-
     }
 
-    catch(error){
 
-        console.error(
-            "Storage error:",
-            error
-        );
+    function saveMessages() {
 
-    }
+        try {
 
-}
-
-
-function saveMessages(){
-
-    localStorage.setItem(
-        STORAGE_MESSAGES,
-        JSON.stringify(messages)
-    );
-
-}
-
-
-function saveRecentSearches(){
-
-    localStorage.setItem(
-        STORAGE_RECENT,
-        JSON.stringify(recentSearches)
-    );
-
-}
-
-
-function saveSavedChats(){
-
-    localStorage.setItem(
-        STORAGE_SAVED,
-        JSON.stringify(savedChats)
-    );
-
-}
-
-
-/* =========================================================
-   WELCOME
-========================================================= */
-
-function hideWelcome(){
-
-    if(welcomeScreen){
-        welcomeScreen.style.display = "none";
-    }
-
-}
-
-
-function showWelcome(){
-
-    if(welcomeScreen){
-        welcomeScreen.style.display = "flex";
-    }
-
-}
-
-
-/* =========================================================
-   RESTORE
-========================================================= */
-
-function restoreMessages(){
-
-    hideWelcome();
-
-    messages.forEach(message => {
-
-        if(
-            message &&
-            message.role &&
-            typeof message.content === "string"
-        ){
-
-            renderMessage(
-                message.role,
-                message.content,
-                false
+            localStorage.setItem(
+                STORAGE_MESSAGES,
+                JSON.stringify(messages)
             );
 
         }
 
-    });
+        catch (error) {
 
-    scrollToBottom();
+            console.error(
+                "Unable to save messages:",
+                error
+            );
 
-}
+        }
 
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-function showToast(text){
-
-    if(!helperToast){
-        return;
     }
 
-    helperToast.textContent =
-        String(text);
 
-    helperToast.classList.add("show");
+    function saveRecentSearches() {
 
-    clearTimeout(showToast.timer);
+        try {
 
-    showToast.timer =
-        setTimeout(() => {
+            localStorage.setItem(
+                STORAGE_RECENT,
+                JSON.stringify(recentSearches)
+            );
 
-            helperToast.classList.remove("show");
+        }
 
-        },2600);
+        catch (error) {
 
-}
+            console.error(
+                "Unable to save recent searches:",
+                error
+            );
 
+        }
 
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHTML(text){
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        text ?? "";
-
-    return div.innerHTML;
-
-}
-
-
-/* =========================================================
-   MESSAGE FORMAT
-========================================================= */
-
-function formatMessage(text){
-
-    if(!text){
-        return "";
     }
 
-    let html =
-        escapeHTML(String(text));
+
+    function saveSavedChats() {
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_SAVED,
+                JSON.stringify(savedChats)
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Unable to save saved chats:",
+                error
+            );
+
+        }
+
+    }
 
 
-    /*
-     * CODE BLOCKS
-     */
+    /* =========================================================
+       WELCOME
+    ========================================================= */
 
-    html =
-        html.replace(
+    function hideWelcome() {
+
+        if (welcomeScreen) {
+            welcomeScreen.style.display = "none";
+        }
+
+    }
+
+
+    function showWelcome() {
+
+        if (welcomeScreen) {
+            welcomeScreen.style.display = "flex";
+        }
+
+    }
+
+
+    /* =========================================================
+       RESTORE MESSAGES
+    ========================================================= */
+
+    function restoreMessages() {
+
+        hideWelcome();
+
+        messages.forEach(message => {
+
+            if (
+                message &&
+                (message.role === "user" ||
+                 message.role === "ai") &&
+                typeof message.content === "string"
+            ) {
+
+                renderMessage(
+                    message.role,
+                    message.content,
+                    false
+                );
+
+            }
+
+        });
+
+        scrollToBottom();
+
+    }
+
+
+    /* =========================================================
+       TOAST
+    ========================================================= */
+
+    function showToast(text) {
+
+        if (!helperToast) {
+            return;
+        }
+
+        helperToast.textContent =
+            String(text);
+
+        helperToast.classList.add("show");
+
+        clearTimeout(showToast.timer);
+
+        showToast.timer =
+            setTimeout(() => {
+
+                helperToast.classList.remove("show");
+
+            }, 2800);
+
+    }
+
+
+    /* =========================================================
+       ESCAPE HTML
+    ========================================================= */
+
+    function escapeHTML(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            text ?? "";
+
+        return div.innerHTML;
+
+    }
+
+
+    /* =========================================================
+       FORMAT MESSAGE
+    ========================================================= */
+
+    function formatMessage(text) {
+
+        if (!text) {
+            return "";
+        }
+
+        let html =
+            escapeHTML(String(text));
+
+
+        /*
+         * CODE BLOCKS
+         */
+
+        html = html.replace(
             /```([\s\S]*?)```/g,
             "<pre><code>$1</code></pre>"
         );
 
 
-    /*
-     * INLINE CODE
-     */
+        /*
+         * INLINE CODE
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /`([^`]+)`/g,
             "<code>$1</code>"
         );
 
 
-    /*
-     * BOLD
-     */
+        /*
+         * BOLD
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /\*\*(.*?)\*\*/g,
             "<strong>$1</strong>"
         );
 
 
-    /*
-     * ITALIC
-     */
+        /*
+         * ITALIC
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
             "<em>$1</em>"
         );
 
 
-    /*
-     * BULLETS
-     */
+        /*
+         * BULLET
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /^• (.*)$/gm,
             "<div>• $1</div>"
         );
 
 
-    /*
-     * MARKDOWN DASH BULLETS
-     */
+        /*
+         * MARKDOWN BULLET
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /^- (.*)$/gm,
             "<div>• $1</div>"
         );
 
 
-    /*
-     * NUMBERED LIST
-     */
+        /*
+         * NUMBERED LIST
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /^(\d+)\.\s+(.*)$/gm,
             "<div>$1. $2</div>"
         );
 
 
-    /*
-     * NEW LINE
-     */
+        /*
+         * NEW LINES
+         */
 
-    html =
-        html.replace(
+        html = html.replace(
             /\n/g,
             "<br>"
         );
 
 
-    return html;
-
-}
-
-
-/* =========================================================
-   RENDER MESSAGE
-========================================================= */
-
-function renderMessage(
-    role,
-    content,
-    save = true
-){
-
-    hideWelcome();
-
-
-    const message =
-        document.createElement("div");
-
-    message.className =
-        `message ${role}`;
-
-
-    const avatar =
-        document.createElement("div");
-
-    avatar.className =
-        "message-avatar";
-
-
-    avatar.innerHTML =
-        role === "ai"
-            ? '<i class="fa-solid fa-brain"></i>'
-            : '<i class="fa-solid fa-user"></i>';
-
-
-    const body =
-        document.createElement("div");
-
-    body.className =
-        "message-body";
-
-
-    const bubble =
-        document.createElement("div");
-
-    bubble.className =
-        "message-bubble";
-
-
-    bubble.innerHTML =
-        formatMessage(content);
-
-
-    const meta =
-        document.createElement("div");
-
-    meta.className =
-        "message-meta";
-
-
-    const time =
-        document.createElement("span");
-
-    time.textContent =
-        getCurrentTime();
-
-
-    const actions =
-        document.createElement("div");
-
-    actions.className =
-        "message-actions";
-
-
-    if(role === "ai"){
-
-        const copy =
-            document.createElement("button");
-
-        copy.type = "button";
-
-        copy.innerHTML =
-            '<i class="fa-regular fa-copy"></i>';
-
-        copy.title =
-            "Copy response";
-
-        copy.onclick =
-            () => copyText(content);
-
-        actions.appendChild(copy);
+        return html;
 
     }
 
 
-    meta.appendChild(time);
+    /* =========================================================
+       RENDER MESSAGE
+    ========================================================= */
 
-    meta.appendChild(actions);
+    function renderMessage(
+        role,
+        content,
+        save = true
+    ) {
 
-    body.appendChild(bubble);
-
-    body.appendChild(meta);
-
-    message.appendChild(avatar);
-
-    message.appendChild(body);
+        hideWelcome();
 
 
-    if(
-        typingIndicator &&
-        typingIndicator.parentNode === chatContainer
-    ){
+        const message =
+            document.createElement("div");
 
-        chatContainer.insertBefore(
-            message,
-            typingIndicator
+        message.className =
+            `message ${role}`;
+
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "message-avatar";
+
+
+        avatar.innerHTML =
+            role === "ai"
+                ? '<i class="fa-solid fa-brain"></i>'
+                : '<i class="fa-solid fa-user"></i>';
+
+
+        const body =
+            document.createElement("div");
+
+        body.className =
+            "message-body";
+
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className =
+            "message-bubble";
+
+
+        bubble.innerHTML =
+            formatMessage(content);
+
+
+        const meta =
+            document.createElement("div");
+
+        meta.className =
+            "message-meta";
+
+
+        const time =
+            document.createElement("span");
+
+        time.textContent =
+            getCurrentTime();
+
+
+        const actions =
+            document.createElement("div");
+
+        actions.className =
+            "message-actions";
+
+
+        if (role === "ai") {
+
+            const copy =
+                document.createElement("button");
+
+            copy.type = "button";
+
+            copy.innerHTML =
+                '<i class="fa-regular fa-copy"></i>';
+
+            copy.title =
+                "Copy response";
+
+            copy.onclick =
+                () => copyText(content);
+
+            actions.appendChild(copy);
+
+        }
+
+
+        meta.appendChild(time);
+        meta.appendChild(actions);
+
+        body.appendChild(bubble);
+        body.appendChild(meta);
+
+        message.appendChild(avatar);
+        message.appendChild(body);
+
+
+        if (
+            typingIndicator &&
+            typingIndicator.parentNode === chatContainer
+        ) {
+
+            chatContainer.insertBefore(
+                message,
+                typingIndicator
+            );
+
+        }
+
+        else {
+
+            chatContainer.appendChild(
+                message
+            );
+
+        }
+
+
+        if (save) {
+
+            messages.push({
+
+                role: role,
+
+                content: String(content),
+
+                time: Date.now()
+
+            });
+
+            saveMessages();
+
+        }
+
+
+        scrollToBottom();
+
+    }
+
+
+    /* =========================================================
+       TIME
+    ========================================================= */
+
+    function getCurrentTime() {
+
+        return new Date().toLocaleTimeString(
+            [],
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
         );
 
     }
 
-    else{
 
-        chatContainer.appendChild(
-            message
-        );
+    /* =========================================================
+       SCROLL
+    ========================================================= */
 
-    }
+    function scrollToBottom() {
 
+        requestAnimationFrame(() => {
 
-    if(save){
-
-        messages.push({
-
-            role,
-
-            content:
-                String(content),
-
-            time:
-                Date.now()
+            chatMessages.scrollTop =
+                chatMessages.scrollHeight;
 
         });
 
-        saveMessages();
-
     }
 
 
-    scrollToBottom();
+    /* =========================================================
+       TYPING
+    ========================================================= */
 
-}
+    function showTyping() {
 
-
-/* =========================================================
-   TIME
-========================================================= */
-
-function getCurrentTime(){
-
-    return new Date().toLocaleTimeString(
-        [],
-        {
-            hour:"2-digit",
-            minute:"2-digit"
+        if (!typingIndicator) {
+            return;
         }
-    );
 
-}
+        typingIndicator.classList.add("show");
 
+        scrollToBottom();
 
-/* =========================================================
-   SCROLL
-========================================================= */
-
-function scrollToBottom(){
-
-    requestAnimationFrame(() => {
-
-        chatMessages.scrollTop =
-            chatMessages.scrollHeight;
-
-    });
-
-}
-
-
-/* =========================================================
-   TYPING
-========================================================= */
-
-function showTyping(){
-
-    typingIndicator.classList.add("show");
-
-    scrollToBottom();
-
-}
-
-
-function hideTyping(){
-
-    typingIndicator.classList.remove("show");
-
-}
-
-
-/* =========================================================
-   SEND MESSAGE
-========================================================= */
-
-async function sendMessage(){
-
-    if(isSending){
-        return;
     }
 
 
-    const text =
-        chatInput.value.trim();
+    function hideTyping() {
 
-    const file =
-        selectedFile;
+        if (!typingIndicator) {
+            return;
+        }
+
+        typingIndicator.classList.remove("show");
+
+    }
 
 
-    if(!text && !file){
+    /* =========================================================
+       SEND MESSAGE
+    ========================================================= */
 
-        showToast(
-            "Write a message or attach an image."
+    async function sendMessage() {
+
+        if (isSending) {
+            return;
+        }
+
+
+        const text =
+            String(chatInput.value || "").trim();
+
+        const file =
+            selectedFile;
+
+
+        if (!text && !file) {
+
+            showToast(
+                "Write a message or attach an image."
+            );
+
+            chatInput.focus();
+
+            return;
+
+        }
+
+
+        isSending = true;
+
+        sendButton.disabled = true;
+
+
+        let userMessage =
+            text;
+
+
+        if (file) {
+
+            userMessage =
+                text
+                    ? `${text}\n\n📎 Attached: ${file.name}`
+                    : `📎 Attached: ${file.name}`;
+
+        }
+
+
+        /*
+         * Render user message immediately.
+         */
+
+        renderMessage(
+            "user",
+            userMessage
         );
 
-        return;
 
-    }
-
-
-    isSending = true;
-
-    sendButton.disabled = true;
+        if (text) {
+            addRecentSearch(text);
+        }
 
 
-    let userMessage =
-        text;
+        /*
+         * Clear input.
+         */
+
+        chatInput.value = "";
+
+        autoResizeTextarea();
+
+        showTyping();
 
 
-    if(file){
+        try {
 
-        userMessage =
-            text
-                ? `${text}\n\n📎 Attached: ${file.name}`
-                : `📎 Attached: ${file.name}`;
-
-    }
-
-
-    renderMessage(
-        "user",
-        userMessage
-    );
+            const response =
+                await getAIResponse(
+                    text,
+                    file
+                );
 
 
-    if(text){
-        addRecentSearch(text);
-    }
+            hideTyping();
 
 
-    chatInput.value = "";
+            renderMessage(
+                "ai",
+                response
+            );
 
-    autoResizeTextarea();
+        }
 
-    showTyping();
+        catch (error) {
 
+            hideTyping();
 
-    try{
-
-        const response =
-            await getAIResponse(
-                text,
-                file
+            console.error(
+                "CivicAI Live Helper error:",
+                error
             );
 
 
-        hideTyping();
+            renderMessage(
+                "ai",
+                `**CivicAI couldn't process your request.**\n\n${error.message || "Unknown server error."}`
+            );
 
+        }
 
-        renderMessage(
-            "ai",
-            response
-        );
+        finally {
 
-    }
+            isSending = false;
 
-    catch(error){
+            sendButton.disabled = false;
 
-        hideTyping();
+            clearAttachment();
 
-        console.error(
-            "CivicAI error:",
-            error
-        );
+            resetFileInput();
 
+            chatInput.focus();
 
-        renderMessage(
-            "ai",
-            `**Sorry, I couldn't process that request.**\n\n${error.message}`
-        );
+        }
 
     }
 
-    finally{
 
-        isSending = false;
+    /* =========================================================
+       AI REQUEST
+       
+       TEXT -> /api/chat -> GROQ
+       IMAGE -> /api/analyze
+    ========================================================= */
 
-        sendButton.disabled = false;
+    async function getAIResponse(
+        text,
+        file
+    ) {
 
-        clearAttachment();
-
-        resetFileInput();
-
-        chatInput.focus();
-
-    }
-
-}
-
-
-/* =========================================================
-   AI REQUEST
-   NORMAL CONVERSATIONAL AI
-========================================================= */
-
-async function getAIResponse(
-    text,
-    file
-){
-
-    const userText =
-        String(text || "").trim();
+        const userText =
+            String(text || "").trim();
 
 
-    /* =====================================================
-       IMAGE
-    ===================================================== */
+        /*
+         * IMAGE REQUEST
+         */
 
-    if(
-        file &&
-        file.type &&
-        file.type.startsWith("image/")
-    ){
+        if (
+            file &&
+            file.type &&
+            file.type.startsWith("image/")
+        ) {
 
-        const image =
-            await fileToDataURL(file);
+            const image =
+                await fileToDataURL(file);
 
 
-        const response =
-            await fetch(
-                API_ENDPOINT,
-                {
+            const response =
+                await fetch(
+                    ANALYZE_API_ENDPOINT,
+                    {
 
-                    method:"POST",
+                        method: "POST",
 
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-                    body:
-                        JSON.stringify({
+                        body: JSON.stringify({
 
                             description:
                                 userText ||
-                                "Please analyze this image carefully and answer naturally based only on what you can understand from the image. If the image shows a problem, explain it clearly and suggest helpful next steps. Do not force the response into a predefined format.",
+                                "Please analyze this image carefully and answer naturally. Explain what you can understand from the image and provide useful guidance. Do not force the response into a predefined civic report format.",
 
-                            location:"",
+                            location: "",
 
                             reporterName:
                                 "CivicAI User",
 
-                            image:image
+                            image: image
 
                         })
+
+                    }
+                );
+
+
+            return processServerResponse(
+                response
+            );
+
+        }
+
+
+        /*
+         * OTHER FILE
+         */
+
+        if (file) {
+
+            throw new Error(
+                "Only image files are currently supported."
+            );
+
+        }
+
+
+        /*
+         * TEXT REQUEST
+         *
+         * THIS IS THE NORMAL LIVE HELPER.
+         */
+
+        if (!userText) {
+
+            throw new Error(
+                "Please enter a message."
+            );
+
+        }
+
+
+        /*
+         * Build conversation BEFORE
+         * sending the current message.
+         *
+         * Current user message is already
+         * rendered into messages.
+         */
+
+        const conversation =
+            messages
+                .slice(-20)
+                .map(item => {
+
+                    return {
+
+                        role:
+                            item.role === "ai"
+                                ? "assistant"
+                                : "user",
+
+                        content:
+                            String(item.content || "")
+
+                    };
+
+                });
+
+
+        console.log(
+            "CivicAI -> /api/chat",
+            {
+                message: userText,
+                conversationLength:
+                    conversation.length
+            }
+        );
+
+
+        const response =
+            await fetch(
+                CHAT_API_ENDPOINT,
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        message:
+                            userText,
+
+                        conversation:
+                            conversation
+
+                    })
 
                 }
             );
@@ -2726,187 +2843,227 @@ async function getAIResponse(
     }
 
 
-    /* =====================================================
-       OTHER FILES
-    ===================================================== */
+    /* =========================================================
+       PROCESS BACKEND RESPONSE
+    ========================================================= */
 
-    if(file){
+    async function processServerResponse(
+        response
+    ) {
 
-        throw new Error(
-            "Only image files are currently supported."
+        const raw =
+            await response.text();
+
+
+        console.log(
+            "CivicAI backend HTTP:",
+            response.status
         );
 
-    }
+
+        /*
+         * Empty response
+         */
+
+        if (!raw) {
+
+            throw new Error(
+                `Backend returned an empty response. HTTP ${response.status}`
+            );
+
+        }
 
 
-    /* =====================================================
-       TEXT
-    ===================================================== */
-
-    if(!userText){
-
-        throw new Error(
-            "Please enter a message."
-        );
-
-    }
+        let data;
 
 
-    const response =
-        await fetch(
-            API_ENDPOINT,
-            {
+        try {
 
-                method:"POST",
+            data =
+                JSON.parse(raw);
 
-                headers:{
-                    "Content-Type":
-                        "application/json"
-                },
+        }
 
-                body:
-                    JSON.stringify({
+        catch (error) {
 
-                        description:
-                            userText,
+            console.error(
+                "Invalid backend response:",
+                raw
+            );
 
-                        location:"",
 
-                        reporterName:
-                            "CivicAI User"
+            /*
+             * This normally means Express returned
+             * HTML instead of JSON.
+             */
 
-                    })
+            if (
+                raw.trim().startsWith("<")
+            ) {
+
+                throw new Error(
+                    `Backend returned HTML instead of JSON. Check that CivicAI server is running and that ${CHAT_API_ENDPOINT} exists. HTTP ${response.status}`
+                );
 
             }
-        );
 
-
-    return processServerResponse(
-        response
-    );
-
-}
-
-
-/* =========================================================
-   PROCESS BACKEND RESPONSE
-========================================================= */
-
-async function processServerResponse(
-    response
-){
-
-    const raw =
-        await response.text();
-
-
-    let data = null;
-
-
-    try{
-
-        data =
-            raw
-                ? JSON.parse(raw)
-                : null;
-
-    }
-
-    catch{
-
-        throw new Error(
-            `Backend returned invalid JSON. HTTP ${response.status}`
-        );
-
-    }
-
-
-    /* =====================================================
-       HTTP ERRORS
-    ===================================================== */
-
-    if(!response.ok){
-
-        if(
-            response.status === 401 ||
-            Number(data?.groqStatus) === 401
-        ){
 
             throw new Error(
-                "AI API key is invalid. Please check GROQ_API_KEY in your backend .env file."
+                `Backend returned invalid JSON. HTTP ${response.status}`
             );
 
         }
 
 
-        if(
-            response.status === 404 ||
-            Number(data?.groqStatus) === 404
-        ){
+        /*
+         * HTTP ERROR
+         */
 
-            throw new Error(
+        if (!response.ok) {
+
+            const serverError =
                 data?.error ||
-                "AI API endpoint or model was not found."
-            );
+                data?.message ||
+                data?.details ||
+                data?.response ||
+                data?.answer;
 
-        }
+
+            if (
+                response.status === 401 ||
+                Number(data?.groqStatus) === 401
+            ) {
+
+                throw new Error(
+                    "Groq API key is invalid. Check GROQ_API_KEY in your .env file."
+                );
+
+            }
 
 
-        if(response.status === 429){
+            if (
+                response.status === 403
+            ) {
+
+                throw new Error(
+                    serverError ||
+                    "The AI request was forbidden."
+                );
+
+            }
+
+
+            if (
+                response.status === 404
+            ) {
+
+                throw new Error(
+                    serverError ||
+                    "The /api/chat endpoint was not found. Make sure your current server.js is running."
+                );
+
+            }
+
+
+            if (
+                response.status === 429
+            ) {
+
+                throw new Error(
+                    serverError ||
+                    "Groq rate limit reached. Please try again shortly."
+                );
+
+            }
+
+
+            if (
+                response.status >= 500
+            ) {
+
+                throw new Error(
+                    serverError ||
+                    "The CivicAI backend or Groq AI server returned an internal error."
+                );
+
+            }
+
 
             throw new Error(
-                data?.error ||
-                "AI request limit reached. Please try again later."
+                serverError ||
+                `AI server error: HTTP ${response.status}`
             );
 
         }
 
 
-        throw new Error(
-            data?.error ||
-            data?.message ||
-            `AI server error: HTTP ${response.status}`
-        );
+        /*
+         * SUCCESS
+         */
+
+        const answer =
+            extractAIResponse(data);
+
+
+        if (!answer) {
+
+            console.error(
+                "Backend returned no AI text:",
+                data
+            );
+
+
+            throw new Error(
+                "Backend responded successfully but did not return an AI answer."
+            );
+
+        }
+
+
+        return answer.trim();
 
     }
 
 
-    if(!data){
+    /* =========================================================
+       EXTRACT AI RESPONSE
+    ========================================================= */
 
-        throw new Error(
-            "CivicAI backend returned an empty response."
-        );
+    function extractAIResponse(data) {
 
-    }
+        if (typeof data === "string") {
+            return data;
+        }
 
 
-    /* =====================================================
-       SUCCESS RESPONSE
-    ===================================================== */
+        if (!data || typeof data !== "object") {
+            return "";
+        }
 
-    if(data.success === true){
 
-        const possibleFields = [
+        /*
+         * Standard CivicAI response fields.
+         */
 
-            "response",
-            "analysis",
+        const fields = [
+
             "answer",
+            "response",
+            "reply",
             "message",
             "text",
-            "reply",
-            "content"
+            "content",
+            "analysis"
 
         ];
 
 
-        for(
-            const key of possibleFields
-        ){
+        for (const key of fields) {
 
-            if(
+            if (
                 typeof data[key] === "string" &&
                 data[key].trim()
-            ){
+            ) {
 
                 return data[key].trim();
 
@@ -2916,1025 +3073,181 @@ async function processServerResponse(
 
 
         /*
-         * Sometimes backend may return
-         * the response as an object.
+         * Nested response.
          */
 
-        if(
+        if (
             data.response &&
             typeof data.response === "object"
-        ){
+        ) {
 
-            return extractNaturalResponse(
-                data.response
-            );
+            const nested =
+                extractAIResponse(
+                    data.response
+                );
+
+            if (nested) {
+                return nested;
+            }
 
         }
 
 
-        if(
+        if (
+            data.answer &&
+            typeof data.answer === "object"
+        ) {
+
+            const nested =
+                extractAIResponse(
+                    data.answer
+                );
+
+            if (nested) {
+                return nested;
+            }
+
+        }
+
+
+        if (
             data.analysis &&
             typeof data.analysis === "object"
-        ){
+        ) {
 
-            return extractNaturalResponse(
-                data.analysis
-            );
+            const nested =
+                extractAIResponse(
+                    data.analysis
+                );
 
-        }
-
-    }
-
-
-    /* =====================================================
-       DIRECT BACKEND RESPONSE
-    ===================================================== */
-
-    const directFields = [
-
-        "response",
-        "analysis",
-        "answer",
-        "message",
-        "text",
-        "reply",
-        "content"
-
-    ];
-
-
-    for(
-        const key of directFields
-    ){
-
-        if(
-            typeof data[key] === "string" &&
-            data[key].trim()
-        ){
-
-            return data[key].trim();
+            if (nested) {
+                return nested;
+            }
 
         }
 
-    }
 
-
-    throw new Error(
-        data.error ||
-        "Backend did not return a valid AI response."
-    );
-
-}
-
-
-/* =========================================================
-   OBJECT RESPONSE
-   NO CIVIC DEMO FIELDS
-========================================================= */
-
-function extractNaturalResponse(data){
-
-    if(
-        !data ||
-        typeof data !== "object"
-    ){
-
-        return String(data || "");
+        return "";
 
     }
 
 
-    const fields = [
+    /* =========================================================
+       FILE TO DATA URL
+    ========================================================= */
 
-        "answer",
-        "response",
-        "message",
-        "text",
-        "reply",
-        "content"
+    function fileToDataURL(file) {
 
-    ];
+        return new Promise(
+            (resolve, reject) => {
 
-
-    for(
-        const key of fields
-    ){
-
-        if(
-            typeof data[key] === "string" &&
-            data[key].trim()
-        ){
-
-            return data[key].trim();
-
-        }
-
-    }
+                const reader =
+                    new FileReader();
 
 
-    /*
-     * If backend returns something unusual,
-     * show the actual returned data instead
-     * of inventing information.
-     */
+                reader.onload =
+                    () => {
 
-    return JSON.stringify(
-        data,
-        null,
-        2
-    );
+                        if (
+                            typeof reader.result !==
+                            "string"
+                        ) {
 
-}
+                            reject(
+                                new Error(
+                                    "Unable to convert image."
+                                )
+                            );
 
+                            return;
 
-/* =========================================================
-   FILE TO DATA URL
-========================================================= */
-
-function fileToDataURL(file){
-
-    return new Promise(
-        (
-            resolve,
-            reject
-        ) => {
-
-            const reader =
-                new FileReader();
+                        }
 
 
-            reader.onload =
-                () => {
+                        resolve(
+                            reader.result
+                        );
 
-                    if(
-                        typeof reader.result !==
-                        "string"
-                    ){
+                    };
+
+
+                reader.onerror =
+                    () => {
 
                         reject(
                             new Error(
-                                "Unable to convert image."
+                                "Unable to read image."
                             )
                         );
 
-                        return;
+                    };
 
-                    }
 
-
-                    resolve(
-                        reader.result
-                    );
-
-                };
-
-
-            reader.onerror =
-                () => {
-
-                    reject(
-                        new Error(
-                            "Unable to read image."
-                        )
-                    );
-
-                };
-
-
-            reader.readAsDataURL(file);
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   ATTACHMENT
-========================================================= */
-
-function showAttachment(file){
-
-    selectedFile =
-        file;
-
-
-    attachmentName.textContent =
-        file.name;
-
-
-    if(
-        file.type &&
-        file.type.startsWith("image/")
-    ){
-
-        attachmentIcon.className =
-            "fa-solid fa-image";
-
-    }
-
-    else if(
-        file.type ===
-        "application/pdf"
-    ){
-
-        attachmentIcon.className =
-            "fa-solid fa-file-pdf";
-
-    }
-
-    else{
-
-        attachmentIcon.className =
-            "fa-solid fa-file";
-
-    }
-
-
-    attachmentPreview.classList.add(
-        "show"
-    );
-
-}
-
-
-function clearAttachment(){
-
-    selectedFile =
-        null;
-
-
-    attachmentPreview.classList.remove(
-        "show"
-    );
-
-
-    attachmentName.textContent =
-        "";
-
-}
-
-
-function resetFileInput(){
-
-    fileInput.value =
-        "";
-
-    fileInput.setAttribute(
-        "accept",
-        "image/*"
-    );
-
-    fileInput.removeAttribute(
-        "capture"
-    );
-
-}
-
-
-/* =========================================================
-   RECENT SEARCH
-========================================================= */
-
-function addRecentSearch(text){
-
-    const clean =
-        String(text).trim();
-
-
-    recentSearches =
-        recentSearches.filter(
-            item =>
-                item.toLowerCase() !==
-                clean.toLowerCase()
-        );
-
-
-    recentSearches.unshift(
-        clean
-    );
-
-
-    recentSearches =
-        recentSearches.slice(
-            0,
-            8
-        );
-
-
-    saveRecentSearches();
-
-    renderRecentSearches();
-
-}
-
-
-function renderRecentSearches(){
-
-    recentSearchList.innerHTML =
-        "";
-
-
-    if(!recentSearches.length){
-
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-recent";
-
-
-        empty.textContent =
-            "Your recent AI questions will appear here.";
-
-
-        recentSearchList.appendChild(
-            empty
-        );
-
-
-        return;
-
-    }
-
-
-    recentSearches.forEach(
-        (
-            query,
-            index
-        ) => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "recent-item";
-
-
-            item.innerHTML = `
-
-                <i class="fa-solid fa-clock-rotate-left"></i>
-
-                <span></span>
-
-                <small>
-                    ${index === 0 ? "now" : "recent"}
-                </small>
-
-            `;
-
-
-            item.querySelector(
-                "span"
-            ).textContent =
-                query;
-
-
-            item.onclick =
-                () => {
-
-                    chatInput.value =
-                        query;
-
-                    autoResizeTextarea();
-
-                    chatInput.focus();
-
-                };
-
-
-            recentSearchList.appendChild(
-                item
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   NEW CHAT
-========================================================= */
-
-function startNewChat(){
-
-    if(messages.length){
-
-        if(
-            !confirm(
-                "Start a new conversation?"
-            )
-        ){
-
-            return;
-
-        }
-
-    }
-
-
-    messages = [];
-
-    saveMessages();
-
-    removeChatMessages();
-
-    clearAttachment();
-
-    resetFileInput();
-
-    chatInput.value =
-        "";
-
-    autoResizeTextarea();
-
-    showWelcome();
-
-    chatInput.focus();
-
-    showToast(
-        "New conversation started."
-    );
-
-}
-
-
-function removeChatMessages(){
-
-    chatContainer
-        .querySelectorAll(
-            ".message"
-        )
-        .forEach(
-            element =>
-                element.remove()
-        );
-
-}
-
-
-/* =========================================================
-   CLEAR HISTORY
-========================================================= */
-
-function clearHistory(){
-
-    if(!messages.length){
-
-        showToast(
-            "There is no chat history."
-        );
-
-        return;
-
-    }
-
-
-    if(
-        !confirm(
-            "Clear this conversation?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    messages = [];
-
-    saveMessages();
-
-    removeChatMessages();
-
-    showWelcome();
-
-    showToast(
-        "Conversation cleared."
-    );
-
-}
-
-
-/* =========================================================
-   SAVE CHAT
-========================================================= */
-
-function saveCurrentChat(){
-
-    if(!messages.length){
-
-        showToast(
-            "There is no conversation to save."
-        );
-
-        return;
-
-    }
-
-
-    const first =
-        messages.find(
-            item =>
-                item.role === "user"
-        );
-
-
-    let title =
-        first
-            ? first.content
-                .replace(
-                    /📎 Attached:.*$/s,
-                    ""
-                )
-                .trim()
-                .slice(
-                    0,
-                    45
-                )
-            : "CivicAI Conversation";
-
-
-    savedChats.unshift({
-
-        id:
-            Date.now(),
-
-        title,
-
-        messages:
-            [...messages],
-
-        savedAt:
-            Date.now()
-
-    });
-
-
-    savedChats =
-        savedChats.slice(
-            0,
-            10
-        );
-
-
-    saveSavedChats();
-
-
-    showToast(
-        "Conversation saved."
-    );
-
-}
-
-
-/* =========================================================
-   COPY CONVERSATION
-========================================================= */
-
-async function copyConversation(){
-
-    if(!messages.length){
-
-        showToast(
-            "There is no conversation to copy."
-        );
-
-        return;
-
-    }
-
-
-    const text =
-        messages
-            .map(
-                item =>
-                    `${item.role === "user" ? "You" : "CivicAI"}:\n${item.content}`
-            )
-            .join(
-                "\n\n--------------------\n\n"
-            );
-
-
-    await copyText(text);
-
-}
-
-
-async function copyText(text){
-
-    try{
-
-        await navigator.clipboard.writeText(
-            String(text)
-        );
-
-
-        showToast(
-            "Copied to clipboard."
-        );
-
-    }
-
-    catch{
-
-        const textarea =
-            document.createElement(
-                "textarea"
-            );
-
-
-        textarea.value =
-            String(text);
-
-
-        document.body.appendChild(
-            textarea
-        );
-
-
-        textarea.select();
-
-
-        document.execCommand(
-            "copy"
-        );
-
-
-        textarea.remove();
-
-
-        showToast(
-            "Copied to clipboard."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   THEME
-========================================================= */
-
-function applySavedTheme(){
-
-    const theme =
-        localStorage.getItem(
-            STORAGE_THEME
-        );
-
-
-    document.body.classList.toggle(
-        "light-mode",
-        theme === "light"
-    );
-
-
-    updateThemeButton();
-
-}
-
-
-function updateThemeButton(){
-
-    const light =
-        document.body.classList.contains(
-            "light-mode"
-        );
-
-
-    themeButton.innerHTML =
-        light
-            ? '<i class="fa-solid fa-sun"></i>'
-            : '<i class="fa-solid fa-moon"></i>';
-
-}
-
-
-function toggleTheme(){
-
-    const light =
-        document.body.classList.toggle(
-            "light-mode"
-        );
-
-
-    localStorage.setItem(
-        STORAGE_THEME,
-        light
-            ? "light"
-            : "dark"
-    );
-
-
-    updateThemeButton();
-
-}
-
-
-/* =========================================================
-   TEXTAREA
-========================================================= */
-
-function autoResizeTextarea(){
-
-    chatInput.style.height =
-        "auto";
-
-
-    chatInput.style.height =
-        Math.min(
-            chatInput.scrollHeight,
-            130
-        ) + "px";
-
-}
-
-
-/* =========================================================
-   VOICE INPUT
-========================================================= */
-
-function startVoiceInput(){
-
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-
-    if(!SpeechRecognition){
-
-        showToast(
-            "Voice input is not supported in this browser."
-        );
-
-        return;
-
-    }
-
-
-    if(activeRecognition){
-
-        activeRecognition.stop();
-
-        activeRecognition =
-            null;
-
-        return;
-
-    }
-
-
-    const recognition =
-        new SpeechRecognition();
-
-
-    activeRecognition =
-        recognition;
-
-
-    recognition.lang =
-        navigator.language ||
-        "en-US";
-
-
-    recognition.interimResults =
-        false;
-
-
-    recognition.maxAlternatives =
-        1;
-
-
-    showToast(
-        "Listening..."
-    );
-
-
-    recognition.onresult =
-        event => {
-
-            const transcript =
-                event.results[0][0]
-                    .transcript;
-
-
-            chatInput.value +=
-                (
-                    chatInput.value
-                        ? " "
-                        : ""
-                ) +
-                transcript;
-
-
-            autoResizeTextarea();
-
-            chatInput.focus();
-
-        };
-
-
-    recognition.onerror =
-        event => {
-
-            showToast(
-
-                event.error === "not-allowed"
-                    ? "Microphone permission denied."
-                    : "Voice input failed."
-
-            );
-
-        };
-
-
-    recognition.onend =
-        () => {
-
-            activeRecognition =
-                null;
-
-        };
-
-
-    try{
-
-        recognition.start();
-
-    }
-
-    catch{
-
-        activeRecognition =
-            null;
-
-
-        showToast(
-            "Unable to start voice input."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   CHAT SEARCH
-========================================================= */
-
-function searchChats(){
-
-    const query =
-        chatSearch.value
-            .trim()
-            .toLowerCase();
-
-
-    document
-        .querySelectorAll(
-            ".recent-item"
-        )
-        .forEach(
-            item => {
-
-                item.style.display =
-                    !query ||
-                    item.textContent
-                        .toLowerCase()
-                        .includes(query)
-                        ? "flex"
-                        : "none";
+                reader.readAsDataURL(file);
 
             }
         );
 
-}
+    }
 
 
-/* =========================================================
-   EVENTS
-========================================================= */
+    /* =========================================================
+       ATTACHMENT
+    ========================================================= */
 
-sendButton.onclick =
-    sendMessage;
+    function showAttachment(file) {
 
-
-chatInput.addEventListener(
-    "input",
-    autoResizeTextarea
-);
+        selectedFile =
+            file;
 
 
-chatInput.addEventListener(
-    "keydown",
-    event => {
+        attachmentName.textContent =
+            file.name;
 
-        if(
-            event.key === "Enter" &&
-            !event.shiftKey
-        ){
 
-            event.preventDefault();
+        if (
+            file.type &&
+            file.type.startsWith("image/")
+        ) {
 
-            sendMessage();
+            attachmentIcon.className =
+                "fa-solid fa-image";
 
         }
+
+        else {
+
+            attachmentIcon.className =
+                "fa-solid fa-file";
+
+        }
+
+
+        attachmentPreview.classList.add(
+            "show"
+        );
 
     }
-);
 
 
-/* =========================================================
-   FILE UPLOAD
-========================================================= */
+    function clearAttachment() {
 
-fileButton.onclick =
-    () => {
-
-        resetFileInput();
-
-        fileInput.click();
-
-    };
+        selectedFile =
+            null;
 
 
-fileInput.addEventListener(
-    "change",
-    () => {
-
-        const file =
-            fileInput.files?.[0];
+        attachmentPreview.classList.remove(
+            "show"
+        );
 
 
-        if(!file){
-            return;
-        }
-
-
-        if(
-            file.size >
-            10 * 1024 * 1024
-        ){
-
-            showToast(
-                "Maximum image size is 10 MB."
-            );
-
-
-            resetFileInput();
-
-            return;
-
-        }
-
-
-        if(
-            !file.type.startsWith("image/")
-        ){
-
-            showToast(
-                "Please select an image."
-            );
-
-
-            resetFileInput();
-
-            return;
-
-        }
-
-
-        showAttachment(file);
+        attachmentName.textContent =
+            "";
 
     }
-);
 
 
-removeAttachment.onclick =
-    () => {
-
-        clearAttachment();
-
-        resetFileInput();
-
-    };
-
-
-/* =========================================================
-   CAMERA
-========================================================= */
-
-cameraButton.onclick =
-    () => {
+    function resetFileInput() {
 
         fileInput.value =
             "";
@@ -3944,99 +3257,902 @@ cameraButton.onclick =
             "image/*"
         );
 
-        fileInput.setAttribute(
-            "capture",
-            "environment"
-        );
-
-        fileInput.click();
-
-    };
-
-
-/* =========================================================
-   VOICE
-========================================================= */
-
-voiceButton.onclick =
-    startVoiceInput;
-
-
-/* =========================================================
-   CHAT CONTROLS
-========================================================= */
-
-newChatButton.onclick =
-    startNewChat;
-
-
-sidebarNewChat.onclick =
-    startNewChat;
-
-
-clearHistoryButton.onclick =
-    clearHistory;
-
-
-saveChatButton.onclick =
-    saveCurrentChat;
-
-
-exportChatButton.onclick =
-    copyConversation;
-
-
-themeButton.onclick =
-    toggleTheme;
-
-
-chatSearch.addEventListener(
-    "input",
-    searchChats
-);
-
-
-/* =========================================================
-   MOBILE MENU
-========================================================= */
-
-mobileMenu.onclick =
-    () => {
-
-        sidebar.classList.toggle(
-            "open"
-        );
-
-    };
-
-
-/* =========================================================
-   CLOSE SIDEBAR
-========================================================= */
-
-chatMessages.addEventListener(
-    "click",
-    () => {
-
-        sidebar.classList.remove(
-            "open"
+        fileInput.removeAttribute(
+            "capture"
         );
 
     }
-);
 
 
-/* =========================================================
-   READY
-========================================================= */
+    /* =========================================================
+       RECENT SEARCH
+    ========================================================= */
 
-console.log(
-    "CivicAI — Normal Conversational AI Mode — READY"
-);
+    function addRecentSearch(text) {
+
+        const clean =
+            String(text).trim();
+
+
+        if (!clean) {
+            return;
+        }
+
+
+        recentSearches =
+            recentSearches.filter(
+                item =>
+                    item.toLowerCase() !==
+                    clean.toLowerCase()
+            );
+
+
+        recentSearches.unshift(
+            clean
+        );
+
+
+        recentSearches =
+            recentSearches.slice(
+                0,
+                8
+            );
+
+
+        saveRecentSearches();
+
+        renderRecentSearches();
+
+    }
+
+
+    function renderRecentSearches() {
+
+        recentSearchList.innerHTML =
+            "";
+
+
+        if (!recentSearches.length) {
+
+            const empty =
+                document.createElement(
+                    "div"
+                );
+
+
+            empty.className =
+                "empty-recent";
+
+
+            empty.textContent =
+                "Your recent AI questions will appear here.";
+
+
+            recentSearchList.appendChild(
+                empty
+            );
+
+
+            return;
+
+        }
+
+
+        recentSearches.forEach(
+            (
+                query,
+                index
+            ) => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "recent-item";
+
+
+                item.innerHTML = `
+
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+
+                    <span></span>
+
+                    <small>
+                        ${index === 0 ? "now" : "recent"}
+                    </small>
+
+                `;
+
+
+                item.querySelector(
+                    "span"
+                ).textContent =
+                    query;
+
+
+                item.onclick =
+                    () => {
+
+                        chatInput.value =
+                            query;
+
+                        autoResizeTextarea();
+
+                        chatInput.focus();
+
+                    };
+
+
+                recentSearchList.appendChild(
+                    item
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       NEW CHAT
+    ========================================================= */
+
+    function startNewChat() {
+
+        if (messages.length) {
+
+            if (
+                !confirm(
+                    "Start a new conversation?"
+                )
+            ) {
+
+                return;
+
+            }
+
+        }
+
+
+        messages = [];
+
+        saveMessages();
+
+        removeChatMessages();
+
+        clearAttachment();
+
+        resetFileInput();
+
+        chatInput.value = "";
+
+        autoResizeTextarea();
+
+        showWelcome();
+
+        chatInput.focus();
+
+        showToast(
+            "New conversation started."
+        );
+
+    }
+
+
+    function removeChatMessages() {
+
+        chatContainer
+            .querySelectorAll(
+                ".message"
+            )
+            .forEach(
+                element =>
+                    element.remove()
+            );
+
+    }
+
+
+    /* =========================================================
+       CLEAR HISTORY
+    ========================================================= */
+
+    function clearHistory() {
+
+        if (!messages.length) {
+
+            showToast(
+                "There is no chat history."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !confirm(
+                "Clear this conversation?"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        messages = [];
+
+        saveMessages();
+
+        removeChatMessages();
+
+        showWelcome();
+
+        showToast(
+            "Conversation cleared."
+        );
+
+    }
+
+
+    /* =========================================================
+       SAVE CHAT
+    ========================================================= */
+
+    function saveCurrentChat() {
+
+        if (!messages.length) {
+
+            showToast(
+                "There is no conversation to save."
+            );
+
+            return;
+
+        }
+
+
+        const first =
+            messages.find(
+                item =>
+                    item.role === "user"
+            );
+
+
+        let title =
+            first
+                ? String(first.content || "")
+                    .replace(
+                        /📎 Attached:.*$/s,
+                        ""
+                    )
+                    .trim()
+                    .slice(0, 45)
+                : "CivicAI Conversation";
+
+
+        savedChats.unshift({
+
+            id:
+                Date.now(),
+
+            title:
+                title || "CivicAI Conversation",
+
+            messages:
+                [...messages],
+
+            savedAt:
+                Date.now()
+
+        });
+
+
+        savedChats =
+            savedChats.slice(
+                0,
+                10
+            );
+
+
+        saveSavedChats();
+
+
+        showToast(
+            "Conversation saved."
+        );
+
+    }
+
+
+    /* =========================================================
+       COPY CONVERSATION
+    ========================================================= */
+
+    async function copyConversation() {
+
+        if (!messages.length) {
+
+            showToast(
+                "There is no conversation to copy."
+            );
+
+            return;
+
+        }
+
+
+        const text =
+            messages
+                .map(
+                    item =>
+                        `${
+                            item.role === "user"
+                                ? "You"
+                                : "CivicAI"
+                        }:\n${item.content}`
+                )
+                .join(
+                    "\n\n--------------------\n\n"
+                );
+
+
+        await copyText(text);
+
+    }
+
+
+    async function copyText(text) {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                String(text)
+            );
+
+
+            showToast(
+                "Copied to clipboard."
+            );
+
+        }
+
+        catch {
+
+            const textarea =
+                document.createElement(
+                    "textarea"
+                );
+
+
+            textarea.value =
+                String(text);
+
+
+            document.body.appendChild(
+                textarea
+            );
+
+
+            textarea.select();
+
+            document.execCommand(
+                "copy"
+            );
+
+
+            textarea.remove();
+
+
+            showToast(
+                "Copied to clipboard."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       THEME
+    ========================================================= */
+
+    function applySavedTheme() {
+
+        const theme =
+            localStorage.getItem(
+                STORAGE_THEME
+            );
+
+
+        document.body.classList.toggle(
+            "light-mode",
+            theme === "light"
+        );
+
+
+        updateThemeButton();
+
+    }
+
+
+    function updateThemeButton() {
+
+        const light =
+            document.body.classList.contains(
+                "light-mode"
+            );
+
+
+        themeButton.innerHTML =
+            light
+                ? '<i class="fa-solid fa-sun"></i>'
+                : '<i class="fa-solid fa-moon"></i>';
+
+    }
+
+
+    function toggleTheme() {
+
+        const light =
+            document.body.classList.toggle(
+                "light-mode"
+            );
+
+
+        localStorage.setItem(
+            STORAGE_THEME,
+            light
+                ? "light"
+                : "dark"
+        );
+
+
+        updateThemeButton();
+
+    }
+
+
+    /* =========================================================
+       TEXTAREA
+    ========================================================= */
+
+    function autoResizeTextarea() {
+
+        chatInput.style.height =
+            "auto";
+
+
+        chatInput.style.height =
+            Math.min(
+                chatInput.scrollHeight,
+                130
+            ) + "px";
+
+    }
+
+
+    /* =========================================================
+       VOICE INPUT
+    ========================================================= */
+
+    function startVoiceInput() {
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+
+        if (!SpeechRecognition) {
+
+            showToast(
+                "Voice input is not supported in this browser."
+            );
+
+            return;
+
+        }
+
+
+        if (activeRecognition) {
+
+            activeRecognition.stop();
+
+            activeRecognition =
+                null;
+
+            return;
+
+        }
+
+
+        const recognition =
+            new SpeechRecognition();
+
+
+        activeRecognition =
+            recognition;
+
+
+        recognition.lang =
+            navigator.language ||
+            "en-US";
+
+
+        recognition.interimResults =
+            false;
+
+
+        recognition.maxAlternatives =
+            1;
+
+
+        showToast(
+            "Listening..."
+        );
+
+
+        recognition.onresult =
+            event => {
+
+                const transcript =
+                    event.results[0][0]
+                        .transcript;
+
+
+                chatInput.value +=
+                    (
+                        chatInput.value
+                            ? " "
+                            : ""
+                    ) +
+                    transcript;
+
+
+                autoResizeTextarea();
+
+                chatInput.focus();
+
+            };
+
+
+        recognition.onerror =
+            event => {
+
+                console.error(
+                    "Voice recognition:",
+                    event
+                );
+
+
+                showToast(
+
+                    event.error === "not-allowed"
+                        ? "Microphone permission denied."
+                        : "Voice input failed."
+
+                );
+
+            };
+
+
+        recognition.onend =
+            () => {
+
+                activeRecognition =
+                    null;
+
+            };
+
+
+        try {
+
+            recognition.start();
+
+        }
+
+        catch {
+
+            activeRecognition =
+                null;
+
+
+            showToast(
+                "Unable to start voice input."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       CHAT SEARCH
+    ========================================================= */
+
+    function searchChats() {
+
+        const query =
+            chatSearch.value
+                .trim()
+                .toLowerCase();
+
+
+        document
+            .querySelectorAll(
+                ".recent-item"
+            )
+            .forEach(
+                item => {
+
+                    item.style.display =
+                        !query ||
+                        item.textContent
+                            .toLowerCase()
+                            .includes(query)
+                            ? "flex"
+                            : "none";
+
+                }
+            );
+
+    }
+
+
+    /* =========================================================
+       EVENTS
+    ========================================================= */
+
+    sendButton.addEventListener(
+        "click",
+        sendMessage
+    );
+
+
+    chatInput.addEventListener(
+        "input",
+        autoResizeTextarea
+    );
+
+
+    chatInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       FILE UPLOAD
+    ========================================================= */
+
+    fileButton.addEventListener(
+        "click",
+        () => {
+
+            resetFileInput();
+
+            fileInput.click();
+
+        }
+    );
+
+
+    fileInput.addEventListener(
+        "change",
+        () => {
+
+            const file =
+                fileInput.files?.[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            if (
+                file.size >
+                10 * 1024 * 1024
+            ) {
+
+                showToast(
+                    "Maximum image size is 10 MB."
+                );
+
+                resetFileInput();
+
+                return;
+
+            }
+
+
+            if (
+                !file.type ||
+                !file.type.startsWith("image/")
+            ) {
+
+                showToast(
+                    "Please select an image."
+                );
+
+                resetFileInput();
+
+                return;
+
+            }
+
+
+            showAttachment(file);
+
+        }
+    );
+
+
+    removeAttachment.addEventListener(
+        "click",
+        () => {
+
+            clearAttachment();
+
+            resetFileInput();
+
+        }
+    );
+
+
+    /* =========================================================
+       CAMERA
+    ========================================================= */
+
+    cameraButton.addEventListener(
+        "click",
+        () => {
+
+            fileInput.value =
+                "";
+
+            fileInput.setAttribute(
+                "accept",
+                "image/*"
+            );
+
+            fileInput.setAttribute(
+                "capture",
+                "environment"
+            );
+
+            fileInput.click();
+
+        }
+    );
+
+
+    /* =========================================================
+       VOICE
+    ========================================================= */
+
+    voiceButton.addEventListener(
+        "click",
+        startVoiceInput
+    );
+
+
+    /* =========================================================
+       CHAT CONTROLS
+    ========================================================= */
+
+    newChatButton.addEventListener(
+        "click",
+        startNewChat
+    );
+
+
+    sidebarNewChat.addEventListener(
+        "click",
+        startNewChat
+    );
+
+
+    clearHistoryButton.addEventListener(
+        "click",
+        clearHistory
+    );
+
+
+    saveChatButton.addEventListener(
+        "click",
+        saveCurrentChat
+    );
+
+
+    exportChatButton.addEventListener(
+        "click",
+        copyConversation
+    );
+
+
+    themeButton.addEventListener(
+        "click",
+        toggleTheme
+    );
+
+
+    chatSearch.addEventListener(
+        "input",
+        searchChats
+    );
+
+
+    /* =========================================================
+       MOBILE MENU
+    ========================================================= */
+
+    mobileMenu.addEventListener(
+        "click",
+        () => {
+
+            sidebar.classList.toggle(
+                "open"
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       CLOSE SIDEBAR
+    ========================================================= */
+
+    chatMessages.addEventListener(
+        "click",
+        () => {
+
+            sidebar.classList.remove(
+                "open"
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       READY
+    ========================================================= */
+
+    console.log(
+        "CivicAI Life Helper initialized."
+    );
+
+    console.log(
+        "Normal chat endpoint:",
+        CHAT_API_ENDPOINT
+    );
+
+    console.log(
+        "Image analysis endpoint:",
+        ANALYZE_API_ENDPOINT
+    );
 
 });
-
 </script>
+
 
 </body>
 </html>
