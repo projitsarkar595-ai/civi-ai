@@ -260,7 +260,7 @@ const GEMINI_MODEL =
     cleanText(
         process.env.GEMINI_MODEL
     ) ||
-    "gemini-2.5-flash";
+    "gemini-3.5-flash";
 
 const GEMINI_API_URL =
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
