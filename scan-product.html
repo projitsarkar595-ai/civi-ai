@@ -1612,459 +1612,1733 @@
 
     </main>
 
+<script>
+"use strict";
 
-    <script>
+document.addEventListener("DOMContentLoaded", () => {
 
-    "use strict";
+    /* =========================================================
+       CIVICAI — FAST PRODUCT AI SCANNER
+       Optimized Frontend
+       ========================================================= */
 
+    /* =========================================================
+       ELEMENTS
+       ========================================================= */
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
+    const productInput = document.getElementById("productInput");
+    const uploadButton = document.getElementById("uploadButton");
+    const cameraButton = document.getElementById("cameraButton");
+    const uploadZone = document.getElementById("uploadZone");
+    const uploadContent = document.getElementById("uploadContent");
 
+    const previewContainer =
+        document.getElementById("previewContainer");
 
-            /* =====================================================
-               ELEMENTS
-            ===================================================== */
+    const productPreview =
+        document.getElementById("productPreview");
 
-            const productInput =
-                document.getElementById("productInput");
+    const previewName =
+        document.getElementById("previewName");
 
-            const uploadButton =
-                document.getElementById("uploadButton");
+    const changeImage =
+        document.getElementById("changeImage");
 
-            const cameraButton =
-                document.getElementById("cameraButton");
+    const analyzeButton =
+        document.getElementById("analyzeButton");
 
-            const uploadZone =
-                document.getElementById("uploadZone");
+    const aiEmpty =
+        document.getElementById("aiEmpty");
 
-            const uploadContent =
-                document.getElementById("uploadContent");
+    const aiLoading =
+        document.getElementById("aiLoading");
 
-            const previewContainer =
-                document.getElementById("previewContainer");
+    const aiResults =
+        document.getElementById("aiResults");
 
-            const productPreview =
-                document.getElementById("productPreview");
+    const loadingText =
+        document.getElementById("loadingText");
 
-            const previewName =
-                document.getElementById("previewName");
+    const resetScanner =
+        document.getElementById("resetScanner");
 
-            const changeImage =
-                document.getElementById("changeImage");
+    const askAIButton =
+        document.getElementById("askAIButton");
 
-            const analyzeButton =
-                document.getElementById("analyzeButton");
+    const productQuestion =
+        document.getElementById("productQuestion");
 
-            const aiEmpty =
-                document.getElementById("aiEmpty");
+    const productName =
+        document.getElementById("productName");
 
-            const aiLoading =
-                document.getElementById("aiLoading");
+    const productDescription =
+        document.getElementById("productDescription");
 
-            const aiResults =
-                document.getElementById("aiResults");
+    const productCategory =
+        document.getElementById("productCategory");
 
-            const loadingText =
-                document.getElementById("loadingText");
+    const productPrice =
+        document.getElementById("productPrice");
 
-            const resetScanner =
-                document.getElementById("resetScanner");
+    const productCondition =
+        document.getElementById("productCondition");
 
-            const askAIButton =
-                document.getElementById("askAIButton");
+    const productExpiry =
+        document.getElementById("productExpiry");
 
-            const productQuestion =
-                document.getElementById("productQuestion");
+    const productWarning =
+        document.getElementById("productWarning");
 
-            const productName =
-                document.getElementById("productName");
+    const confidenceValue =
+        document.getElementById("confidenceValue");
 
-            const productDescription =
-                document.getElementById("productDescription");
+    const confidenceBar =
+        document.getElementById("confidenceBar");
 
-            const productCategory =
-                document.getElementById("productCategory");
+    const aiOnline =
+        document.querySelector(".ai-online");
 
-            const productPrice =
-                document.getElementById("productPrice");
+    const mobileMenuButton =
+        document.getElementById("mobileMenuButton");
 
-            const productCondition =
-                document.getElementById("productCondition");
-
-            const productExpiry =
-                document.getElementById("productExpiry");
-
-            const productWarning =
-                document.getElementById("productWarning");
-
-            const confidenceValue =
-                document.getElementById("confidenceValue");
-
-            const confidenceBar =
-                document.getElementById("confidenceBar");
-
-            const aiOnline =
-                document.querySelector(".ai-online");
-
-            const mobileMenuButton =
-                document.getElementById("mobileMenuButton");
-
-            const mobileNavigation =
-                document.getElementById("mobileNavigation");
+    const mobileNavigation =
+        document.getElementById("mobileNavigation");
 
 
-            /* =====================================================
-               API
-            ===================================================== */
+    /* =========================================================
+       API
+       ========================================================= */
 
-            const API_BASE =
-                window.CIVICAI_API_URL || "";
-
-
-            /* =====================================================
-               STATE
-            ===================================================== */
-
-            let selectedFile = null;
-
-            let selectedImageBase64 = null;
-
-            let currentAnalysis = null;
-
-            let isAnalyzing = false;
-
-            let isAsking = false;
+    const API_BASE =
+        window.CIVICAI_API_URL || "";
 
 
-            if (!productInput) {
+    /* =========================================================
+       STATE
+       ========================================================= */
 
-                console.error(
-                    "CivicAI: productInput not found."
+    let selectedFile = null;
+    let selectedImageBase64 = null;
+    let currentAnalysis = null;
+
+    let isAnalyzing = false;
+    let isAsking = false;
+
+    let loadingInterval = null;
+
+
+    /* =========================================================
+       IMAGE SETTINGS
+       ========================================================= */
+
+    /*
+     * IMPORTANT:
+     *
+     * Original phone images can be 5MB, 8MB, 12MB+
+     *
+     * We resize them before sending to Gemini.
+     *
+     * This dramatically reduces:
+     *
+     * File size
+     * Upload time
+     * Request payload
+     * AI processing time
+     */
+
+    const MAX_IMAGE_WIDTH = 1280;
+    const MAX_IMAGE_HEIGHT = 1280;
+
+    const JPEG_QUALITY = 0.78;
+
+    const MAX_FILE_SIZE =
+        15 * 1024 * 1024;
+
+
+    /* =========================================================
+       INITIAL HEALTH CHECK
+       ========================================================= */
+
+    checkBackendHealth();
+
+
+    async function checkBackendHealth() {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE}/api/health`,
+                    {
+                        method: "GET",
+                        cache: "no-store",
+                        headers: {
+                            "Accept":
+                                "application/json"
+                        }
+                    }
                 );
 
-                return;
+
+            const rawText =
+                await response.text();
+
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(rawText);
+
+            } catch {
+
+                throw new Error(
+                    rawText ||
+                    "Invalid backend response."
+                );
 
             }
 
 
-            /* =====================================================
-               BACKEND HEALTH
-            ===================================================== */
+            if (!response.ok) {
 
-            checkBackendHealth();
-
-
-            async function checkBackendHealth() {
-
-                try {
-
-                    const response =
-                        await fetch(
-                            `${API_BASE}/api/health`,
-                            {
-                                method: "GET",
-                                cache: "no-store",
-                                headers: {
-                                    "Accept":
-                                        "application/json"
-                                }
-                            }
-                        );
-
-
-                    const rawText =
-                        await response.text();
-
-
-                    let data = null;
-
-
-                    try {
-
-                        data =
-                            JSON.parse(rawText);
-
-                    } catch {
-
-                        throw new Error(
-                            rawText ||
-                            `Invalid health response (${response.status})`
-                        );
-
-                    }
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            data.error ||
-                            `Health check failed: ${response.status}`
-                        );
-
-                    }
-
-
-                    const aiConfigured =
-                        data.aiConfigured !== false &&
-                        data.success !== false;
-
-
-                    if (aiConfigured) {
-
-                        setAIStatus(
-                            true,
-                            "AI ONLINE"
-                        );
-
-                    } else {
-
-                        setAIStatus(
-                            false,
-                            "AI NOT CONFIGURED"
-                        );
-
-                    }
-
-
-                } catch (error) {
-
-                    console.error(
-                        "CivicAI health check failed:",
-                        error
-                    );
-
-
-                    setAIStatus(
-                        false,
-                        "AI OFFLINE"
-                    );
-
-                }
+                throw new Error(
+                    data.error ||
+                    `Health check failed: ${response.status}`
+                );
 
             }
 
 
-            /* =====================================================
-               AI STATUS
-            ===================================================== */
+            const aiConfigured =
+                data.aiConfigured !== false &&
+                data.success !== false;
 
-            function setAIStatus(
-                online,
-                text
-            ) {
 
-                if (!aiOnline) {
+            if (aiConfigured) {
+
+                setAIStatus(
+                    true,
+                    "AI ONLINE"
+                );
+
+                console.log(
+                    "CivicAI: Backend + AI ready."
+                );
+
+            } else {
+
+                setAIStatus(
+                    false,
+                    "AI NOT CONFIGURED"
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "CivicAI health check failed:",
+                error
+            );
+
+            setAIStatus(
+                false,
+                "AI OFFLINE"
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       AI STATUS
+       ========================================================= */
+
+    function setAIStatus(
+        online,
+        text
+    ) {
+
+        if (!aiOnline) {
+            return;
+        }
+
+
+        aiOnline.innerHTML = "";
+
+
+        const dot =
+            document.createElement("span");
+
+
+        const label =
+            document.createTextNode(text);
+
+
+        if (online) {
+
+            dot.style.background =
+                "#4ade80";
+
+            dot.style.boxShadow =
+                "0 0 10px #4ade80";
+
+            aiOnline.style.color =
+                "#58e6a0";
+
+            aiOnline.style.background =
+                "rgba(50,220,140,.08)";
+
+        } else {
+
+            dot.style.background =
+                "#ef4444";
+
+            dot.style.boxShadow =
+                "0 0 10px #ef4444";
+
+            aiOnline.style.color =
+                "#f87171";
+
+            aiOnline.style.background =
+                "rgba(239,68,68,.08)";
+
+        }
+
+
+        aiOnline.appendChild(dot);
+        aiOnline.appendChild(label);
+
+    }
+
+
+    /* =========================================================
+       UPLOAD BUTTON
+       ========================================================= */
+
+    if (uploadButton) {
+
+        uploadButton.addEventListener(
+            "click",
+            () => {
+
+                productInput.removeAttribute(
+                    "capture"
+                );
+
+                productInput.value = "";
+
+                productInput.click();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       CAMERA BUTTON
+       ========================================================= */
+
+    if (cameraButton) {
+
+        cameraButton.addEventListener(
+            "click",
+            () => {
+
+                productInput.value = "";
+
+                productInput.setAttribute(
+                    "capture",
+                    "environment"
+                );
+
+                productInput.click();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       FILE SELECT
+       ========================================================= */
+
+    if (productInput) {
+
+        productInput.addEventListener(
+            "change",
+            async event => {
+
+                const file =
+                    event.target.files?.[0];
+
+
+                if (!file) {
                     return;
                 }
 
 
-                aiOnline.innerHTML = "";
-
-
-                const dot =
-                    document.createElement("span");
-
-
-                const label =
-                    document.createTextNode(text);
-
-
-                if (online) {
-
-                    dot.style.background =
-                        "#4ade80";
-
-                    dot.style.boxShadow =
-                        "0 0 10px #4ade80";
-
-                    aiOnline.style.color =
-                        "#58e6a0";
-
-                    aiOnline.style.background =
-                        "rgba(50,220,140,.08)";
-
-                } else {
-
-                    dot.style.background =
-                        "#ef4444";
-
-                    dot.style.boxShadow =
-                        "0 0 10px #ef4444";
-
-                    aiOnline.style.color =
-                        "#f87171";
-
-                    aiOnline.style.background =
-                        "rgba(239,68,68,.08)";
-
-                }
-
-
-                aiOnline.appendChild(dot);
-
-                aiOnline.appendChild(label);
+                await showPreview(file);
 
             }
+        );
+
+    }
 
 
-            /* =====================================================
-               UPLOAD
-            ===================================================== */
+    /* =========================================================
+       SHOW PREVIEW
+       ========================================================= */
 
-            if (uploadButton) {
+    async function showPreview(file) {
 
-                uploadButton.addEventListener(
-                    "click",
-                    () => {
+        if (
+            !file.type ||
+            !file.type.startsWith("image/")
+        ) {
 
-                        productInput.removeAttribute(
-                            "capture"
+            alert(
+                "Please select a valid image file."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            file.size >
+            MAX_FILE_SIZE
+        ) {
+
+            alert(
+                "Image is too large.\n\n" +
+                "Please choose an image smaller than 15 MB."
+            );
+
+            return;
+
+        }
+
+
+        selectedFile = file;
+
+
+        try {
+
+            /*
+             * Compress image BEFORE AI request.
+             */
+
+            selectedImageBase64 =
+                await compressImage(file);
+
+
+        } catch (error) {
+
+            console.error(
+                "Image compression failed:",
+                error
+            );
+
+
+            alert(
+                "Could not process this image."
+            );
+
+
+            selectedFile = null;
+            selectedImageBase64 = null;
+
+            return;
+
+        }
+
+
+        /*
+         * Preview original image.
+         */
+
+        productPreview.src =
+            URL.createObjectURL(file);
+
+
+        previewName.textContent =
+            file.name ||
+            "Product image";
+
+
+        uploadContent.style.display =
+            "none";
+
+
+        previewContainer.classList.add(
+            "active"
+        );
+
+
+        analyzeButton.disabled =
+            false;
+
+
+        /*
+         * Reset old result.
+         */
+
+        aiResults.classList.remove(
+            "active"
+        );
+
+
+        aiLoading.classList.remove(
+            "active"
+        );
+
+
+        aiEmpty.style.display =
+            "flex";
+
+
+        currentAnalysis = null;
+
+        productQuestion.value = "";
+
+
+        console.log(
+            "Original image:",
+            formatBytes(file.size)
+        );
+
+
+        console.log(
+            "Optimized image:",
+            formatBase64Size(
+                selectedImageBase64
+            )
+        );
+
+    }
+
+
+    /* =========================================================
+       FAST IMAGE COMPRESSION
+       ========================================================= */
+
+    function compressImage(file) {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload = event => {
+
+                    const img =
+                        new Image();
+
+
+                    img.onload = () => {
+
+                        let width =
+                            img.width;
+
+                        let height =
+                            img.height;
+
+
+                        /*
+                         * Keep aspect ratio.
+                         */
+
+                        const scale =
+                            Math.min(
+                                1,
+                                MAX_IMAGE_WIDTH / width,
+                                MAX_IMAGE_HEIGHT / height
+                            );
+
+
+                        width =
+                            Math.round(
+                                width * scale
+                            );
+
+
+                        height =
+                            Math.round(
+                                height * scale
+                            );
+
+
+                        const canvas =
+                            document.createElement(
+                                "canvas"
+                            );
+
+
+                        canvas.width =
+                            width;
+
+                        canvas.height =
+                            height;
+
+
+                        const ctx =
+                            canvas.getContext(
+                                "2d",
+                                {
+                                    alpha: false
+                                }
+                            );
+
+
+                        /*
+                         * White background.
+                         * Prevent transparent image issues.
+                         */
+
+                        ctx.fillStyle =
+                            "#ffffff";
+
+                        ctx.fillRect(
+                            0,
+                            0,
+                            width,
+                            height
                         );
 
-                        productInput.value = "";
 
-                        productInput.click();
-
-                    }
-                );
-
-            }
-
-
-            /* =====================================================
-               CAMERA
-            ===================================================== */
-
-            if (cameraButton) {
-
-                cameraButton.addEventListener(
-                    "click",
-                    () => {
-
-                        productInput.value = "";
-
-                        productInput.setAttribute(
-                            "capture",
-                            "environment"
+                        ctx.drawImage(
+                            img,
+                            0,
+                            0,
+                            width,
+                            height
                         );
 
-                        productInput.click();
 
-                    }
-                );
+                        /*
+                         * JPEG is much smaller
+                         * than original camera image.
+                         */
+
+                        const compressed =
+                            canvas.toDataURL(
+                                "image/jpeg",
+                                JPEG_QUALITY
+                            );
+
+
+                        resolve(
+                            compressed
+                        );
+
+                    };
+
+
+                    img.onerror = () => {
+
+                        reject(
+                            new Error(
+                                "Unable to decode image."
+                            )
+                        );
+
+                    };
+
+
+                    img.src =
+                        event.target.result;
+
+                };
+
+
+                reader.onerror = () => {
+
+                    reject(
+                        new Error(
+                            "Unable to read image."
+                        )
+                    );
+
+                };
+
+
+                reader.readAsDataURL(file);
 
             }
+        );
+
+    }
 
 
-            /* =====================================================
-               FILE SELECT
-            ===================================================== */
+    /* =========================================================
+       DRAG & DROP
+       ========================================================= */
 
-            productInput.addEventListener(
-                "change",
-                async event => {
+    [
+        "dragenter",
+        "dragover"
+    ].forEach(
+        eventName => {
 
-                    const file =
-                        event.target.files?.[0];
+            uploadZone.addEventListener(
+                eventName,
+                event => {
 
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                    if (!file) {
-                        return;
-                    }
-
-
-                    await showPreview(file);
+                    uploadZone.classList.add(
+                        "dragging"
+                    );
 
                 }
             );
 
+        }
+    );
 
-            /* =====================================================
-               SHOW PREVIEW
-            ===================================================== */
 
-            async function showPreview(file) {
+    [
+        "dragleave",
+        "drop"
+    ].forEach(
+        eventName => {
+
+            uploadZone.addEventListener(
+                eventName,
+                event => {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    uploadZone.classList.remove(
+                        "dragging"
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    uploadZone.addEventListener(
+        "drop",
+        async event => {
+
+            const file =
+                event.dataTransfer
+                    ?.files?.[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            await showPreview(file);
+
+        }
+    );
+
+
+    /* =========================================================
+       CHANGE IMAGE
+       ========================================================= */
+
+    if (changeImage) {
+
+        changeImage.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                productInput.removeAttribute(
+                    "capture"
+                );
+
+                productInput.value = "";
+
+                productInput.click();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       ANALYZE BUTTON
+       ========================================================= */
+
+    if (analyzeButton) {
+
+        analyzeButton.addEventListener(
+            "click",
+            analyzeProduct
+        );
+
+    }
+
+
+    /* =========================================================
+       ANALYZE PRODUCT
+       ========================================================= */
+
+    async function analyzeProduct() {
+
+        if (
+            !selectedFile ||
+            !selectedImageBase64 ||
+            isAnalyzing
+        ) {
+
+            return;
+
+        }
+
+
+        isAnalyzing = true;
+
+
+        analyzeButton.disabled = true;
+
+
+        aiEmpty.style.display =
+            "none";
+
+
+        aiResults.classList.remove(
+            "active"
+        );
+
+
+        aiLoading.classList.add(
+            "active"
+        );
+
+
+        /*
+         * Faster, cleaner loading messages.
+         */
+
+        const loadingMessages = [
+
+            "Optimizing product image...",
+
+            "CivicAI Vision is analyzing...",
+
+            "Identifying the product...",
+
+            "Reading visible details...",
+
+            "Checking condition and expiry...",
+
+            "Finalizing AI result..."
+
+        ];
+
+
+        let messageIndex = 0;
+
+
+        loadingText.textContent =
+            loadingMessages[0];
+
+
+        loadingInterval =
+            setInterval(
+                () => {
+
+                    messageIndex =
+                        (
+                            messageIndex + 1
+                        ) %
+                        loadingMessages.length;
+
+
+                    loadingText.textContent =
+                        loadingMessages[
+                            messageIndex
+                        ];
+
+                },
+                900
+            );
+
+
+        try {
+
+            console.log(
+                "CivicAI: Sending optimized image..."
+            );
+
+
+            const controller =
+                new AbortController();
+
+
+            /*
+             * Maximum frontend wait:
+             * 35 seconds.
+             */
+
+            const timeout =
+                setTimeout(
+                    () => {
+                        controller.abort();
+                    },
+                    35000
+                );
+
+
+            const response =
+                await fetch(
+                    `${API_BASE}/api/analyze-product`,
+                    {
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "Accept":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                image:
+                                    selectedImageBase64
+
+                            }),
+
+                        signal:
+                            controller.signal
+                    }
+                );
+
+
+            clearTimeout(timeout);
+
+
+            const rawText =
+                await response.text();
+
+
+            let data;
+
+
+            try {
+
+                data =
+                    JSON.parse(rawText);
+
+            } catch {
+
+                throw new Error(
+                    rawText ||
+                    `Backend returned HTTP ${response.status}`
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    `Backend error ${response.status}`
+                );
+
+            }
+
+
+            if (
+                !data ||
+                data.success !== true
+            ) {
+
+                throw new Error(
+                    data?.error ||
+                    data?.message ||
+                    "AI analysis failed."
+                );
+
+            }
+
+
+            if (!data.analysis) {
+
+                throw new Error(
+                    "Backend returned no analysis."
+                );
+
+            }
+
+
+            console.log(
+                "CivicAI AI RESPONSE:",
+                data.analysis
+            );
+
+
+            currentAnalysis =
+                normalizeProductAnalysis(
+                    data.analysis
+                );
+
+
+            renderProductAnalysis(
+                currentAnalysis
+            );
+
+
+            aiLoading.classList.remove(
+                "active"
+            );
+
+
+            aiResults.classList.add(
+                "active"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "CivicAI product analysis failed:",
+                error
+            );
+
+
+            aiLoading.classList.remove(
+                "active"
+            );
+
+
+            aiEmpty.style.display =
+                "flex";
+
+
+            showRealError(error);
+
+        } finally {
+
+            if (loadingInterval) {
+
+                clearInterval(
+                    loadingInterval
+                );
+
+                loadingInterval = null;
+
+            }
+
+
+            isAnalyzing = false;
+
+
+            analyzeButton.disabled = false;
+
+        }
+
+    }
+
+
+    /* =========================================================
+       NORMALIZE AI RESPONSE
+       ========================================================= */
+
+    function normalizeProductAnalysis(
+        analysis
+    ) {
+
+        return {
+
+            productName:
+                safeText(
+                    analysis.productName ??
+                    analysis.name ??
+                    analysis.product ??
+                    analysis.title,
+                    "Unknown product"
+                ),
+
+
+            description:
+                safeText(
+                    analysis.description ??
+                    analysis.productDescription ??
+                    analysis.details,
+                    "No detailed description available."
+                ),
+
+
+            category:
+                safeText(
+                    analysis.category ??
+                    analysis.productCategory ??
+                    analysis.type,
+                    "Unknown"
+                ),
+
+
+            estimatedPrice:
+                normalizePrice(
+                    analysis.estimatedPrice ??
+                    analysis.estimated_price ??
+                    analysis.price ??
+                    analysis.estimatedPriceRange
+                ),
+
+
+            condition:
+                normalizeCondition(
+                    analysis.condition ??
+                    analysis.productCondition
+                ),
+
+
+            expiry:
+                normalizeExpiry(
+                    analysis.expiry ??
+                    analysis.expiryDate ??
+                    analysis.expiration ??
+                    analysis.expirationDate
+                ),
+
+
+            warning:
+                safeText(
+                    analysis.warning ??
+                    analysis.safetyWarning ??
+                    analysis.safety ??
+                    analysis.risk,
+                    "No clear warning could be determined from the image."
+                ),
+
+
+            confidence:
+                normalizeConfidence(
+                    analysis.confidence ??
+                    analysis.confidenceScore
+                )
+
+        };
+
+    }
+
+
+    /* =========================================================
+       PRICE NORMALIZER
+       ========================================================= */
+
+    function normalizePrice(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return "Not available";
+
+        }
+
+
+        const text =
+            String(value).trim();
+
+
+        if (!text) {
+            return "Not available";
+        }
+
+
+        /*
+         * If backend returns things like:
+         *
+         * 499
+         * 499 INR
+         * ₹499
+         * ₹400-₹600
+         *
+         * keep them.
+         */
+
+        return text;
+
+    }
+
+
+    /* =========================================================
+       CONDITION NORMALIZER
+       ========================================================= */
+
+    function normalizeCondition(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return "Not determined";
+
+        }
+
+
+        const text =
+            String(value).trim();
+
+
+        if (!text) {
+            return "Not determined";
+        }
+
+
+        return text;
+
+    }
+
+
+    /* =========================================================
+       EXPIRY NORMALIZER
+       ========================================================= */
+
+    function normalizeExpiry(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return "Not detected";
+
+        }
+
+
+        const text =
+            String(value).trim();
+
+
+        if (
+            !text ||
+            text.toLowerCase() === "null" ||
+            text.toLowerCase() === "unknown" ||
+            text.toLowerCase() === "not visible"
+        ) {
+
+            return "Not detected";
+
+        }
+
+
+        return text;
+
+    }
+
+
+    /* =========================================================
+       RENDER RESULT
+       ========================================================= */
+
+    function renderProductAnalysis(
+        analysis
+    ) {
+
+        productName.textContent =
+            analysis.productName;
+
+
+        productDescription.textContent =
+            analysis.description;
+
+
+        productCategory.textContent =
+            analysis.category;
+
+
+        productPrice.textContent =
+            analysis.estimatedPrice;
+
+
+        productCondition.textContent =
+            analysis.condition;
+
+
+        productExpiry.textContent =
+            analysis.expiry;
+
+
+        productWarning.textContent =
+            analysis.warning;
+
+
+        confidenceValue.textContent =
+            `${analysis.confidence}%`;
+
+
+        confidenceBar.style.width =
+            `${analysis.confidence}%`;
+
+    }
+
+
+    /* =========================================================
+       CONFIDENCE
+       ========================================================= */
+
+    function normalizeConfidence(value) {
+
+        if (
+            typeof value === "number" &&
+            Number.isFinite(value)
+        ) {
+
+            if (
+                value > 0 &&
+                value <= 1
+            ) {
+
+                value *= 100;
+
+            }
+
+
+            return Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round(value)
+                )
+            );
+
+        }
+
+
+        if (
+            typeof value === "string"
+        ) {
+
+            const trimmed =
+                value.trim();
+
+
+            if (
+                /^0?\.\d+$/.test(
+                    trimmed
+                )
+            ) {
+
+                return Math.round(
+                    Number(trimmed) * 100
+                );
+
+            }
+
+
+            const match =
+                trimmed.match(
+                    /(\d{1,3})(?:\.\d+)?/
+                );
+
+
+            if (match) {
+
+                return Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        Number(match[1])
+                    )
+                );
+
+            }
+
+
+            const lower =
+                trimmed.toLowerCase();
+
+
+            if (
+                lower.includes("high")
+            ) {
+                return 90;
+            }
+
+
+            if (
+                lower.includes("medium")
+            ) {
+                return 65;
+            }
+
+
+            if (
+                lower.includes("low")
+            ) {
+                return 35;
+            }
+
+        }
+
+
+        return 0;
+
+    }
+
+
+    /* =========================================================
+       SAFE TEXT
+       ========================================================= */
+
+    function safeText(
+        value,
+        fallback
+    ) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return fallback;
+
+        }
+
+
+        const text =
+            String(value).trim();
+
+
+        if (
+            !text ||
+            text.toLowerCase() === "null" ||
+            text.toLowerCase() === "undefined"
+        ) {
+
+            return fallback;
+
+        }
+
+
+        return text;
+
+    }
+
+
+    /* =========================================================
+       ERROR
+       ========================================================= */
+
+    function showRealError(error) {
+
+        let message =
+            error?.message ||
+            "Unknown AI connection error.";
+
+
+        if (
+            error?.name === "AbortError"
+        ) {
+
+            message =
+                "AI analysis took too long. Please try again with a clearer product image.";
+
+        }
+
+
+        alert(
+            "CivicAI AI Error:\n\n" +
+            message +
+            "\n\n" +
+            "Please check your backend and Gemini configuration."
+        );
+
+    }
+
+
+    /* =========================================================
+       ASK AI
+       ========================================================= */
+
+    if (askAIButton) {
+
+        askAIButton.addEventListener(
+            "click",
+            askProductQuestion
+        );
+
+    }
+
+
+    async function askProductQuestion() {
+
+        const question =
+            productQuestion.value.trim();
+
+
+        if (!question) {
+
+            productQuestion.focus();
+
+            return;
+
+        }
+
+
+        if (!selectedImageBase64) {
+
+            alert(
+                "Please scan a product first."
+            );
+
+            return;
+
+        }
+
+
+        if (isAsking) {
+            return;
+        }
+
+
+        isAsking = true;
+
+
+        askAIButton.disabled = true;
+
+
+        const originalHTML =
+            askAIButton.innerHTML;
+
+
+        askAIButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+
+        try {
+
+            const controller =
+                new AbortController();
+
+
+            const timeout =
+                setTimeout(
+                    () => {
+                        controller.abort();
+                    },
+                    30000
+                );
+
+
+            const response =
+                await fetch(
+                    `${API_BASE}/api/product-question`,
+                    {
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "Accept":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                image:
+                                    selectedImageBase64,
+
+                                question:
+                                    question,
+
+                                product:
+                                    currentAnalysis
+                                        ?.productName ||
+                                    ""
+
+                            }),
+
+                        signal:
+                            controller.signal
+                    }
+                );
+
+
+            clearTimeout(timeout);
+
+
+            const rawText =
+                await response.text();
+
+
+            let data;
+
+
+            try {
+
+                data =
+                    JSON.parse(rawText);
+
+            } catch {
+
+                throw new Error(
+                    rawText ||
+                    "Invalid AI response."
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    `Request failed: ${response.status}`
+                );
+
+            }
+
+
+            if (
+                data.success !== true ||
+                !data.answer
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    "AI returned an empty answer."
+                );
+
+            }
+
+
+            alert(
+                "CivicAI AI:\n\n" +
+                data.answer
+            );
+
+
+            productQuestion.value = "";
+
+
+        } catch (error) {
+
+            console.error(
+                "CivicAI question error:",
+                error
+            );
+
+
+            alert(
+                "CivicAI AI Error:\n\n" +
+                (
+                    error?.message ||
+                    "Unable to get AI answer."
+                )
+            );
+
+        } finally {
+
+            isAsking = false;
+
+            askAIButton.disabled = false;
+
+            askAIButton.innerHTML =
+                originalHTML;
+
+        }
+
+    }
+
+
+    /* =========================================================
+       ENTER KEY
+       ========================================================= */
+
+    if (productQuestion) {
+
+        productQuestion.addEventListener(
+            "keydown",
+            event => {
 
                 if (
-                    !file.type ||
-                    !file.type.startsWith("image/")
+                    event.key === "Enter"
                 ) {
 
-                    alert(
-                        "Please select a valid image file."
+                    event.preventDefault();
+
+                    askProductQuestion();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       RESET
+       ========================================================= */
+
+    if (resetScanner) {
+
+        resetScanner.addEventListener(
+            "click",
+            () => {
+
+                if (loadingInterval) {
+
+                    clearInterval(
+                        loadingInterval
                     );
 
-                    return;
+                    loadingInterval = null;
 
                 }
 
 
-                const MAX_FILE_SIZE =
-                    15 * 1024 * 1024;
+                productInput.value = "";
+
+                productPreview.src = "";
+
+                selectedFile = null;
+
+                selectedImageBase64 = null;
+
+                currentAnalysis = null;
 
 
-                if (file.size > MAX_FILE_SIZE) {
-
-                    alert(
-                        "Image is too large.\n\n" +
-                        "Please select an image smaller than 15 MB."
-                    );
-
-                    return;
-
-                }
-
-
-                selectedFile = file;
-
-
-                try {
-
-                    selectedImageBase64 =
-                        await fileToBase64(file);
-
-                } catch (error) {
-
-                    console.error(
-                        "Image conversion error:",
-                        error
-                    );
-
-                    alert(
-                        "Could not read the selected image."
-                    );
-
-                    selectedFile = null;
-
-                    selectedImageBase64 = null;
-
-                    return;
-
-                }
-
-
-                productPreview.src =
-                    selectedImageBase64;
-
-
-                previewName.textContent =
-                    file.name ||
-                    "Product image";
-
-
-                uploadContent.style.display =
-                    "none";
-
-
-                previewContainer.classList.add(
+                previewContainer.classList.remove(
                     "active"
                 );
 
 
-                analyzeButton.disabled =
-                    false;
+                uploadContent.style.display =
+                    "block";
 
 
                 aiResults.classList.remove(
@@ -2081,1660 +3355,215 @@
                     "flex";
 
 
-                currentAnalysis = null;
+                analyzeButton.disabled =
+                    true;
+
 
                 productQuestion.value = "";
 
-            }
-
-
-            /* =====================================================
-               BASE64
-            ===================================================== */
-
-            function fileToBase64(file) {
-
-                return new Promise(
-                    (
-                        resolve,
-                        reject
-                    ) => {
-
-                        const reader =
-                            new FileReader();
-
-
-                        reader.onload =
-                            () => {
-
-                                resolve(
-                                    reader.result
-                                );
-
-                            };
-
-
-                        reader.onerror =
-                            () => {
-
-                                reject(
-                                    new Error(
-                                        "Unable to read image."
-                                    )
-                                );
-
-                            };
-
-
-                        reader.readAsDataURL(file);
-
-                    }
-                );
-
-            }
-
-
-            /* =====================================================
-               CHANGE IMAGE
-            ===================================================== */
-
-            if (changeImage) {
-
-                changeImage.addEventListener(
-                    "click",
-                    event => {
-
-                        event.stopPropagation();
-
-                        productInput.removeAttribute(
-                            "capture"
-                        );
-
-                        productInput.value = "";
-
-                        productInput.click();
-
-                    }
-                );
-
-            }
-
-
-            /* =====================================================
-               DRAG DROP
-            ===================================================== */
-
-            [
-                "dragenter",
-                "dragover"
-            ].forEach(
-                eventName => {
-
-                    uploadZone.addEventListener(
-                        eventName,
-                        event => {
-
-                            event.preventDefault();
-
-                            event.stopPropagation();
-
-                            uploadZone.classList.add(
-                                "dragging"
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-            [
-                "dragleave",
-                "drop"
-            ].forEach(
-                eventName => {
-
-                    uploadZone.addEventListener(
-                        eventName,
-                        event => {
-
-                            event.preventDefault();
-
-                            event.stopPropagation();
-
-                            uploadZone.classList.remove(
-                                "dragging"
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-            uploadZone.addEventListener(
-                "drop",
-                async event => {
-
-                    const file =
-                        event.dataTransfer
-                            ?.files?.[0];
-
-
-                    if (!file) {
-                        return;
-                    }
-
-
-                    await showPreview(file);
-
-                }
-            );
-
-
-            /* =====================================================
-               ANALYZE BUTTON
-            ===================================================== */
-
-            analyzeButton.addEventListener(
-                "click",
-                analyzeProduct
-            );
-
-
-            /* =====================================================
-               ANALYZE PRODUCT
-            ===================================================== */
-
-            async function analyzeProduct() {
-
-                if (
-                    !selectedFile ||
-                    !selectedImageBase64 ||
-                    isAnalyzing
-                ) {
-
-                    return;
-
-                }
-
-
-                isAnalyzing = true;
-
-                analyzeButton.disabled = true;
-
-
-                aiEmpty.style.display =
-                    "none";
-
-
-                aiResults.classList.remove(
-                    "active"
-                );
-
-
-                aiLoading.classList.add(
-                    "active"
-                );
-
-
-                const loadingMessages = [
-
-                    "Sending image to CivicAI...",
-
-                    "CivicAI Vision is examining the product...",
-
-                    "Reading visible product information...",
-
-                    "Identifying product and category...",
-
-                    "Estimating the current market price...",
-
-                    "Evaluating visible physical condition...",
-
-                    "Checking visible expiry information...",
-
-                    "Checking visible safety information..."
-
-                ];
-
-
-                let messageIndex = 0;
-
-
-                loadingText.textContent =
-                    loadingMessages[0];
-
-
-                const loadingInterval =
-                    setInterval(
-                        () => {
-
-                            messageIndex =
-                                (
-                                    messageIndex + 1
-                                ) %
-                                loadingMessages.length;
-
-
-                            loadingText.textContent =
-                                loadingMessages[
-                                    messageIndex
-                                ];
-
-                        },
-                        1100
-                    );
-
-
-                try {
-
-                    const response =
-                        await fetch(
-                            `${API_BASE}/api/analyze-product`,
-                            {
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json",
-
-                                    "Accept":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-                                        image:
-                                            selectedImageBase64
-                                    })
-                            }
-                        );
-
-
-                    const rawText =
-                        await response.text();
-
-
-                    let data = null;
-
-
-                    try {
-
-                        data =
-                            JSON.parse(rawText);
-
-                    } catch {
-
-                        throw new Error(
-                            rawText ||
-                            `Backend returned HTTP ${response.status}`
-                        );
-
-                    }
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            data.error ||
-                            data.message ||
-                            `Backend error ${response.status}`
-                        );
-
-                    }
-
-
-                    if (
-                        !data ||
-                        data.success !== true
-                    ) {
-
-                        throw new Error(
-                            data?.error ||
-                            data?.message ||
-                            "AI analysis failed."
-                        );
-
-                    }
-
-
-                    if (!data.analysis) {
-
-                        throw new Error(
-                            "Backend returned no analysis."
-                        );
-
-                    }
-
-
-                    console.log(
-                        "CIVICAI PRODUCT AI RESPONSE:",
-                        data.analysis
-                    );
-
-
-                    currentAnalysis =
-                        normalizeProductAnalysis(
-                            data.analysis
-                        );
-
-
-                    console.log(
-                        "CIVICAI NORMALIZED RESPONSE:",
-                        currentAnalysis
-                    );
-
-
-                    renderProductAnalysis(
-                        currentAnalysis
-                    );
-
-
-                    aiLoading.classList.remove(
-                        "active"
-                    );
-
-
-                    aiResults.classList.add(
-                        "active"
-                    );
-
-
-                } catch (error) {
-
-                    console.error(
-                        "CivicAI product analysis failed:",
-                        error
-                    );
-
-
-                    aiLoading.classList.remove(
-                        "active"
-                    );
-
-
-                    aiEmpty.style.display =
-                        "flex";
-
-
-                    showRealError(error);
-
-                } finally {
-
-                    clearInterval(
-                        loadingInterval
-                    );
-
-
-                    isAnalyzing = false;
-
-                    analyzeButton.disabled = false;
-
-                }
-
-            }
-
-
-            /* =====================================================
-               NORMALIZE RESPONSE
-               IMPORTANT FIX
-            ===================================================== */
-
-            function normalizeProductAnalysis(
-                analysis
-            ) {
-
-                /*
-                 * Product name
-                 */
-
-                const productNameValue =
-                    firstUsefulValue(
-                        analysis.productName,
-                        analysis.name,
-                        analysis.product,
-                        analysis.title,
-                        analysis.product_title,
-                        analysis.itemName
-                    );
-
-
-                /*
-                 * Description
-                 */
-
-                const descriptionValue =
-                    firstUsefulValue(
-                        analysis.description,
-                        analysis.productDescription,
-                        analysis.details,
-                        analysis.product_details,
-                        analysis.summary
-                    );
-
-
-                /*
-                 * Category
-                 */
-
-                const categoryValue =
-                    firstUsefulValue(
-                        analysis.category,
-                        analysis.productCategory,
-                        analysis.type,
-                        analysis.productType,
-                        analysis.product_category
-                    );
-
-
-                /*
-                 * PRICE
-                 *
-                 * Supports many possible backend keys.
-                 */
-
-                let priceValue =
-                    firstUsefulValue(
-                        analysis.estimatedPrice,
-                        analysis.estimated_price,
-                        analysis.estimatedPriceRange,
-                        analysis.priceRange,
-                        analysis.price_range,
-                        analysis.marketPrice,
-                        analysis.market_price,
-                        analysis.currentMarketPrice,
-                        analysis.current_market_price,
-                        analysis.approximatePrice,
-                        analysis.approximate_price,
-                        analysis.price,
-                        analysis.mrp,
-                        analysis.MRP
-                    );
-
-
-                /*
-                 * If backend returns price object:
-                 *
-                 * {
-                 *   min: 500,
-                 *   max: 800
-                 * }
-                 */
-
-                if (
-                    priceValue &&
-                    typeof priceValue === "object"
-                ) {
-
-                    const min =
-                        priceValue.min ??
-                        priceValue.minimum ??
-                        priceValue.low;
-
-                    const max =
-                        priceValue.max ??
-                        priceValue.maximum ??
-                        priceValue.high;
-
-                    const currency =
-                        priceValue.currency ||
-                        "₹";
-
-
-                    if (
-                        min !== undefined &&
-                        max !== undefined
-                    ) {
-
-                        priceValue =
-                            `${currency}${min} – ${currency}${max} (estimated)`;
-
-                    } else if (
-                        min !== undefined
-                    ) {
-
-                        priceValue =
-                            `${currency}${min} (estimated)`;
-
-                    } else if (
-                        max !== undefined
-                    ) {
-
-                        priceValue =
-                            `${currency}${max} (estimated)`;
-
-                    } else {
-
-                        priceValue = "";
-
-                    }
-
-                }
-
-
-                /*
-                 * CONDITION
-                 */
-
-                let conditionValue =
-                    firstUsefulValue(
-                        analysis.condition,
-                        analysis.productCondition,
-                        analysis.product_condition,
-                        analysis.physicalCondition,
-                        analysis.physical_condition,
-                        analysis.itemCondition,
-                        analysis.item_condition,
-                        analysis.conditionStatus,
-                        analysis.condition_status
-                    );
-
-
-                /*
-                 * If backend returns:
-                 *
-                 * {
-                 *   condition: {
-                 *      status: "Good",
-                 *      details: "Minor scratches"
-                 *   }
-                 * }
-                 */
-
-                if (
-                    conditionValue &&
-                    typeof conditionValue === "object"
-                ) {
-
-                    const status =
-                        conditionValue.status ??
-                        conditionValue.value ??
-                        conditionValue.level ??
-                        conditionValue.condition;
-
-                    const details =
-                        conditionValue.details ??
-                        conditionValue.description ??
-                        conditionValue.notes;
-
-                    if (status && details) {
-
-                        conditionValue =
-                            `${status} — ${details}`;
-
-                    } else if (status) {
-
-                        conditionValue =
-                            String(status);
-
-                    } else if (details) {
-
-                        conditionValue =
-                            String(details);
-
-                    } else {
-
-                        conditionValue = "";
-
-                    }
-
-                }
-
-
-                /*
-                 * EXPIRY
-                 */
-
-                const expiryValue =
-                    firstUsefulValue(
-                        analysis.expiry,
-                        analysis.expiryDate,
-                        analysis.expiration,
-                        analysis.expirationDate,
-                        analysis.expiry_date,
-                        analysis.expiration_date,
-                        analysis.bestBefore,
-                        analysis.best_before
-                    );
-
-
-                /*
-                 * WARNING
-                 */
-
-                const warningValue =
-                    firstUsefulValue(
-                        analysis.warning,
-                        analysis.safetyWarning,
-                        analysis.safety_warning,
-                        analysis.safety,
-                        analysis.risk,
-                        analysis.risks,
-                        analysis.visibleWarning
-                    );
-
-
-                /*
-                 * CONFIDENCE
-                 */
-
-                const confidenceValue =
-                    normalizeConfidence(
-                        analysis.confidence ??
-                        analysis.confidenceScore ??
-                        analysis.confidence_score ??
-                        analysis.recognitionConfidence
-                    );
-
-
-                return {
-
-                    productName:
-                        safeText(
-                            productNameValue,
-                            "Unknown product"
-                        ),
-
-                    description:
-                        safeText(
-                            descriptionValue,
-                            "The AI could not determine a detailed description."
-                        ),
-
-                    category:
-                        safeText(
-                            categoryValue,
-                            "Unknown"
-                        ),
-
-                    estimatedPrice:
-                        formatPrice(
-                            priceValue
-                        ),
-
-                    condition:
-                        formatCondition(
-                            conditionValue
-                        ),
-
-                    expiry:
-                        formatExpiry(
-                            expiryValue
-                        ),
-
-                    warning:
-                        safeText(
-                            warningValue,
-                            "No clear warning could be determined from the image."
-                        ),
-
-                    confidence:
-                        confidenceValue
-
-                };
-
-            }
-
-
-            /* =====================================================
-               FIRST USEFUL VALUE
-            ===================================================== */
-
-            function firstUsefulValue(...values) {
-
-                for (
-                    const value of values
-                ) {
-
-                    if (
-                        value === null ||
-                        value === undefined
-                    ) {
-
-                        continue;
-
-                    }
-
-
-                    if (
-                        typeof value === "string" &&
-                        value.trim()
-                    ) {
-
-                        return value.trim();
-
-                    }
-
-
-                    if (
-                        typeof value === "number" &&
-                        Number.isFinite(value)
-                    ) {
-
-                        return value;
-
-                    }
-
-
-                    if (
-                        typeof value === "object"
-                    ) {
-
-                        return value;
-
-                    }
-
-                }
-
-
-                return null;
-
-            }
-
-
-            /* =====================================================
-               PRICE FORMAT
-            ===================================================== */
-
-            function formatPrice(value) {
-
-                if (
-                    value === null ||
-                    value === undefined ||
-                    value === ""
-                ) {
-
-                    return "Not available";
-
-                }
-
-
-                if (
-                    typeof value === "number" &&
-                    Number.isFinite(value)
-                ) {
-
-                    return `₹${value.toLocaleString("en-IN")} (estimated)`;
-
-                }
-
-
-                let text =
-                    String(value).trim();
-
-
-                if (!text) {
-
-                    return "Not available";
-
-                }
-
-
-                /*
-                 * Clean accidental JSON-ish output.
-                 */
-
-                text =
-                    text
-                        .replace(
-                            /^["']|["']$/g,
-                            ""
-                        )
-                        .trim();
-
-
-                /*
-                 * If backend gives:
-                 *
-                 * 500-800
-                 *
-                 * turn into:
-                 *
-                 * ₹500 – ₹800 (estimated)
-                 */
-
-                const rangeMatch =
-                    text.match(
-                        /₹?\s*(\d[\d,]*)\s*(?:-|–|to)\s*₹?\s*(\d[\d,]*)/i
-                    );
-
-
-                if (rangeMatch) {
-
-                    const min =
-                        rangeMatch[1];
-
-                    const max =
-                        rangeMatch[2];
-
-                    return `₹${min} – ₹${max} (estimated)`;
-
-                }
-
-
-                /*
-                 * If AI already returned ₹,
-                 * preserve it.
-                 */
-
-                if (
-                    /₹/.test(text)
-                ) {
-
-                    if (
-                        !/estimated/i.test(text)
-                    ) {
-
-                        return `${text} (estimated)`;
-
-                    }
-
-                    return text;
-
-                }
-
-
-                /*
-                 * Numeric price without currency.
-                 */
-
-                const numericMatch =
-                    text.match(
-                        /^\s*(\d[\d,]*(?:\.\d+)?)\s*$/
-                    );
-
-
-                if (numericMatch) {
-
-                    return `₹${numericMatch[1]} (estimated)`;
-
-                }
-
-
-                return text;
-
-            }
-
-
-            /* =====================================================
-               CONDITION FORMAT
-            ===================================================== */
-
-            function formatCondition(value) {
-
-                if (
-                    value === null ||
-                    value === undefined ||
-                    value === ""
-                ) {
-
-                    return "Not determined";
-
-                }
-
-
-                const text =
-                    String(value).trim();
-
-
-                if (!text) {
-
-                    return "Not determined";
-
-                }
-
-
-                /*
-                 * Normalize common AI outputs.
-                 */
-
-                const lower =
-                    text.toLowerCase();
-
-
-                if (
-                    lower === "new"
-                ) {
-
-                    return "New";
-
-                }
-
-
-                if (
-                    lower.includes("excellent")
-                ) {
-
-                    return "Excellent";
-
-                }
-
-
-                if (
-                    lower.includes("good")
-                ) {
-
-                    return "Good";
-
-                }
-
-
-                if (
-                    lower.includes("fair")
-                ) {
-
-                    return "Fair";
-
-                }
-
-
-                if (
-                    lower.includes("poor")
-                ) {
-
-                    return "Poor";
-
-                }
-
-
-                if (
-                    lower.includes("damaged")
-                ) {
-
-                    return "Damaged";
-
-                }
-
-
-                if (
-                    lower.includes("unable") ||
-                    lower.includes("cannot determine") ||
-                    lower.includes("not visible") ||
-                    lower.includes("unknown")
-                ) {
-
-                    return "Unable to determine";
-
-                }
-
-
-                return text;
-
-            }
-
-
-            /* =====================================================
-               EXPIRY FORMAT
-            ===================================================== */
-
-            function formatExpiry(value) {
-
-                if (
-                    value === null ||
-                    value === undefined ||
-                    value === ""
-                ) {
-
-                    return "Not detected";
-
-                }
-
-
-                const text =
-                    String(value).trim();
-
-
-                if (!text) {
-
-                    return "Not detected";
-
-                }
-
-
-                const lower =
-                    text.toLowerCase();
-
-
-                if (
-                    lower.includes("not detected") ||
-                    lower.includes("not visible") ||
-                    lower.includes("unknown") ||
-                    lower.includes("cannot determine") ||
-                    lower.includes("unable")
-                ) {
-
-                    return "Not detected";
-
-                }
-
-
-                return text;
-
-            }
-
-
-            /* =====================================================
-               RENDER RESULT
-            ===================================================== */
-
-            function renderProductAnalysis(
-                analysis
-            ) {
-
-                productName.textContent =
-                    analysis.productName;
-
-
-                productDescription.textContent =
-                    analysis.description;
-
-
-                productCategory.textContent =
-                    analysis.category;
-
-
-                productPrice.textContent =
-                    analysis.estimatedPrice;
-
-
-                productCondition.textContent =
-                    analysis.condition;
-
-
-                productExpiry.textContent =
-                    analysis.expiry;
-
-
-                productWarning.textContent =
-                    analysis.warning;
-
 
                 confidenceValue.textContent =
-                    `${analysis.confidence}%`;
+                    "0%";
 
 
                 confidenceBar.style.width =
-                    `${analysis.confidence}%`;
+                    "0%";
+
+
+                productName.textContent =
+                    "Unknown product";
+
+
+                productDescription.textContent =
+                    "AI-generated product description will appear here.";
+
+
+                productCategory.textContent =
+                    "Unknown";
+
+
+                productPrice.textContent =
+                    "Not available";
+
+
+                productCondition.textContent =
+                    "Not determined";
+
+
+                productExpiry.textContent =
+                    "Not detected";
+
+
+                productWarning.textContent =
+                    "No clear warning could be determined from the image.";
 
             }
+        );
+
+    }
 
 
-            /* =====================================================
-               CONFIDENCE
-            ===================================================== */
+    /* =========================================================
+       MOBILE MENU
+       ========================================================= */
 
-            function normalizeConfidence(value) {
+    if (
+        mobileMenuButton &&
+        mobileNavigation
+    ) {
 
-                if (
-                    typeof value === "number" &&
-                    Number.isFinite(value)
-                ) {
+        mobileMenuButton.addEventListener(
+            "click",
+            () => {
 
-                    if (
-                        value > 0 &&
-                        value <= 1
-                    ) {
-
-                        value *= 100;
-
-                    }
-
-
-                    return Math.max(
-                        0,
-                        Math.min(
-                            100,
-                            Math.round(value)
-                        )
-                    );
-
-                }
-
-
-                if (
-                    typeof value === "string"
-                ) {
-
-                    const trimmed =
-                        value.trim();
-
-
-                    if (
-                        /^0?\.\d+$/.test(
-                            trimmed
-                        )
-                    ) {
-
-                        return Math.max(
-                            0,
-                            Math.min(
-                                100,
-                                Math.round(
-                                    Number(trimmed) * 100
-                                )
-                            )
-                        );
-
-                    }
-
-
-                    const match =
-                        trimmed.match(
-                            /(\d{1,3})(?:\.\d+)?/
-                        );
-
-
-                    if (match) {
-
-                        return Math.max(
-                            0,
-                            Math.min(
-                                100,
-                                Number(match[1])
-                            )
-                        );
-
-                    }
-
-
-                    const lower =
-                        trimmed.toLowerCase();
-
-
-                    if (
-                        lower.includes("very high")
-                    ) {
-
-                        return 95;
-
-                    }
-
-
-                    if (
-                        lower.includes("high")
-                    ) {
-
-                        return 90;
-
-                    }
-
-
-                    if (
-                        lower.includes("medium")
-                    ) {
-
-                        return 65;
-
-                    }
-
-
-                    if (
-                        lower.includes("low")
-                    ) {
-
-                        return 35;
-
-                    }
-
-                }
-
-
-                return 0;
-
-            }
-
-
-            /* =====================================================
-               SAFE TEXT
-            ===================================================== */
-
-            function safeText(
-                value,
-                fallback
-            ) {
-
-                if (
-                    value === null ||
-                    value === undefined
-                ) {
-
-                    return fallback;
-
-                }
-
-
-                if (
-                    typeof value === "object"
-                ) {
-
-                    return fallback;
-
-                }
-
-
-                const text =
-                    String(value).trim();
-
-
-                return (
-                    text ||
-                    fallback
+                mobileNavigation.classList.toggle(
+                    "active"
                 );
 
             }
+        );
 
 
-            /* =====================================================
-               ERROR
-            ===================================================== */
+        const mobileLinks =
+            mobileNavigation.querySelectorAll(
+                "a"
+            );
 
-            function showRealError(error) {
 
-                const message =
-                    error?.message ||
-                    "Unknown AI connection error.";
+        mobileLinks.forEach(
+            link => {
 
-
-                console.error(
-                    "CivicAI ERROR:",
-                    message
-                );
-
-
-                alert(
-                    "CivicAI AI Error:\n\n" +
-                    message +
-                    "\n\n" +
-                    "Please check your backend server, Gemini API configuration and /api/analyze-product endpoint."
-                );
-
-            }
-
-
-            /* =====================================================
-               ASK AI
-            ===================================================== */
-
-            if (askAIButton) {
-
-                askAIButton.addEventListener(
-                    "click",
-                    askProductQuestion
-                );
-
-            }
-
-
-            async function askProductQuestion() {
-
-                const question =
-                    productQuestion.value.trim();
-
-
-                if (!question) {
-
-                    productQuestion.focus();
-
-                    return;
-
-                }
-
-
-                if (!selectedImageBase64) {
-
-                    alert(
-                        "Please scan a product first."
-                    );
-
-                    return;
-
-                }
-
-
-                if (isAsking) {
-                    return;
-                }
-
-
-                isAsking = true;
-
-                askAIButton.disabled = true;
-
-
-                const originalHTML =
-                    askAIButton.innerHTML;
-
-
-                askAIButton.innerHTML =
-                    '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-
-                try {
-
-                    const response =
-                        await fetch(
-                            `${API_BASE}/api/product-question`,
-                            {
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json",
-
-                                    "Accept":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-
-                                        image:
-                                            selectedImageBase64,
-
-                                        question:
-                                            question,
-
-                                        product:
-                                            currentAnalysis
-                                                ?.productName ||
-                                            ""
-
-                                    })
-                            }
-                        );
-
-
-                    const rawText =
-                        await response.text();
-
-
-                    let data;
-
-
-                    try {
-
-                        data =
-                            JSON.parse(rawText);
-
-                    } catch {
-
-                        throw new Error(
-                            rawText ||
-                            `Backend returned HTTP ${response.status}`
-                        );
-
-                    }
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            data.error ||
-                            data.message ||
-                            `Question request failed with ${response.status}`
-                        );
-
-                    }
-
-
-                    if (
-                        data.success !== true ||
-                        !data.answer
-                    ) {
-
-                        throw new Error(
-                            data.error ||
-                            data.message ||
-                            "AI returned an empty answer."
-                        );
-
-                    }
-
-
-                    alert(
-                        "CivicAI AI:\n\n" +
-                        data.answer
-                    );
-
-
-                    productQuestion.value = "";
-
-
-                } catch (error) {
-
-                    console.error(
-                        "CivicAI question error:",
-                        error
-                    );
-
-
-                    alert(
-                        "CivicAI AI Error:\n\n" +
-                        (
-                            error?.message ||
-                            "Unable to get AI answer."
-                        )
-                    );
-
-                } finally {
-
-                    isAsking = false;
-
-                    askAIButton.disabled = false;
-
-                    askAIButton.innerHTML =
-                        originalHTML;
-
-                }
-
-            }
-
-
-            /* =====================================================
-               ENTER
-            ===================================================== */
-
-            if (productQuestion) {
-
-                productQuestion.addEventListener(
-                    "keydown",
-                    event => {
-
-                        if (
-                            event.key === "Enter"
-                        ) {
-
-                            event.preventDefault();
-
-                            askProductQuestion();
-
-                        }
-
-                    }
-                );
-
-            }
-
-
-            /* =====================================================
-               RESET
-            ===================================================== */
-
-            if (resetScanner) {
-
-                resetScanner.addEventListener(
+                link.addEventListener(
                     "click",
                     () => {
 
-                        productInput.value = "";
-
-                        productPreview.src = "";
-
-                        selectedFile = null;
-
-                        selectedImageBase64 = null;
-
-                        currentAnalysis = null;
-
-                        previewContainer.classList.remove(
+                        mobileNavigation.classList.remove(
                             "active"
-                        );
-
-                        uploadContent.style.display =
-                            "block";
-
-                        aiResults.classList.remove(
-                            "active"
-                        );
-
-                        aiLoading.classList.remove(
-                            "active"
-                        );
-
-                        aiEmpty.style.display =
-                            "flex";
-
-                        analyzeButton.disabled =
-                            true;
-
-                        productQuestion.value = "";
-
-                        confidenceValue.textContent =
-                            "0%";
-
-                        confidenceBar.style.width =
-                            "0%";
-
-                        productName.textContent =
-                            "Unknown product";
-
-                        productDescription.textContent =
-                            "AI-generated product description will appear here.";
-
-                        productCategory.textContent =
-                            "Unknown";
-
-                        productPrice.textContent =
-                            "Not available";
-
-                        productCondition.textContent =
-                            "Not determined";
-
-                        productExpiry.textContent =
-                            "Not detected";
-
-                        productWarning.textContent =
-                            "No clear warning could be determined from the image.";
-
-                    }
-                );
-
-            }
-
-
-            /* =====================================================
-               MOBILE MENU
-            ===================================================== */
-
-            if (
-                mobileMenuButton &&
-                mobileNavigation
-            ) {
-
-                mobileMenuButton.addEventListener(
-                    "click",
-                    () => {
-
-                        mobileNavigation.classList.toggle(
-                            "active"
-                        );
-
-                    }
-                );
-
-
-                const mobileLinks =
-                    mobileNavigation.querySelectorAll(
-                        "a"
-                    );
-
-
-                mobileLinks.forEach(
-                    link => {
-
-                        link.addEventListener(
-                            "click",
-                            () => {
-
-                                mobileNavigation.classList.remove(
-                                    "active"
-                                );
-
-                            }
                         );
 
                     }
                 );
 
             }
+        );
+
+    }
 
 
-            /* =====================================================
-               DEBUG
-            ===================================================== */
+    /* =========================================================
+       UTILITY
+       ========================================================= */
 
-            console.log(
-                "=========================================="
-            );
+    function formatBytes(bytes) {
 
-            console.log(
-                "CIVICAI PRODUCT SCANNER"
-            );
-
-            console.log(
-                "REAL AI VISION MODE ENABLED"
-            );
-
-            console.log(
-                "PRICE NORMALIZATION ENABLED"
-            );
-
-            console.log(
-                "CONDITION NORMALIZATION ENABLED"
-            );
-
-            console.log(
-                "EXPIRY NORMALIZATION ENABLED"
-            );
-
-            console.log(
-                "Backend:",
-                API_BASE ||
-                window.location.origin
-            );
-
-            console.log(
-                "Analyze:",
-                `${API_BASE || window.location.origin}/api/analyze-product`
-            );
-
-            console.log(
-                "Question:",
-                `${API_BASE || window.location.origin}/api/product-question`
-            );
-
-            console.log(
-                "=========================================="
-            );
-
+        if (!bytes) {
+            return "0 B";
         }
+
+
+        const units = [
+            "B",
+            "KB",
+            "MB",
+            "GB"
+        ];
+
+
+        const index =
+            Math.floor(
+                Math.log(bytes) /
+                Math.log(1024)
+            );
+
+
+        return (
+            (
+                bytes /
+                Math.pow(
+                    1024,
+                    index
+                )
+            ).toFixed(2) +
+            " " +
+            units[index]
+        );
+
+    }
+
+
+    function formatBase64Size(base64) {
+
+        if (!base64) {
+            return "0 KB";
+        }
+
+
+        const base64Length =
+            base64.length -
+            (
+                base64.indexOf(",") + 1
+            );
+
+
+        const bytes =
+            Math.ceil(
+                base64Length * 3 / 4
+            );
+
+
+        return formatBytes(bytes);
+
+    }
+
+
+    /* =========================================================
+       INITIAL LOG
+       ========================================================= */
+
+    console.log(
+        "=========================================="
     );
 
-    </script>
+    console.log(
+        "CIVICAI FAST PRODUCT SCANNER"
+    );
 
+    console.log(
+        "Image compression: ENABLED"
+    );
+
+    console.log(
+        "Optimized image:",
+        `${MAX_IMAGE_WIDTH}x${MAX_IMAGE_HEIGHT}`
+    );
+
+    console.log(
+        "JPEG quality:",
+        JPEG_QUALITY
+    );
+
+    console.log(
+        "Backend:",
+        `${API_BASE || window.location.origin}`
+    );
+
+    console.log(
+        "Analyze:",
+        `${API_BASE || window.location.origin}/api/analyze-product`
+    );
+
+    console.log(
+        "Question:",
+        `${API_BASE || window.location.origin}/api/product-question`
+    );
+
+    console.log(
+        "=========================================="
+    );
+
+});
+</script>
+   
 </body>
 
 </html>
