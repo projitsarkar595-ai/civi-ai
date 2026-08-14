@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -12,11 +10,6 @@
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 <style>
-
-/* =========================================================
-   CIVICAI — COMPLETE SINGLE FILE
-========================================================= */
-
 *{
     margin:0;
     padding:0;
@@ -24,71 +17,39 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 }
 
 :root{
-
     --bg:#060b16;
-    --bg2:#0a1020;
     --panel:#0d1424;
     --panel2:#111a2d;
-
-    --border:rgba(255,255,255,0.08);
-    --border-light:rgba(255,255,255,0.13);
-
+    --border:rgba(255,255,255,.08);
+    --border-light:rgba(255,255,255,.14);
     --text:#f5f7fb;
     --text2:#aeb8ca;
     --muted:#737f94;
-
     --primary:#5b7cff;
     --primary2:#7c5cff;
-
     --green:#2dd4bf;
     --red:#ff5d73;
-    --yellow:#fbbf24;
-
-    --shadow:
-        0 20px 60px rgba(0,0,0,0.35);
-
-    --radius:18px;
 }
 
-html,
-body{
+html,body{
     width:100%;
     height:100%;
 }
 
 body{
-
-    font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,
+    BlinkMacSystemFont,"Segoe UI",sans-serif;
 
     background:
-        radial-gradient(
-            circle at 15% 10%,
-            rgba(91,124,255,0.12),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 85%,
-            rgba(124,92,255,0.10),
-            transparent 30%
-        ),
+        radial-gradient(circle at 15% 10%,
+        rgba(91,124,255,.12),transparent 30%),
+        radial-gradient(circle at 85% 85%,
+        rgba(124,92,255,.10),transparent 30%),
         var(--bg);
 
     color:var(--text);
-
     overflow:hidden;
 }
-
-
-/* =========================================================
-   APP
-========================================================= */
 
 .app{
     width:100%;
@@ -96,633 +57,312 @@ body{
     display:flex;
 }
 
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
+/* ================= SIDEBAR ================= */
 
 .sidebar{
-
     width:280px;
     height:100vh;
-
-    background:
-        rgba(8,13,26,0.92);
-
-    border-right:
-        1px solid var(--border);
-
+    background:rgba(8,13,26,.92);
+    border-right:1px solid var(--border);
     display:flex;
     flex-direction:column;
-
     padding:18px;
-
     position:relative;
-    z-index:20;
-
+    z-index:50;
     backdrop-filter:blur(20px);
 }
 
 .logo{
-
     display:flex;
     align-items:center;
     gap:12px;
-
     padding:8px 8px 22px;
 }
 
 .logo-icon{
-
     width:42px;
     height:42px;
-
     border-radius:14px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--primary),
-            var(--primary2)
-        );
-
-    box-shadow:
-        0 8px 25px rgba(91,124,255,0.25);
-
-    font-size:18px;
+    background:linear-gradient(135deg,var(--primary),var(--primary2));
+    box-shadow:0 8px 25px rgba(91,124,255,.25);
 }
 
 .logo-text{
-
     font-size:20px;
     font-weight:800;
-    letter-spacing:-0.5px;
 }
 
 .logo-text span{
     color:#8295ff;
 }
 
-
-/* =========================================================
-   NEW CHAT
-========================================================= */
-
 .new-chat{
-
     width:100%;
-
-    border:
-        1px solid var(--border-light);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(91,124,255,0.18),
-            rgba(124,92,255,0.10)
-        );
-
+    border:1px solid var(--border-light);
+    background:linear-gradient(
+        135deg,
+        rgba(91,124,255,.18),
+        rgba(124,92,255,.10)
+    );
     color:var(--text);
-
     border-radius:14px;
-
     padding:13px 15px;
-
     display:flex;
     align-items:center;
     gap:10px;
-
     cursor:pointer;
-
     font-size:14px;
     font-weight:700;
-
-    transition:0.25s ease;
 }
-
-.new-chat:hover{
-
-    transform:translateY(-2px);
-
-    border-color:
-        rgba(124,92,255,0.5);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(91,124,255,0.28),
-            rgba(124,92,255,0.18)
-        );
-}
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
 
 .search-box{
-
     margin:18px 0;
     position:relative;
 }
 
 .search-box i{
-
     position:absolute;
-
     left:13px;
     top:50%;
-
     transform:translateY(-50%);
-
     color:var(--muted);
-
-    font-size:13px;
 }
 
 .search-box input{
-
     width:100%;
-
     padding:11px 12px 11px 36px;
-
     border-radius:12px;
-
-    border:
-        1px solid var(--border);
-
-    background:
-        rgba(255,255,255,0.035);
-
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.035);
     color:var(--text);
-
     outline:none;
-
-    font-size:13px;
-
-    transition:0.2s;
 }
-
-.search-box input:focus{
-
-    border-color:
-        rgba(91,124,255,0.55);
-
-    background:
-        rgba(255,255,255,0.05);
-}
-
-.search-box input::placeholder{
-    color:#667187;
-}
-
-
-/* =========================================================
-   SIDEBAR SECTION
-========================================================= */
 
 .sidebar-title{
-
     color:var(--muted);
-
     font-size:11px;
-
     text-transform:uppercase;
-
     letter-spacing:1.2px;
-
     font-weight:800;
-
-    margin:
-        5px 5px 10px;
+    margin:5px 5px 10px;
 }
 
 .recent-list{
-
     overflow-y:auto;
-
     flex:1;
-
     min-height:0;
 }
 
-.recent-list::-webkit-scrollbar{
-    width:4px;
-}
-
-.recent-list::-webkit-scrollbar-thumb{
-
-    background:#273149;
-    border-radius:10px;
-}
-
 .recent-item{
-
     display:flex;
     align-items:center;
     gap:10px;
-
     padding:11px 10px;
-
     border-radius:11px;
-
     cursor:pointer;
-
     color:var(--text2);
-
     font-size:12px;
-
-    transition:0.2s;
 }
 
 .recent-item:hover{
-
-    background:
-        rgba(255,255,255,0.05);
-
+    background:rgba(255,255,255,.05);
     color:white;
 }
 
 .recent-item i{
-
     color:#687cff;
     width:15px;
 }
 
 .recent-item span{
-
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
-
     flex:1;
 }
 
-.recent-item small{
-
-    color:#59647a;
-    font-size:9px;
-}
-
 .empty-recent{
-
     color:var(--muted);
-
     font-size:12px;
-
     line-height:1.6;
-
     padding:10px;
 }
 
-
-/* =========================================================
-   SIDEBAR BOTTOM
-========================================================= */
-
 .sidebar-bottom{
-
-    border-top:
-        1px solid var(--border);
-
+    border-top:1px solid var(--border);
     padding-top:14px;
-
     margin-top:12px;
 }
 
 .sidebar-btn{
-
     width:100%;
-
     display:flex;
     align-items:center;
-
     gap:11px;
-
     background:transparent;
-
     border:none;
-
     color:var(--text2);
-
     padding:11px 10px;
-
     border-radius:11px;
-
     cursor:pointer;
-
     font-size:13px;
-
-    transition:0.2s;
 }
 
 .sidebar-btn:hover{
-
-    background:
-        rgba(255,255,255,0.05);
-
+    background:rgba(255,255,255,.05);
     color:white;
 }
 
-.sidebar-btn i{
-    width:18px;
-}
-
-
-/* =========================================================
-   MAIN
-========================================================= */
+/* ================= MAIN ================= */
 
 .main{
-
     flex:1;
-
     min-width:0;
-
     height:100vh;
-
     display:flex;
     flex-direction:column;
-
     position:relative;
 }
 
-
-/* =========================================================
-   HEADER
-========================================================= */
-
 .header{
-
     height:70px;
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    padding:
-        0 28px;
-
-    border-bottom:
-        1px solid var(--border);
-
-    background:
-        rgba(6,11,22,0.68);
-
+    padding:0 28px;
+    border-bottom:1px solid var(--border);
+    background:rgba(6,11,22,.68);
     backdrop-filter:blur(20px);
-
     flex-shrink:0;
+    z-index:10;
 }
 
 .header-left{
-
     display:flex;
     align-items:center;
     gap:12px;
 }
 
 .mobile-menu{
-
     display:none;
-
     border:none;
-
     background:transparent;
-
     color:white;
-
     font-size:19px;
-
-    cursor:pointer;
 }
 
 .header-title{
-
     font-weight:750;
     font-size:15px;
 }
 
 .status{
-
     display:flex;
     align-items:center;
     gap:7px;
-
     font-size:11px;
-
     color:var(--text2);
 }
 
 .status-dot{
-
     width:7px;
     height:7px;
-
     border-radius:50%;
-
     background:var(--green);
-
-    box-shadow:
-        0 0 10px
-        rgba(45,212,191,0.8);
+    box-shadow:0 0 10px rgba(45,212,191,.8);
 }
 
 .header-actions{
-
     display:flex;
     gap:7px;
 }
 
 .icon-btn{
-
     width:38px;
     height:38px;
-
     border-radius:11px;
-
-    border:
-        1px solid var(--border);
-
-    background:
-        rgba(255,255,255,0.035);
-
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.035);
     color:var(--text2);
-
     cursor:pointer;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    transition:0.2s;
 }
 
-.icon-btn:hover{
-
-    color:white;
-
-    border-color:
-        rgba(91,124,255,0.5);
-
-    transform:translateY(-1px);
-}
-
-
-/* =========================================================
-   CHAT AREA
-========================================================= */
+/* ================= CHAT ================= */
 
 .chat-area{
-
     flex:1;
-
     min-height:0;
-
     overflow-y:auto;
-
-    padding:
-        30px 20px 180px;
-}
-
-.chat-area::-webkit-scrollbar{
-    width:6px;
-}
-
-.chat-area::-webkit-scrollbar-thumb{
-
-    background:#273149;
-    border-radius:20px;
+    padding:30px 20px 190px;
 }
 
 .chat-container{
-
     width:min(900px,100%);
-
     margin:auto;
 }
 
-
-/* =========================================================
-   WELCOME
-========================================================= */
-
 .welcome{
-
     min-height:52vh;
-
     display:flex;
     flex-direction:column;
-
     align-items:center;
     justify-content:center;
-
     text-align:center;
-
     padding:30px 10px;
 }
 
 .welcome-logo{
-
     width:76px;
     height:76px;
-
     border-radius:25px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:31px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #5b7cff,
-            #8b5cf6
-        );
-
-    box-shadow:
-        0 18px 50px
-        rgba(91,124,255,0.25);
-
+    background:linear-gradient(135deg,#5b7cff,#8b5cf6);
+    box-shadow:0 18px 50px rgba(91,124,255,.25);
     margin-bottom:24px;
-
-    animation:
-        floating 4s ease-in-out infinite;
+    animation:floating 4s ease-in-out infinite;
 }
 
 @keyframes floating{
-
-    0%,
-    100%{
-        transform:translateY(0);
-    }
-
-    50%{
-        transform:translateY(-7px);
-    }
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-7px)}
 }
 
 .welcome h1{
-
-    font-size:
-        clamp(30px,5vw,48px);
-
+    font-size:clamp(30px,5vw,48px);
     letter-spacing:-1.5px;
-
     margin-bottom:12px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #ffffff,
-            #aab7ff
-        );
-
-    -webkit-background-clip:text;
-
-    -webkit-text-fill-color:transparent;
 }
 
 .welcome p{
-
     color:var(--text2);
-
     max-width:620px;
-
     line-height:1.7;
-
     font-size:14px;
 }
 
-
-/* =========================================================
-   MESSAGES
-========================================================= */
+/* ================= MESSAGES ================= */
 
 .message{
-
     display:flex;
-
     gap:12px;
-
     margin-bottom:24px;
-
-    animation:
-        messageIn 0.3s ease;
+    animation:messageIn .3s ease;
 }
 
 @keyframes messageIn{
-
     from{
         opacity:0;
         transform:translateY(7px);
     }
-
     to{
         opacity:1;
         transform:translateY(0);
@@ -734,44 +374,21 @@ body{
 }
 
 .message-avatar{
-
     width:36px;
     height:36px;
-
     flex-shrink:0;
-
     border-radius:12px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    background:
-        linear-gradient(
-            135deg,
-            #5b7cff,
-            #7c5cff
-        );
-
-    font-size:13px;
-
-    box-shadow:
-        0 7px 20px
-        rgba(0,0,0,0.25);
+    background:linear-gradient(135deg,#5b7cff,#7c5cff);
 }
 
 .message.user .message-avatar{
-
-    background:
-        linear-gradient(
-            135deg,
-            #27344e,
-            #1c263a
-        );
+    background:linear-gradient(135deg,#27344e,#1c263a);
 }
 
 .message-body{
-
     max-width:min(75%,720px);
 }
 
@@ -780,100 +397,45 @@ body{
 }
 
 .message-bubble{
-
-    padding:
-        14px 17px;
-
+    padding:14px 17px;
     border-radius:17px;
-
-    background:
-        rgba(255,255,255,0.045);
-
-    border:
-        1px solid var(--border);
-
+    background:rgba(255,255,255,.045);
+    border:1px solid var(--border);
     color:#e9edf5;
-
     line-height:1.7;
-
     font-size:14px;
-
     word-wrap:break-word;
-
     text-align:left;
-
-    box-shadow:
-        0 7px 25px
-        rgba(0,0,0,0.12);
 }
 
 .message.user .message-bubble{
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(91,124,255,0.20),
-            rgba(124,92,255,0.16)
-        );
-
-    border-color:
-        rgba(91,124,255,0.2);
-}
-
-.message-bubble strong{
-    color:white;
+    background:linear-gradient(
+        135deg,
+        rgba(91,124,255,.20),
+        rgba(124,92,255,.16)
+    );
 }
 
 .message-bubble pre{
-
     background:#050913;
-
-    border:
-        1px solid var(--border);
-
+    border:1px solid var(--border);
     padding:14px;
-
     border-radius:10px;
-
     overflow-x:auto;
-
     margin:10px 0;
-
-    text-align:left;
 }
 
 .message-bubble code{
-
-    font-family:
-        Consolas,
-        monospace;
-
+    font-family:Consolas,monospace;
     font-size:12px;
 }
 
-.message-bubble ul,
-.message-bubble ol{
-
-    margin:
-        8px 0 8px 20px;
-}
-
-.message-bubble li{
-    margin-bottom:4px;
-}
-
 .message-meta{
-
     display:flex;
-
     align-items:center;
-
     gap:10px;
-
     margin-top:5px;
-
     color:#5e697d;
-
     font-size:10px;
 }
 
@@ -882,43 +444,23 @@ body{
 }
 
 .message-actions{
-
     display:flex;
     gap:5px;
 }
 
 .message-actions button{
-
     border:none;
-
     background:transparent;
-
     color:#657188;
-
     cursor:pointer;
-
-    padding:2px 5px;
-
-    font-size:11px;
 }
 
-.message-actions button:hover{
-    color:white;
-}
-
-
-/* =========================================================
-   TYPING
-========================================================= */
+/* ================= TYPING ================= */
 
 .typing{
-
     display:none;
-
     align-items:center;
-
     gap:10px;
-
     margin-bottom:20px;
 }
 
@@ -927,276 +469,302 @@ body{
 }
 
 .typing-avatar{
-
     width:36px;
     height:36px;
-
     border-radius:12px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #5b7cff,
-            #7c5cff
-        );
-
+    background:linear-gradient(135deg,#5b7cff,#7c5cff);
     display:flex;
     align-items:center;
     justify-content:center;
 }
 
 .typing-bubble{
-
     padding:13px 16px;
-
-    background:
-        rgba(255,255,255,0.04);
-
-    border:
-        1px solid var(--border);
-
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
     border-radius:15px;
 }
 
 .typing-dots{
-
     display:flex;
     gap:4px;
 }
 
 .typing-dots span{
-
     width:6px;
     height:6px;
-
     background:#8490ff;
-
     border-radius:50%;
-
-    animation:
-        dot 1.2s infinite;
+    animation:dot 1.2s infinite;
 }
 
-.typing-dots span:nth-child(2){
-    animation-delay:.15s;
-}
-
-.typing-dots span:nth-child(3){
-    animation-delay:.3s;
-}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
 
 @keyframes dot{
-
-    0%,
-    60%,
-    100%{
+    0%,60%,100%{
         transform:translateY(0);
         opacity:.45;
     }
-
     30%{
         transform:translateY(-4px);
         opacity:1;
     }
 }
 
-
 /* =========================================================
-   INPUT
+   ANIMATED VOICE ASSISTANT
 ========================================================= */
 
-.input-wrapper{
+.voice-assistant{
+    position:fixed;
+    right:30px;
+    bottom:115px;
+    width:92px;
+    height:92px;
+    z-index:30;
+    cursor:pointer;
+    user-select:none;
+}
 
+.voice-orb{
+    width:92px;
+    height:92px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #aab7ff 0%,
+            #687cff 25%,
+            #7c5cff 55%,
+            #281d69 100%
+        );
+
+    box-shadow:
+        0 0 30px rgba(91,124,255,.55),
+        0 0 70px rgba(124,92,255,.25);
+
+    animation:orbFloat 3s ease-in-out infinite;
+}
+
+.voice-orb::before,
+.voice-orb::after{
+    content:"";
     position:absolute;
+    inset:-9px;
+    border-radius:50%;
+    border:1px solid rgba(124,92,255,.35);
+    animation:orbRing 2.5s linear infinite;
+}
 
+.voice-orb::after{
+    inset:-18px;
+    border-color:rgba(91,124,255,.18);
+    animation-delay:.8s;
+}
+
+.voice-orb i{
+    font-size:29px;
+    color:white;
+    filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));
+}
+
+@keyframes orbFloat{
+    0%,100%{
+        transform:translateY(0) scale(1);
+    }
+    50%{
+        transform:translateY(-8px) scale(1.03);
+    }
+}
+
+@keyframes orbRing{
+    0%{
+        transform:scale(.85);
+        opacity:.8;
+    }
+    100%{
+        transform:scale(1.25);
+        opacity:0;
+    }
+}
+
+.voice-label{
+    position:absolute;
+    top:100%;
+    left:50%;
+    transform:translateX(-50%);
+    margin-top:9px;
+    white-space:nowrap;
+    font-size:10px;
+    color:#aeb8ca;
+    background:rgba(13,20,36,.92);
+    padding:5px 9px;
+    border-radius:8px;
+    border:1px solid var(--border);
+}
+
+/* LISTENING */
+
+.voice-assistant.listening .voice-orb{
+    animation:
+        voicePulse .8s ease-in-out infinite;
+}
+
+.voice-assistant.listening .voice-orb::before{
+    animation:
+        listeningRing 1s linear infinite;
+}
+
+@keyframes voicePulse{
+    0%,100%{
+        transform:scale(1);
+        box-shadow:
+            0 0 30px rgba(91,124,255,.6),
+            0 0 70px rgba(124,92,255,.3);
+    }
+    50%{
+        transform:scale(1.13);
+        box-shadow:
+            0 0 45px rgba(91,124,255,.9),
+            0 0 100px rgba(124,92,255,.5);
+    }
+}
+
+@keyframes listeningRing{
+    from{
+        transform:scale(.8);
+        opacity:1;
+    }
+    to{
+        transform:scale(1.5);
+        opacity:0;
+    }
+}
+
+/* THINKING */
+
+.voice-assistant.thinking .voice-orb{
+    animation:
+        thinkingSpin 1.3s linear infinite;
+}
+
+@keyframes thinkingSpin{
+    0%{transform:rotate(0deg) scale(1)}
+    50%{transform:rotate(180deg) scale(1.08)}
+    100%{transform:rotate(360deg) scale(1)}
+}
+
+/* SPEAKING */
+
+.voice-assistant.speaking .voice-orb{
+    animation:
+        speakingPulse .45s ease-in-out infinite alternate;
+}
+
+.voice-assistant.speaking .voice-orb i{
+    animation:
+        speakingIcon .45s ease-in-out infinite alternate;
+}
+
+@keyframes speakingPulse{
+    from{
+        transform:scale(.96);
+    }
+    to{
+        transform:scale(1.12);
+    }
+}
+
+@keyframes speakingIcon{
+    from{
+        transform:scale(.9);
+    }
+    to{
+        transform:scale(1.15);
+    }
+}
+
+/* ================= INPUT ================= */
+
+.input-wrapper{
+    position:absolute;
     bottom:0;
     left:0;
     right:0;
-
-    padding:
-        20px 20px 24px;
-
-    background:
-        linear-gradient(
-            to top,
-            var(--bg) 65%,
-            transparent
-        );
-
-    z-index:10;
+    padding:20px 20px 24px;
+    background:linear-gradient(
+        to top,
+        var(--bg) 65%,
+        transparent
+    );
+    z-index:20;
 }
 
 .input-container{
-
     width:min(900px,100%);
-
     margin:auto;
-
     position:relative;
-
-    border:
-        1px solid var(--border-light);
-
-    background:
-        rgba(13,20,36,0.90);
-
+    border:1px solid var(--border-light);
+    background:rgba(13,20,36,.90);
     border-radius:20px;
-
-    box-shadow:
-        var(--shadow);
-
-    backdrop-filter:
-        blur(20px);
-
-    transition:.25s;
-}
-
-.input-container:focus-within{
-
-    border-color:
-        rgba(91,124,255,0.45);
-
-    box-shadow:
-        0 20px 70px
-        rgba(0,0,0,0.45),
-        0 0 0 3px
-        rgba(91,124,255,0.05);
-}
-
-.attachment-preview{
-
-    display:none;
-
-    align-items:center;
-
-    gap:9px;
-
-    margin:
-        12px 14px 0;
-
-    padding:9px 11px;
-
-    border-radius:10px;
-
-    background:
-        rgba(91,124,255,0.08);
-
-    border:
-        1px solid
-        rgba(91,124,255,0.16);
-
-    font-size:12px;
-}
-
-.attachment-preview.show{
-    display:flex;
-}
-
-.attachment-preview i{
-    color:#8190ff;
-}
-
-.attachment-preview span{
-
-    flex:1;
-
-    overflow:hidden;
-
-    text-overflow:ellipsis;
-
-    white-space:nowrap;
-}
-
-.remove-attachment{
-
-    border:none;
-
-    background:transparent;
-
-    color:#8792a6;
-
-    cursor:pointer;
-}
-
-.remove-attachment:hover{
-    color:#ff7182;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    backdrop-filter:blur(20px);
 }
 
 .input-row{
-
     display:flex;
-
     align-items:flex-end;
-
     gap:8px;
-
     padding:12px;
 }
 
 .input-actions{
-
     display:flex;
-
     gap:4px;
 }
 
 .tool-btn{
-
     width:38px;
     height:38px;
-
     border:none;
-
     border-radius:11px;
-
     background:transparent;
-
     color:#7b879c;
-
     cursor:pointer;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    transition:.2s;
 }
 
 .tool-btn:hover{
-
-    background:
-        rgba(255,255,255,0.05);
-
+    background:rgba(255,255,255,.05);
     color:white;
 }
 
+.tool-btn.voice-active{
+    color:#7c8cff;
+    background:rgba(91,124,255,.12);
+}
+
 .chat-input{
-
     flex:1;
-
     min-width:0;
-
     max-height:130px;
-
     resize:none;
-
     overflow-y:auto;
-
     border:none;
-
     outline:none;
-
     background:transparent;
-
     color:white;
-
-    padding:
-        9px 5px;
-
+    padding:9px 5px;
     font-size:14px;
-
     line-height:1.5;
-
     font-family:inherit;
 }
 
@@ -1205,222 +773,129 @@ body{
 }
 
 .send-btn{
-
     width:42px;
     height:42px;
-
     border:none;
-
     border-radius:13px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #5b7cff,
-            #7c5cff
-        );
-
+    background:linear-gradient(135deg,#5b7cff,#7c5cff);
     color:white;
-
     cursor:pointer;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
-    box-shadow:
-        0 8px 22px
-        rgba(91,124,255,0.25);
-
-    transition:.25s;
-}
-
-.send-btn:hover{
-
-    transform:translateY(-2px);
-
-    box-shadow:
-        0 12px 30px
-        rgba(91,124,255,0.38);
 }
 
 .send-btn:disabled{
-
     opacity:.5;
-
     cursor:not-allowed;
-
-    transform:none;
 }
 
 .input-footer{
-
     text-align:center;
-
     color:#4f5a6d;
-
     font-size:10px;
-
-    padding:
-        0 15px 10px;
+    padding:0 15px 10px;
 }
 
+.attachment-preview{
+    display:none;
+    align-items:center;
+    gap:9px;
+    margin:12px 14px 0;
+    padding:9px 11px;
+    border-radius:10px;
+    background:rgba(91,124,255,.08);
+    border:1px solid rgba(91,124,255,.16);
+    font-size:12px;
+}
 
-/* =========================================================
-   TOAST
-========================================================= */
+.attachment-preview.show{
+    display:flex;
+}
+
+.attachment-preview span{
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.remove-attachment{
+    border:none;
+    background:transparent;
+    color:#8792a6;
+    cursor:pointer;
+}
+
+/* ================= TOAST ================= */
 
 .toast{
-
     position:fixed;
-
     bottom:95px;
     left:50%;
-
-    transform:
-        translate(-50%,20px);
-
+    transform:translate(-50%,20px);
     opacity:0;
-
     pointer-events:none;
-
     background:#151e32;
-
     color:white;
-
-    border:
-        1px solid var(--border-light);
-
+    border:1px solid var(--border-light);
     border-radius:12px;
-
-    padding:
-        11px 17px;
-
+    padding:11px 17px;
     font-size:12px;
-
-    box-shadow:
-        0 15px 40px
-        rgba(0,0,0,.35);
-
+    box-shadow:0 15px 40px rgba(0,0,0,.35);
     transition:.3s;
-
     z-index:100;
 }
 
 .toast.show{
-
     opacity:1;
-
-    transform:
-        translate(-50%,0);
+    transform:translate(-50%,0);
 }
 
-
-/* =========================================================
-   LIGHT MODE
-========================================================= */
+/* ================= LIGHT ================= */
 
 body.light-mode{
-
     --bg:#f5f7fb;
-    --bg2:#edf1f7;
-    --panel:#ffffff;
-    --panel2:#f1f4f9;
-
-    --border:rgba(20,30,50,0.09);
-    --border-light:rgba(20,30,50,0.15);
-
     --text:#172033;
     --text2:#596579;
     --muted:#7d8797;
-}
-
-body.light-mode{
-
-    background:
-        radial-gradient(
-            circle at 10% 10%,
-            rgba(91,124,255,.10),
-            transparent 30%
-        ),
-        #f5f7fb;
-
-    color:#172033;
+    --border:rgba(20,30,50,.09);
+    --border-light:rgba(20,30,50,.15);
+    background:#f5f7fb;
 }
 
 body.light-mode .sidebar{
-
-    background:
-        rgba(255,255,255,.9);
+    background:rgba(255,255,255,.9);
 }
 
 body.light-mode .header{
-
-    background:
-        rgba(245,247,251,.85);
+    background:rgba(245,247,251,.85);
 }
 
 body.light-mode .input-container{
-
-    background:
-        rgba(255,255,255,.9);
+    background:rgba(255,255,255,.9);
 }
 
 body.light-mode .message-bubble{
-
-    background:
-        rgba(20,30,50,.035);
-
+    background:rgba(20,30,50,.035);
     color:#253149;
-}
-
-body.light-mode .message.user .message-bubble{
-
-    background:
-        rgba(91,124,255,.10);
 }
 
 body.light-mode .chat-input{
     color:#172033;
 }
 
-body.light-mode .logo-text{
-    color:#172033;
-}
-
-body.light-mode .sidebar-btn,
-body.light-mode .icon-btn{
-    color:#596579;
-}
-
-body.light-mode .icon-btn{
-
-    background:
-        rgba(20,30,50,.035);
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
+/* ================= MOBILE ================= */
 
 @media(max-width:850px){
 
     .sidebar{
-
         position:fixed;
-
         left:-300px;
-
         top:0;
-
         height:100%;
-
         transition:.3s;
-
-        box-shadow:
-            20px 0 50px
-            rgba(0,0,0,.3);
+        box-shadow:20px 0 50px rgba(0,0,0,.3);
     }
 
     .sidebar.open{
@@ -1432,39 +907,43 @@ body.light-mode .icon-btn{
     }
 
     .header{
-        padding:
-            0 15px;
+        padding:0 15px;
     }
 
     .chat-area{
-        padding:
-            20px 12px 170px;
+        padding:20px 12px 180px;
     }
 
     .input-wrapper{
-        padding:
-            15px 10px 18px;
+        padding:15px 10px 18px;
     }
 
     .message-body{
         max-width:82%;
     }
 
-    .welcome{
-        min-height:48vh;
+    .voice-assistant{
+        right:18px;
+        bottom:105px;
+        width:68px;
+        height:68px;
+    }
+
+    .voice-orb{
+        width:68px;
+        height:68px;
+    }
+
+    .voice-orb i{
+        font-size:22px;
+    }
+
+    .voice-label{
+        display:none;
     }
 }
 
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
 @media(max-width:500px){
-
-    .header-title{
-        font-size:13px;
-    }
 
     .status{
         display:none;
@@ -1478,20 +957,9 @@ body.light-mode .icon-btn{
         font-size:13px;
     }
 
-    .welcome-logo{
-
-        width:65px;
-        height:65px;
-
-        border-radius:21px;
-    }
-
     .message-avatar{
-
         width:32px;
         height:32px;
-
-        border-radius:10px;
     }
 
     .message-body{
@@ -1499,410 +967,350 @@ body.light-mode .icon-btn{
     }
 
     .message-bubble{
-
         font-size:13px;
-
-        padding:
-            12px 13px;
+        padding:12px 13px;
     }
 
     .tool-btn{
-
         width:34px;
         height:34px;
     }
 
     .send-btn{
-
         width:39px;
         height:39px;
     }
-
 }
-
 </style>
-
 </head>
-
 
 <body>
 
 <div class="app">
 
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
+<aside class="sidebar" id="sidebar">
 
-    <aside class="sidebar" id="sidebar">
+    <div class="logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-brain"></i>
+        </div>
 
-        <div class="logo">
+        <div class="logo-text">
+            Civic<span>AI</span>
+        </div>
+    </div>
 
-            <div class="logo-icon">
-                <i class="fa-solid fa-brain"></i>
+    <button class="new-chat" id="sidebarNewChat">
+        <i class="fa-solid fa-plus"></i>
+        New conversation
+    </button>
+
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        <input
+            type="text"
+            id="chatSearch"
+            placeholder="Search chats...">
+    </div>
+
+    <div class="sidebar-title">
+        Recent
+    </div>
+
+    <div class="recent-list" id="recentSearchList"></div>
+
+    <div class="sidebar-bottom">
+
+        <button class="sidebar-btn" id="saveChatButton">
+            <i class="fa-regular fa-bookmark"></i>
+            Save conversation
+        </button>
+
+        <button class="sidebar-btn" id="exportChatButton">
+            <i class="fa-solid fa-copy"></i>
+            Copy conversation
+        </button>
+
+        <button class="sidebar-btn" id="clearHistoryButton">
+            <i class="fa-regular fa-trash-can"></i>
+            Clear conversation
+        </button>
+
+    </div>
+
+</aside>
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="main">
+
+<header class="header">
+
+    <div class="header-left">
+
+        <button class="mobile-menu" id="mobileMenu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div>
+
+            <div class="header-title">
+                CivicAI Life Helper
             </div>
 
-            <div class="logo-text">
-                Civic<span>AI</span>
+            <div class="status">
+                <span class="status-dot"></span>
+                AI assistant online
             </div>
 
         </div>
 
+    </div>
+
+    <div class="header-actions">
 
         <button
-            class="new-chat"
-            id="sidebarNewChat">
+            class="icon-btn"
+            id="newChatButton"
+            title="New conversation">
 
             <i class="fa-solid fa-plus"></i>
 
-            New conversation
+        </button>
+
+        <button
+            class="icon-btn"
+            id="themeButton"
+            title="Toggle theme">
+
+            <i class="fa-solid fa-moon"></i>
 
         </button>
 
+    </div>
 
-        <div class="search-box">
+</header>
 
-            <i class="fa-solid fa-magnifying-glass"></i>
+<!-- =====================================================
+     CHAT AREA
+===================================================== -->
 
-            <input
-                type="text"
-                id="chatSearch"
-                placeholder="Search chats...">
+<section class="chat-area" id="chatMessages">
 
+<div class="chat-container" id="chatContainer">
+
+    <div class="welcome" id="welcomeScreen">
+
+        <div class="welcome-logo">
+            <i class="fa-solid fa-brain"></i>
         </div>
 
+        <h1>
+            How can I help you?
+        </h1>
 
-        <div class="sidebar-title">
-            Recent
+        <p>
+            CivicAI is your AI life helper.
+            Ask questions, describe a problem,
+            get explanations, ideas, guidance,
+            or upload an image and let AI understand it.
+        </p>
+
+    </div>
+
+    <div class="typing" id="typingIndicator">
+
+        <div class="typing-avatar">
+            <i class="fa-solid fa-brain"></i>
         </div>
 
-
-        <div
-            class="recent-list"
-            id="recentSearchList">
-        </div>
-
-
-        <div class="sidebar-bottom">
-
-            <button
-                class="sidebar-btn"
-                id="saveChatButton">
-
-                <i class="fa-regular fa-bookmark"></i>
-
-                Save conversation
-
-            </button>
-
-
-            <button
-                class="sidebar-btn"
-                id="exportChatButton">
-
-                <i class="fa-solid fa-copy"></i>
-
-                Copy conversation
-
-            </button>
-
-
-            <button
-                class="sidebar-btn"
-                id="clearHistoryButton">
-
-                <i class="fa-regular fa-trash-can"></i>
-
-                Clear conversation
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
-    <main class="main">
-
-
-        <!-- HEADER -->
-
-        <header class="header">
-
-            <div class="header-left">
-
-                <button
-                    class="mobile-menu"
-                    id="mobileMenu">
-
-                    <i class="fa-solid fa-bars"></i>
-
-                </button>
-
-                <div>
-
-                    <div class="header-title">
-                        CivicAI Life Helper
-                    </div>
-
-                    <div class="status">
-
-                        <span class="status-dot"></span>
-
-                        AI assistant online
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="header-actions">
-
-                <button
-                    class="icon-btn"
-                    id="newChatButton"
-                    title="New conversation">
-
-                    <i class="fa-solid fa-plus"></i>
-
-                </button>
-
-
-                <button
-                    class="icon-btn"
-                    id="themeButton"
-                    title="Toggle theme">
-
-                    <i class="fa-solid fa-moon"></i>
-
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
-             CHAT
-        ================================================== -->
-
-        <section
-            class="chat-area"
-            id="chatMessages">
-
-            <div
-                class="chat-container"
-                id="chatContainer">
-
-
-                <!-- WELCOME -->
-
-                <div
-                    class="welcome"
-                    id="welcomeScreen">
-
-                    <div class="welcome-logo">
-
-                        <i class="fa-solid fa-brain"></i>
-
-                    </div>
-
-
-                    <h1>
-                        How can I help you?
-                    </h1>
-
-
-                    <p>
-                        CivicAI is your AI life helper.
-                        Ask questions, describe a problem,
-                        get explanations, ideas, guidance,
-                        or upload an image and let AI understand it.
-                    </p>
-
-                </div>
-
-
-                <!-- TYPING -->
-
-                <div
-                    class="typing"
-                    id="typingIndicator">
-
-                    <div class="typing-avatar">
-
-                        <i class="fa-solid fa-brain"></i>
-
-                    </div>
-
-                    <div class="typing-bubble">
-
-                        <div class="typing-dots">
-
-                            <span></span>
-                            <span></span>
-                            <span></span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             INPUT
-        ================================================== -->
-
-        <div class="input-wrapper">
-
-            <div class="input-container">
-
-
-                <!-- ATTACHMENT -->
-
-                <div
-                    class="attachment-preview"
-                    id="attachmentPreview">
-
-                    <i
-                        id="attachmentIcon"
-                        class="fa-solid fa-file">
-                    </i>
-
-                    <span id="attachmentName"></span>
-
-                    <button
-                        class="remove-attachment"
-                        id="removeAttachment"
-                        title="Remove attachment">
-
-                        <i class="fa-solid fa-xmark"></i>
-
-                    </button>
-
-                </div>
-
-
-                <div class="input-row">
-
-
-                    <div class="input-actions">
-
-                        <button
-                            class="tool-btn"
-                            id="fileButton"
-                            title="Upload image">
-
-                            <i class="fa-solid fa-paperclip"></i>
-
-                        </button>
-
-
-                        <button
-                            class="tool-btn"
-                            id="cameraButton"
-                            title="Camera">
-
-                            <i class="fa-solid fa-camera"></i>
-
-                        </button>
-
-
-                        <button
-                            class="tool-btn"
-                            id="voiceButton"
-                            title="Voice input">
-
-                            <i class="fa-solid fa-microphone"></i>
-
-                        </button>
-
-                    </div>
-
-
-                    <textarea
-                        class="chat-input"
-                        id="chatInput"
-                        rows="1"
-                        placeholder="Message CivicAI...">
-                    </textarea>
-
-
-                    <button
-                        class="send-btn"
-                        id="sendButton"
-                        title="Send">
-
-                        <i class="fa-solid fa-paper-plane"></i>
-
-                    </button>
-
-                </div>
-
-
-                <div class="input-footer">
-
-                    CivicAI can make mistakes.
-                    Verify important information when necessary.
-
-                </div>
-
-
-                <input
-                    type="file"
-                    id="fileInput"
-                    hidden
-                    accept="image/*">
-
+        <div class="typing-bubble">
+
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
 
         </div>
 
-    </main>
+    </div>
 
 </div>
 
+</section>
 
-<!-- TOAST -->
+<!-- =====================================================
+     ANIMATED AI VOICE ASSISTANT
+===================================================== -->
 
 <div
-    class="toast"
-    id="helperToast">
+    class="voice-assistant"
+    id="voiceAssistant"
+    title="Talk to CivicAI">
+
+    <div class="voice-orb">
+
+        <i class="fa-solid fa-microphone"></i>
+
+    </div>
+
+    <div class="voice-label" id="voiceLabel">
+        Talk to CivicAI
+    </div>
+
 </div>
+
+<!-- =====================================================
+     INPUT
+===================================================== -->
+
+<div class="input-wrapper">
+
+<div class="input-container">
+
+    <div
+        class="attachment-preview"
+        id="attachmentPreview">
+
+        <i id="attachmentIcon"
+           class="fa-solid fa-image">
+        </i>
+
+        <span id="attachmentName"></span>
+
+        <button
+            class="remove-attachment"
+            id="removeAttachment">
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </button>
+
+    </div>
+
+    <div class="input-row">
+
+        <div class="input-actions">
+
+            <button
+                class="tool-btn"
+                id="fileButton"
+                title="Upload image">
+
+                <i class="fa-solid fa-paperclip"></i>
+
+            </button>
+
+            <button
+                class="tool-btn"
+                id="cameraButton"
+                title="Camera">
+
+                <i class="fa-solid fa-camera"></i>
+
+            </button>
+
+            <button
+                class="tool-btn"
+                id="voiceButton"
+                title="Voice input">
+
+                <i class="fa-solid fa-microphone"></i>
+
+            </button>
+
+        </div>
+
+        <textarea
+            class="chat-input"
+            id="chatInput"
+            rows="1"
+            placeholder="Message CivicAI..."></textarea>
+
+        <button
+            class="send-btn"
+            id="sendButton"
+            title="Send">
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+        </button>
+
+    </div>
+
+    <div class="input-footer">
+        CivicAI can make mistakes.
+        Verify important information when necessary.
+    </div>
+
+    <input
+        type="file"
+        id="fileInput"
+        hidden
+        accept="image/*">
+
+</div>
+
+</div>
+
+</main>
+
+</div>
+
+<div class="toast" id="helperToast"></div>
 
 <script>
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* =========================================================
+    /* =====================================================
        ELEMENTS
-    ========================================================= */
+    ===================================================== */
 
-    const sidebar = document.getElementById("sidebar");
-    const mobileMenu = document.getElementById("mobileMenu");
+    const sidebar =
+        document.getElementById("sidebar");
 
-    const chatMessages = document.getElementById("chatMessages");
-    const chatContainer = document.getElementById("chatContainer");
+    const mobileMenu =
+        document.getElementById("mobileMenu");
 
-    const chatInput = document.getElementById("chatInput");
-    const sendButton = document.getElementById("sendButton");
+    const chatMessages =
+        document.getElementById("chatMessages");
 
-    const fileButton = document.getElementById("fileButton");
-    const fileInput = document.getElementById("fileInput");
-    const cameraButton = document.getElementById("cameraButton");
-    const voiceButton = document.getElementById("voiceButton");
+    const chatContainer =
+        document.getElementById("chatContainer");
+
+    const chatInput =
+        document.getElementById("chatInput");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const fileButton =
+        document.getElementById("fileButton");
+
+    const fileInput =
+        document.getElementById("fileInput");
+
+    const cameraButton =
+        document.getElementById("cameraButton");
+
+    const voiceButton =
+        document.getElementById("voiceButton");
+
+    const voiceAssistant =
+        document.getElementById("voiceAssistant");
+
+    const voiceLabel =
+        document.getElementById("voiceLabel");
 
     const typingIndicator =
         document.getElementById("typingIndicator");
@@ -1950,142 +1358,146 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("helperToast");
 
 
-    /* =========================================================
-       BACKEND ENDPOINTS
-       
-       IMPORTANT:
-       Normal Live Helper -> /api/chat -> Groq
-       Civic analysis       -> /api/analyze
-    ========================================================= */
+    /* =====================================================
+       BACKEND
+    ===================================================== */
 
     const CHAT_API_ENDPOINT = "/api/chat";
+
     const ANALYZE_API_ENDPOINT = "/api/analyze";
 
 
-    /* =========================================================
+    /* =====================================================
        STATE
-    ========================================================= */
+    ===================================================== */
 
     let selectedFile = null;
+
     let messages = [];
+
     let recentSearches = [];
+
     let savedChats = [];
 
     let isSending = false;
+
     let activeRecognition = null;
 
+    let voiceMode = false;
 
-    /* =========================================================
+
+    /* =====================================================
        STORAGE
-    ========================================================= */
+    ===================================================== */
 
-    const STORAGE_MESSAGES = "civicai_messages";
-    const STORAGE_RECENT = "civicai_recent";
-    const STORAGE_SAVED = "civicai_saved";
-    const STORAGE_THEME = "civicai_theme";
+    const STORAGE_MESSAGES =
+        "civicai_messages";
+
+    const STORAGE_RECENT =
+        "civicai_recent";
+
+    const STORAGE_SAVED =
+        "civicai_saved";
+
+    const STORAGE_THEME =
+        "civicai_theme";
+
+    const STORAGE_VOICE =
+        "civicai_voice_enabled";
 
 
-    /* =========================================================
-       INITIALIZE
-    ========================================================= */
+    /* =====================================================
+       INIT
+    ===================================================== */
 
     loadStorage();
+
     renderRecentSearches();
+
     applySavedTheme();
+
     autoResizeTextarea();
 
 
-    /* =========================================================
+    /* =====================================================
        STORAGE
-    ========================================================= */
+    ===================================================== */
 
-    function loadStorage() {
+    function loadStorage(){
 
-        try {
+        try{
 
             const savedMessages =
-                localStorage.getItem(STORAGE_MESSAGES);
+                localStorage.getItem(
+                    STORAGE_MESSAGES
+                );
 
             const savedRecent =
-                localStorage.getItem(STORAGE_RECENT);
+                localStorage.getItem(
+                    STORAGE_RECENT
+                );
 
             const saved =
-                localStorage.getItem(STORAGE_SAVED);
+                localStorage.getItem(
+                    STORAGE_SAVED
+                );
+
+            const savedVoice =
+                localStorage.getItem(
+                    STORAGE_VOICE
+                );
 
 
-            if (savedMessages) {
+            if(savedMessages){
 
                 const parsed =
                     JSON.parse(savedMessages);
 
-                if (Array.isArray(parsed)) {
+                if(Array.isArray(parsed)){
                     messages = parsed;
                 }
 
             }
 
 
-            if (savedRecent) {
+            if(savedRecent){
 
                 const parsed =
                     JSON.parse(savedRecent);
 
-                if (Array.isArray(parsed)) {
+                if(Array.isArray(parsed)){
                     recentSearches = parsed;
                 }
 
             }
 
 
-            if (saved) {
+            if(saved){
 
                 const parsed =
                     JSON.parse(saved);
 
-                if (Array.isArray(parsed)) {
+                if(Array.isArray(parsed)){
                     savedChats = parsed;
                 }
 
             }
 
 
-            if (messages.length) {
+            voiceMode =
+                savedVoice === "true";
+
+
+            if(messages.length){
                 restoreMessages();
             }
 
         }
 
-        catch (error) {
+        catch(error){
 
             console.error(
-                "CivicAI storage error:",
-                error
-            );
-
-            messages = [];
-            recentSearches = [];
-            savedChats = [];
-
-        }
-
-    }
-
-
-    function saveMessages() {
-
-        try {
-
-            localStorage.setItem(
-                STORAGE_MESSAGES,
-                JSON.stringify(messages)
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Unable to save messages:",
+                "Storage error:",
                 error
             );
 
@@ -2094,115 +1506,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function saveRecentSearches() {
+    function saveMessages(){
 
-        try {
-
-            localStorage.setItem(
-                STORAGE_RECENT,
-                JSON.stringify(recentSearches)
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Unable to save recent searches:",
-                error
-            );
-
-        }
+        localStorage.setItem(
+            STORAGE_MESSAGES,
+            JSON.stringify(messages)
+        );
 
     }
 
 
-    function saveSavedChats() {
+    function saveRecentSearches(){
 
-        try {
-
-            localStorage.setItem(
-                STORAGE_SAVED,
-                JSON.stringify(savedChats)
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Unable to save saved chats:",
-                error
-            );
-
-        }
+        localStorage.setItem(
+            STORAGE_RECENT,
+            JSON.stringify(recentSearches)
+        );
 
     }
 
 
-    /* =========================================================
-       WELCOME
-    ========================================================= */
+    function saveSavedChats(){
 
-    function hideWelcome() {
-
-        if (welcomeScreen) {
-            welcomeScreen.style.display = "none";
-        }
+        localStorage.setItem(
+            STORAGE_SAVED,
+            JSON.stringify(savedChats)
+        );
 
     }
 
 
-    function showWelcome() {
-
-        if (welcomeScreen) {
-            welcomeScreen.style.display = "flex";
-        }
-
-    }
-
-
-    /* =========================================================
-       RESTORE MESSAGES
-    ========================================================= */
-
-    function restoreMessages() {
-
-        hideWelcome();
-
-        messages.forEach(message => {
-
-            if (
-                message &&
-                (message.role === "user" ||
-                 message.role === "ai") &&
-                typeof message.content === "string"
-            ) {
-
-                renderMessage(
-                    message.role,
-                    message.content,
-                    false
-                );
-
-            }
-
-        });
-
-        scrollToBottom();
-
-    }
-
-
-    /* =========================================================
+    /* =====================================================
        TOAST
-    ========================================================= */
+    ===================================================== */
 
-    function showToast(text) {
-
-        if (!helperToast) {
-            return;
-        }
+    function showToast(text){
 
         helperToast.textContent =
             String(text);
@@ -2214,18 +1552,20 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast.timer =
             setTimeout(() => {
 
-                helperToast.classList.remove("show");
+                helperToast.classList.remove(
+                    "show"
+                );
 
-            }, 2800);
+            },2800);
 
     }
 
 
-    /* =========================================================
-       ESCAPE HTML
-    ========================================================= */
+    /* =====================================================
+       HTML ESCAPE
+    ===================================================== */
 
-    function escapeHTML(text) {
+    function escapeHTML(text){
 
         const div =
             document.createElement("div");
@@ -2238,13 +1578,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       FORMAT MESSAGE
-    ========================================================= */
+    /* =====================================================
+       FORMAT
+    ===================================================== */
 
-    function formatMessage(text) {
+    function formatMessage(text){
 
-        if (!text) {
+        if(!text){
             return "";
         }
 
@@ -2252,84 +1592,53 @@ document.addEventListener("DOMContentLoaded", () => {
             escapeHTML(String(text));
 
 
-        /*
-         * CODE BLOCKS
-         */
-
-        html = html.replace(
-            /```([\s\S]*?)```/g,
-            "<pre><code>$1</code></pre>"
-        );
+        html =
+            html.replace(
+                /```([\s\S]*?)```/g,
+                "<pre><code>$1</code></pre>"
+            );
 
 
-        /*
-         * INLINE CODE
-         */
-
-        html = html.replace(
-            /`([^`]+)`/g,
-            "<code>$1</code>"
-        );
+        html =
+            html.replace(
+                /`([^`]+)`/g,
+                "<code>$1</code>"
+            );
 
 
-        /*
-         * BOLD
-         */
-
-        html = html.replace(
-            /\*\*(.*?)\*\*/g,
-            "<strong>$1</strong>"
-        );
+        html =
+            html.replace(
+                /\*\*(.*?)\*\*/g,
+                "<strong>$1</strong>"
+            );
 
 
-        /*
-         * ITALIC
-         */
-
-        html = html.replace(
-            /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
-            "<em>$1</em>"
-        );
+        html =
+            html.replace(
+                /^- (.*)$/gm,
+                "<div>• $1</div>"
+            );
 
 
-        /*
-         * BULLET
-         */
-
-        html = html.replace(
-            /^• (.*)$/gm,
-            "<div>• $1</div>"
-        );
+        html =
+            html.replace(
+                /^• (.*)$/gm,
+                "<div>• $1</div>"
+            );
 
 
-        /*
-         * MARKDOWN BULLET
-         */
-
-        html = html.replace(
-            /^- (.*)$/gm,
-            "<div>• $1</div>"
-        );
+        html =
+            html.replace(
+                /^(\d+)\.\s+(.*)$/gm,
+                "<div>$1. $2</div>"
+            );
 
 
-        /*
-         * NUMBERED LIST
-         */
-
-        html = html.replace(
-            /^(\d+)\.\s+(.*)$/gm,
-            "<div>$1. $2</div>"
-        );
-
-
-        /*
-         * NEW LINES
-         */
-
-        html = html.replace(
-            /\n/g,
-            "<br>"
-        );
+        html =
+            html.replace(
+                /\n/g,
+                "<br>"
+            );
 
 
         return html;
@@ -2337,15 +1646,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       RENDER MESSAGE
-    ========================================================= */
+    /* =====================================================
+       RENDER
+    ===================================================== */
 
     function renderMessage(
         role,
         content,
-        save = true
-    ) {
+        save=true
+    ){
 
         hideWelcome();
 
@@ -2409,12 +1718,10 @@ document.addEventListener("DOMContentLoaded", () => {
             "message-actions";
 
 
-        if (role === "ai") {
+        if(role === "ai"){
 
             const copy =
                 document.createElement("button");
-
-            copy.type = "button";
 
             copy.innerHTML =
                 '<i class="fa-regular fa-copy"></i>';
@@ -2431,28 +1738,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         meta.appendChild(time);
+
         meta.appendChild(actions);
 
         body.appendChild(bubble);
+
         body.appendChild(meta);
 
         message.appendChild(avatar);
+
         message.appendChild(body);
 
 
-        if (
-            typingIndicator &&
-            typingIndicator.parentNode === chatContainer
-        ) {
+        if(typingIndicator){
 
             chatContainer.insertBefore(
                 message,
                 typingIndicator
             );
 
-        }
-
-        else {
+        }else{
 
             chatContainer.appendChild(
                 message
@@ -2461,15 +1766,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        if (save) {
+        if(save){
 
             messages.push({
 
-                role: role,
+                role,
 
-                content: String(content),
+                content:String(content),
 
-                time: Date.now()
+                time:Date.now()
 
             });
 
@@ -2483,28 +1788,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       TIME
-    ========================================================= */
+    function restoreMessages(){
 
-    function getCurrentTime() {
+        hideWelcome();
+
+        messages.forEach(item => {
+
+            if(
+                item &&
+                (
+                    item.role === "user" ||
+                    item.role === "ai"
+                )
+            ){
+
+                renderMessage(
+                    item.role,
+                    item.content,
+                    false
+                );
+
+            }
+
+        });
+
+        scrollToBottom();
+
+    }
+
+
+    function hideWelcome(){
+
+        if(welcomeScreen){
+            welcomeScreen.style.display =
+                "none";
+        }
+
+    }
+
+
+    function showWelcome(){
+
+        if(welcomeScreen){
+            welcomeScreen.style.display =
+                "flex";
+        }
+
+    }
+
+
+    function getCurrentTime(){
 
         return new Date().toLocaleTimeString(
             [],
             {
-                hour: "2-digit",
-                minute: "2-digit"
+                hour:"2-digit",
+                minute:"2-digit"
             }
         );
 
     }
 
 
-    /* =========================================================
-       SCROLL
-    ========================================================= */
-
-    function scrollToBottom() {
+    function scrollToBottom(){
 
         requestAnimationFrame(() => {
 
@@ -2516,41 +1862,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        TYPING
-    ========================================================= */
+    ===================================================== */
 
-    function showTyping() {
+    function showTyping(){
 
-        if (!typingIndicator) {
-            return;
-        }
-
-        typingIndicator.classList.add("show");
+        typingIndicator.classList.add(
+            "show"
+        );
 
         scrollToBottom();
 
     }
 
 
-    function hideTyping() {
+    function hideTyping(){
 
-        if (!typingIndicator) {
-            return;
-        }
-
-        typingIndicator.classList.remove("show");
+        typingIndicator.classList.remove(
+            "show"
+        );
 
     }
 
 
-    /* =========================================================
-       SEND MESSAGE
-    ========================================================= */
+    /* =====================================================
+       SEND
+    ===================================================== */
 
-    async function sendMessage() {
+    async function sendMessage(){
 
-        if (isSending) {
+        if(isSending){
             return;
         }
 
@@ -2562,7 +1904,7 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedFile;
 
 
-        if (!text && !file) {
+        if(!text && !file){
 
             showToast(
                 "Write a message or attach an image."
@@ -2580,11 +1922,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sendButton.disabled = true;
 
 
-        let userMessage =
-            text;
+        let userMessage = text;
 
 
-        if (file) {
+        if(file){
 
             userMessage =
                 text
@@ -2594,24 +1935,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-         * Render user message immediately.
-         */
-
         renderMessage(
             "user",
             userMessage
         );
 
 
-        if (text) {
+        if(text){
             addRecentSearch(text);
         }
 
-
-        /*
-         * Clear input.
-         */
 
         chatInput.value = "";
 
@@ -2620,7 +1953,12 @@ document.addEventListener("DOMContentLoaded", () => {
         showTyping();
 
 
-        try {
+        setAssistantState(
+            "thinking"
+        );
+
+
+        try{
 
             const response =
                 await getAIResponse(
@@ -2637,14 +1975,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 response
             );
 
+
+            /*
+             * Voice reply
+             */
+
+            if(voiceMode){
+
+                await speakText(
+                    stripMarkdown(response)
+                );
+
+            }
+
         }
 
-        catch (error) {
+        catch(error){
 
             hideTyping();
 
+            setAssistantState(
+                "idle"
+            );
+
+
             console.error(
-                "CivicAI Live Helper error:",
+                "CivicAI error:",
                 error
             );
 
@@ -2656,7 +2012,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-        finally {
+        finally{
 
             isSending = false;
 
@@ -2673,31 +2029,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       AI REQUEST
-       
-       TEXT -> /api/chat -> GROQ
-       IMAGE -> /api/analyze
-    ========================================================= */
+    /* =====================================================
+       AI RESPONSE
+    ===================================================== */
 
     async function getAIResponse(
         text,
         file
-    ) {
+    ){
 
         const userText =
             String(text || "").trim();
 
 
         /*
-         * IMAGE REQUEST
+         * IMAGE
          */
 
-        if (
+        if(
             file &&
             file.type &&
             file.type.startsWith("image/")
-        ) {
+        ){
 
             const image =
                 await fileToDataURL(file);
@@ -2708,25 +2061,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     ANALYZE_API_ENDPOINT,
                     {
 
-                        method: "POST",
+                        method:"POST",
 
-                        headers: {
+                        headers:{
                             "Content-Type":
+                                "application/json",
+
+                            "Accept":
                                 "application/json"
                         },
 
-                        body: JSON.stringify({
+                        body:JSON.stringify({
 
                             description:
                                 userText ||
-                                "Please analyze this image carefully and answer naturally. Explain what you can understand from the image and provide useful guidance. Do not force the response into a predefined civic report format.",
+                                "Analyze this image naturally and explain what you can understand from it.",
 
-                            location: "",
+                            location:"",
 
                             reporterName:
                                 "CivicAI User",
 
-                            image: image
+                            image
 
                         })
 
@@ -2741,26 +2097,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-         * OTHER FILE
-         */
-
-        if (file) {
+        if(file){
 
             throw new Error(
-                "Only image files are currently supported."
+                "Only image files are supported."
             );
 
         }
 
 
-        /*
-         * TEXT REQUEST
-         *
-         * THIS IS THE NORMAL LIVE HELPER.
-         */
-
-        if (!userText) {
+        if(!userText){
 
             throw new Error(
                 "Please enter a message."
@@ -2770,41 +2116,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /*
-         * Build conversation BEFORE
-         * sending the current message.
-         *
-         * Current user message is already
-         * rendered into messages.
+         * Important:
+         * Remove current user message from
+         * conversation duplicate.
          */
 
         const conversation =
             messages
-                .slice(-20)
-                .map(item => {
+                .slice(-21,-1)
+                .map(item => ({
 
-                    return {
+                    role:
+                        item.role === "ai"
+                            ? "assistant"
+                            : "user",
 
-                        role:
-                            item.role === "ai"
-                                ? "assistant"
-                                : "user",
+                    content:
+                        String(
+                            item.content || ""
+                        )
 
-                        content:
-                            String(item.content || "")
-
-                    };
-
-                });
-
-
-        console.log(
-            "CivicAI -> /api/chat",
-            {
-                message: userText,
-                conversationLength:
-                    conversation.length
-            }
-        );
+                }));
 
 
         const response =
@@ -2812,9 +2144,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 CHAT_API_ENDPOINT,
                 {
 
-                    method: "POST",
+                    method:"POST",
 
-                    headers: {
+                    headers:{
                         "Content-Type":
                             "application/json",
 
@@ -2822,13 +2154,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:JSON.stringify({
 
-                        message:
-                            userText,
+                        message:userText,
 
-                        conversation:
-                            conversation
+                        conversation
 
                     })
 
@@ -2843,29 +2173,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       PROCESS BACKEND RESPONSE
-    ========================================================= */
+    /* =====================================================
+       BACKEND RESPONSE
+    ===================================================== */
 
     async function processServerResponse(
         response
-    ) {
+    ){
 
         const raw =
             await response.text();
 
 
-        console.log(
-            "CivicAI backend HTTP:",
-            response.status
-        );
-
-
-        /*
-         * Empty response
-         */
-
-        if (!raw) {
+        if(!raw){
 
             throw new Error(
                 `Backend returned an empty response. HTTP ${response.status}`
@@ -2877,36 +2197,22 @@ document.addEventListener("DOMContentLoaded", () => {
         let data;
 
 
-        try {
+        try{
 
             data =
                 JSON.parse(raw);
 
         }
 
-        catch (error) {
+        catch{
 
-            console.error(
-                "Invalid backend response:",
-                raw
-            );
-
-
-            /*
-             * This normally means Express returned
-             * HTML instead of JSON.
-             */
-
-            if (
-                raw.trim().startsWith("<")
-            ) {
+            if(raw.trim().startsWith("<")){
 
                 throw new Error(
-                    `Backend returned HTML instead of JSON. Check that CivicAI server is running and that ${CHAT_API_ENDPOINT} exists. HTTP ${response.status}`
+                    `Backend returned HTML instead of JSON. Check your server.js and API endpoint. HTTP ${response.status}`
                 );
 
             }
-
 
             throw new Error(
                 `Backend returned invalid JSON. HTTP ${response.status}`
@@ -2915,106 +2221,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-         * HTTP ERROR
-         */
-
-        if (!response.ok) {
-
-            const serverError =
-                data?.error ||
-                data?.message ||
-                data?.details ||
-                data?.response ||
-                data?.answer;
-
-
-            if (
-                response.status === 401 ||
-                Number(data?.groqStatus) === 401
-            ) {
-
-                throw new Error(
-                    "Groq API key is invalid. Check GROQ_API_KEY in your .env file."
-                );
-
-            }
-
-
-            if (
-                response.status === 403
-            ) {
-
-                throw new Error(
-                    serverError ||
-                    "The AI request was forbidden."
-                );
-
-            }
-
-
-            if (
-                response.status === 404
-            ) {
-
-                throw new Error(
-                    serverError ||
-                    "The /api/chat endpoint was not found. Make sure your current server.js is running."
-                );
-
-            }
-
-
-            if (
-                response.status === 429
-            ) {
-
-                throw new Error(
-                    serverError ||
-                    "Groq rate limit reached. Please try again shortly."
-                );
-
-            }
-
-
-            if (
-                response.status >= 500
-            ) {
-
-                throw new Error(
-                    serverError ||
-                    "The CivicAI backend or Groq AI server returned an internal error."
-                );
-
-            }
-
+        if(!response.ok){
 
             throw new Error(
-                serverError ||
+                data?.error ||
+                data?.message ||
                 `AI server error: HTTP ${response.status}`
             );
 
         }
 
 
-        /*
-         * SUCCESS
-         */
-
         const answer =
             extractAIResponse(data);
 
 
-        if (!answer) {
-
-            console.error(
-                "Backend returned no AI text:",
-                data
-            );
-
+        if(!answer){
 
             throw new Error(
-                "Backend responded successfully but did not return an AI answer."
+                "Backend returned no AI answer."
             );
 
         }
@@ -3025,28 +2250,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       EXTRACT AI RESPONSE
-    ========================================================= */
+    function extractAIResponse(data){
 
-    function extractAIResponse(data) {
-
-        if (typeof data === "string") {
+        if(typeof data === "string"){
             return data;
         }
 
-
-        if (!data || typeof data !== "object") {
+        if(!data){
             return "";
         }
 
 
-        /*
-         * Standard CivicAI response fields.
-         */
-
         const fields = [
-
             "answer",
             "response",
             "reply",
@@ -3054,16 +2269,15 @@ document.addEventListener("DOMContentLoaded", () => {
             "text",
             "content",
             "analysis"
-
         ];
 
 
-        for (const key of fields) {
+        for(const key of fields){
 
-            if (
+            if(
                 typeof data[key] === "string" &&
                 data[key].trim()
-            ) {
+            ){
 
                 return data[key].trim();
 
@@ -3072,57 +2286,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-         * Nested response.
-         */
-
-        if (
+        if(
             data.response &&
             typeof data.response === "object"
-        ) {
+        ){
 
-            const nested =
-                extractAIResponse(
-                    data.response
-                );
-
-            if (nested) {
-                return nested;
-            }
+            return extractAIResponse(
+                data.response
+            );
 
         }
 
 
-        if (
+        if(
             data.answer &&
             typeof data.answer === "object"
-        ) {
+        ){
 
-            const nested =
-                extractAIResponse(
-                    data.answer
-                );
-
-            if (nested) {
-                return nested;
-            }
-
-        }
-
-
-        if (
-            data.analysis &&
-            typeof data.analysis === "object"
-        ) {
-
-            const nested =
-                extractAIResponse(
-                    data.analysis
-                );
-
-            if (nested) {
-                return nested;
-            }
+            return extractAIResponse(
+                data.answer
+            );
 
         }
 
@@ -3132,55 +2315,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       FILE TO DATA URL
-    ========================================================= */
+    /* =====================================================
+       IMAGE
+    ===================================================== */
 
-    function fileToDataURL(file) {
+    function fileToDataURL(file){
 
         return new Promise(
-            (resolve, reject) => {
+            (resolve,reject) => {
 
                 const reader =
                     new FileReader();
 
 
                 reader.onload =
-                    () => {
-
-                        if (
-                            typeof reader.result !==
-                            "string"
-                        ) {
-
-                            reject(
-                                new Error(
-                                    "Unable to convert image."
-                                )
-                            );
-
-                            return;
-
-                        }
-
-
-                        resolve(
-                            reader.result
-                        );
-
-                    };
+                    () => resolve(
+                        reader.result
+                    );
 
 
                 reader.onerror =
-                    () => {
-
-                        reject(
-                            new Error(
-                                "Unable to read image."
-                            )
-                        );
-
-                    };
+                    () => reject(
+                        new Error(
+                            "Unable to read image."
+                        )
+                    );
 
 
                 reader.readAsDataURL(file);
@@ -3191,37 +2350,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       ATTACHMENT
-    ========================================================= */
-
-    function showAttachment(file) {
+    function showAttachment(file){
 
         selectedFile =
             file;
 
-
         attachmentName.textContent =
             file.name;
 
-
-        if (
-            file.type &&
-            file.type.startsWith("image/")
-        ) {
-
-            attachmentIcon.className =
-                "fa-solid fa-image";
-
-        }
-
-        else {
-
-            attachmentIcon.className =
-                "fa-solid fa-file";
-
-        }
-
+        attachmentIcon.className =
+            "fa-solid fa-image";
 
         attachmentPreview.classList.add(
             "show"
@@ -3230,16 +2368,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function clearAttachment() {
+    function clearAttachment(){
 
         selectedFile =
             null;
 
-
         attachmentPreview.classList.remove(
             "show"
         );
-
 
         attachmentName.textContent =
             "";
@@ -3247,10 +2383,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function resetFileInput() {
+    function resetFileInput(){
 
-        fileInput.value =
-            "";
+        fileInput.value = "";
 
         fileInput.setAttribute(
             "accept",
@@ -3264,17 +2399,528 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       RECENT SEARCH
-    ========================================================= */
+    /* =====================================================
+       VOICE RECOGNITION
+    ===================================================== */
 
-    function addRecentSearch(text) {
+    function getSpeechRecognition(){
+
+        return window.SpeechRecognition ||
+               window.webkitSpeechRecognition ||
+               null;
+
+    }
+
+
+    function startVoiceInput(){
+
+        const SpeechRecognition =
+            getSpeechRecognition();
+
+
+        if(!SpeechRecognition){
+
+            showToast(
+                "Voice recognition is not supported in this browser."
+            );
+
+            return;
+
+        }
+
+
+        if(activeRecognition){
+
+            activeRecognition.stop();
+
+            activeRecognition = null;
+
+            setAssistantState(
+                "idle"
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Stop current speech
+         */
+
+        stopSpeaking();
+
+
+        const recognition =
+            new SpeechRecognition();
+
+
+        activeRecognition =
+            recognition;
+
+
+        recognition.lang =
+            navigator.language || "en-US";
+
+
+        recognition.interimResults =
+            true;
+
+
+        recognition.continuous =
+            false;
+
+
+        setAssistantState(
+            "listening"
+        );
+
+
+        showToast(
+            "Listening... Speak now."
+        );
+
+
+        recognition.onresult =
+            event => {
+
+                let transcript = "";
+
+                for(
+                    let i =
+                        event.resultIndex;
+                    i <
+                        event.results.length;
+                    i++
+                ){
+
+                    transcript +=
+                        event.results[i][0]
+                            .transcript;
+
+                }
+
+
+                chatInput.value =
+                    transcript;
+
+
+                autoResizeTextarea();
+
+            };
+
+
+        recognition.onerror =
+            event => {
+
+                console.error(
+                    "Speech recognition error:",
+                    event
+                );
+
+
+                if(
+                    event.error ===
+                    "not-allowed"
+                ){
+
+                    showToast(
+                        "Microphone permission denied."
+                    );
+
+                }
+                else if(
+                    event.error ===
+                    "no-speech"
+                ){
+
+                    showToast(
+                        "No speech detected."
+                    );
+
+                }
+                else{
+
+                    showToast(
+                        "Voice input failed."
+                    );
+
+                }
+
+
+                setAssistantState(
+                    "idle"
+                );
+
+            };
+
+
+        recognition.onend =
+            () => {
+
+                activeRecognition =
+                    null;
+
+
+                voiceButton.classList.remove(
+                    "voice-active"
+                );
+
+
+                setAssistantState(
+                    "idle"
+                );
+
+
+                /*
+                 * Automatically send if
+                 * speech produced text.
+                 */
+
+                const spoken =
+                    chatInput.value.trim();
+
+
+                if(spoken){
+
+                    sendMessage();
+
+                }
+
+            };
+
+
+        voiceButton.classList.add(
+            "voice-active"
+        );
+
+
+        try{
+
+            recognition.start();
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+            activeRecognition =
+                null;
+
+            setAssistantState(
+                "idle"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       VOICE ASSISTANT
+    ===================================================== */
+
+    function setAssistantState(
+        state
+    ){
+
+        voiceAssistant.classList.remove(
+            "listening",
+            "thinking",
+            "speaking"
+        );
+
+
+        if(state === "listening"){
+
+            voiceAssistant.classList.add(
+                "listening"
+            );
+
+            voiceLabel.textContent =
+                "Listening...";
+
+        }
+
+        else if(state === "thinking"){
+
+            voiceAssistant.classList.add(
+                "thinking"
+            );
+
+            voiceLabel.textContent =
+                "Thinking...";
+
+        }
+
+        else if(state === "speaking"){
+
+            voiceAssistant.classList.add(
+                "speaking"
+            );
+
+            voiceLabel.textContent =
+                "Speaking...";
+
+        }
+
+        else{
+
+            voiceLabel.textContent =
+                "Talk to CivicAI";
+
+        }
+
+    }
+
+
+    /*
+     * Main animated orb click
+     */
+
+    voiceAssistant.addEventListener(
+        "click",
+        () => {
+
+            if(
+                window.speechSynthesis &&
+                window.speechSynthesis.speaking
+            ){
+
+                stopSpeaking();
+
+                return;
+
+            }
+
+
+            startVoiceInput();
+
+        }
+    );
+
+
+    /*
+     * Small microphone button
+     */
+
+    voiceButton.addEventListener(
+        "click",
+        startVoiceInput
+    );
+
+
+    /* =====================================================
+       TEXT TO SPEECH
+    ===================================================== */
+
+    function speakText(text){
+
+        return new Promise(
+            resolve => {
+
+                if(
+                    !("speechSynthesis" in window)
+                ){
+
+                    showToast(
+                        "Voice reply is not supported in this browser."
+                    );
+
+                    setAssistantState(
+                        "idle"
+                    );
+
+                    resolve();
+
+                    return;
+
+                }
+
+
+                stopSpeaking();
+
+
+                const clean =
+                    String(text || "")
+                        .replace(/\s+/g," ")
+                        .trim();
+
+
+                if(!clean){
+
+                    resolve();
+
+                    return;
+
+                }
+
+
+                const utterance =
+                    new SpeechSynthesisUtterance(
+                        clean
+                    );
+
+
+                utterance.lang =
+                    navigator.language ||
+                    "en-US";
+
+
+                utterance.rate =
+                    1.0;
+
+
+                utterance.pitch =
+                    1.0;
+
+
+                utterance.volume =
+                    1.0;
+
+
+                utterance.onstart =
+                    () => {
+
+                        setAssistantState(
+                            "speaking"
+                        );
+
+                    };
+
+
+                utterance.onend =
+                    () => {
+
+                        setAssistantState(
+                            "idle"
+                        );
+
+                        resolve();
+
+                    };
+
+
+                utterance.onerror =
+                    () => {
+
+                        setAssistantState(
+                            "idle"
+                        );
+
+                        resolve();
+
+                    };
+
+
+                window.speechSynthesis.speak(
+                    utterance
+                );
+
+            }
+        );
+
+    }
+
+
+    function stopSpeaking(){
+
+        if(
+            "speechSynthesis" in window
+        ){
+
+            window.speechSynthesis.cancel();
+
+        }
+
+
+        setAssistantState(
+            "idle"
+        );
+
+    }
+
+
+    function stripMarkdown(text){
+
+        return String(text || "")
+            .replace(/```[\s\S]*?```/g,"")
+            .replace(/[*_#>`]/g,"")
+            .replace(/•/g,"")
+            .replace(/\s+/g," ")
+            .trim();
+
+    }
+
+
+    /* =====================================================
+       VOICE MODE
+    ===================================================== */
+
+    function toggleVoiceMode(){
+
+        voiceMode =
+            !voiceMode;
+
+
+        localStorage.setItem(
+            STORAGE_VOICE,
+            String(voiceMode)
+        );
+
+
+        if(voiceMode){
+
+            showToast(
+                "AI voice replies enabled."
+            );
+
+            voiceAssistant.style.display =
+                "block";
+
+        }
+        else{
+
+            showToast(
+                "AI voice replies disabled."
+            );
+
+            stopSpeaking();
+
+        }
+
+    }
+
+
+    /*
+     * Double-click orb = toggle automatic
+     * voice replies.
+     */
+
+    voiceAssistant.addEventListener(
+        "dblclick",
+        event => {
+
+            event.preventDefault();
+
+            toggleVoiceMode();
+
+        }
+    );
+
+
+    /* =====================================================
+       RECENT
+    ===================================================== */
+
+    function addRecentSearch(text){
 
         const clean =
             String(text).trim();
 
 
-        if (!clean) {
+        if(!clean){
             return;
         }
 
@@ -3306,13 +2952,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function renderRecentSearches() {
+    function renderRecentSearches(){
 
         recentSearchList.innerHTML =
             "";
 
 
-        if (!recentSearches.length) {
+        if(!recentSearches.length){
 
             const empty =
                 document.createElement(
@@ -3339,10 +2985,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         recentSearches.forEach(
-            (
-                query,
-                index
-            ) => {
+            query => {
 
                 const item =
                     document.createElement(
@@ -3359,10 +3002,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <i class="fa-solid fa-clock-rotate-left"></i>
 
                     <span></span>
-
-                    <small>
-                        ${index === 0 ? "now" : "recent"}
-                    </small>
 
                 `;
 
@@ -3396,32 +3035,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        NEW CHAT
-    ========================================================= */
+    ===================================================== */
 
-    function startNewChat() {
+    function startNewChat(){
 
-        if (messages.length) {
+        if(
+            messages.length &&
+            !confirm(
+                "Start a new conversation?"
+            )
+        ){
 
-            if (
-                !confirm(
-                    "Start a new conversation?"
-                )
-            ) {
-
-                return;
-
-            }
+            return;
 
         }
 
+
+        stopSpeaking();
 
         messages = [];
 
         saveMessages();
 
-        removeChatMessages();
+        chatContainer
+            .querySelectorAll(
+                ".message"
+            )
+            .forEach(
+                el => el.remove()
+            );
+
 
         clearAttachment();
 
@@ -3442,27 +3087,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function removeChatMessages() {
+    function clearHistory(){
 
-        chatContainer
-            .querySelectorAll(
-                ".message"
-            )
-            .forEach(
-                element =>
-                    element.remove()
-            );
-
-    }
-
-
-    /* =========================================================
-       CLEAR HISTORY
-    ========================================================= */
-
-    function clearHistory() {
-
-        if (!messages.length) {
+        if(!messages.length){
 
             showToast(
                 "There is no chat history."
@@ -3473,11 +3100,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        if (
+        if(
             !confirm(
                 "Clear this conversation?"
             )
-        ) {
+        ){
 
             return;
 
@@ -3488,7 +3115,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         saveMessages();
 
-        removeChatMessages();
+        chatContainer
+            .querySelectorAll(
+                ".message"
+            )
+            .forEach(
+                el => el.remove()
+            );
+
 
         showWelcome();
 
@@ -3499,13 +3133,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       SAVE CHAT
-    ========================================================= */
+    /* =====================================================
+       SAVE
+    ===================================================== */
 
-    function saveCurrentChat() {
+    function saveCurrentChat(){
 
-        if (!messages.length) {
+        if(!messages.length){
 
             showToast(
                 "There is no conversation to save."
@@ -3523,31 +3157,24 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        let title =
+        const title =
             first
-                ? String(first.content || "")
-                    .replace(
-                        /📎 Attached:.*$/s,
-                        ""
-                    )
-                    .trim()
-                    .slice(0, 45)
+                ? String(first.content)
+                    .slice(0,45)
                 : "CivicAI Conversation";
 
 
         savedChats.unshift({
 
-            id:
-                Date.now(),
+            id:Date.now(),
 
-            title:
-                title || "CivicAI Conversation",
+            title,
 
-            messages:
-                [...messages],
+            messages:[
+                ...messages
+            ],
 
-            savedAt:
-                Date.now()
+            savedAt:Date.now()
 
         });
 
@@ -3569,13 +3196,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       COPY CONVERSATION
-    ========================================================= */
+    /* =====================================================
+       COPY
+    ===================================================== */
 
-    async function copyConversation() {
+    async function copyConversation(){
 
-        if (!messages.length) {
+        if(!messages.length){
 
             showToast(
                 "There is no conversation to copy."
@@ -3601,14 +3228,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-        await copyText(text);
+        copyText(text);
 
     }
 
 
-    async function copyText(text) {
+    async function copyText(text){
 
-        try {
+        try{
 
             await navigator.clipboard.writeText(
                 String(text)
@@ -3621,7 +3248,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-        catch {
+        catch{
 
             const textarea =
                 document.createElement(
@@ -3657,11 +3284,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        THEME
-    ========================================================= */
+    ===================================================== */
 
-    function applySavedTheme() {
+    function applySavedTheme(){
 
         const theme =
             localStorage.getItem(
@@ -3680,7 +3307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function updateThemeButton() {
+    function updateThemeButton(){
 
         const light =
             document.body.classList.contains(
@@ -3696,7 +3323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function toggleTheme() {
+    function toggleTheme(){
 
         const light =
             document.body.classList.toggle(
@@ -3717,11 +3344,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        TEXTAREA
-    ========================================================= */
+    ===================================================== */
 
-    function autoResizeTextarea() {
+    function autoResizeTextarea(){
 
         chatInput.style.height =
             "auto";
@@ -3736,176 +3363,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       VOICE INPUT
-    ========================================================= */
-
-    function startVoiceInput() {
-
-        const SpeechRecognition =
-            window.SpeechRecognition ||
-            window.webkitSpeechRecognition;
-
-
-        if (!SpeechRecognition) {
-
-            showToast(
-                "Voice input is not supported in this browser."
-            );
-
-            return;
-
-        }
-
-
-        if (activeRecognition) {
-
-            activeRecognition.stop();
-
-            activeRecognition =
-                null;
-
-            return;
-
-        }
-
-
-        const recognition =
-            new SpeechRecognition();
-
-
-        activeRecognition =
-            recognition;
-
-
-        recognition.lang =
-            navigator.language ||
-            "en-US";
-
-
-        recognition.interimResults =
-            false;
-
-
-        recognition.maxAlternatives =
-            1;
-
-
-        showToast(
-            "Listening..."
-        );
-
-
-        recognition.onresult =
-            event => {
-
-                const transcript =
-                    event.results[0][0]
-                        .transcript;
-
-
-                chatInput.value +=
-                    (
-                        chatInput.value
-                            ? " "
-                            : ""
-                    ) +
-                    transcript;
-
-
-                autoResizeTextarea();
-
-                chatInput.focus();
-
-            };
-
-
-        recognition.onerror =
-            event => {
-
-                console.error(
-                    "Voice recognition:",
-                    event
-                );
-
-
-                showToast(
-
-                    event.error === "not-allowed"
-                        ? "Microphone permission denied."
-                        : "Voice input failed."
-
-                );
-
-            };
-
-
-        recognition.onend =
-            () => {
-
-                activeRecognition =
-                    null;
-
-            };
-
-
-        try {
-
-            recognition.start();
-
-        }
-
-        catch {
-
-            activeRecognition =
-                null;
-
-
-            showToast(
-                "Unable to start voice input."
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       CHAT SEARCH
-    ========================================================= */
-
-    function searchChats() {
-
-        const query =
-            chatSearch.value
-                .trim()
-                .toLowerCase();
-
-
-        document
-            .querySelectorAll(
-                ".recent-item"
-            )
-            .forEach(
-                item => {
-
-                    item.style.display =
-                        !query ||
-                        item.textContent
-                            .toLowerCase()
-                            .includes(query)
-                            ? "flex"
-                            : "none";
-
-                }
-            );
-
-    }
-
-
-    /* =========================================================
+    /* =====================================================
        EVENTS
-    ========================================================= */
+    ===================================================== */
 
     sendButton.addEventListener(
         "click",
@@ -3923,10 +3383,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "keydown",
         event => {
 
-            if (
+            if(
                 event.key === "Enter" &&
                 !event.shiftKey
-            ) {
+            ){
 
                 event.preventDefault();
 
@@ -3938,9 +3398,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* =========================================================
-       FILE UPLOAD
-    ========================================================= */
+    /* =====================================================
+       FILE
+    ===================================================== */
 
     fileButton.addEventListener(
         "click",
@@ -3962,15 +3422,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 fileInput.files?.[0];
 
 
-            if (!file) {
+            if(!file){
                 return;
             }
 
 
-            if (
+            if(
                 file.size >
                 10 * 1024 * 1024
-            ) {
+            ){
 
                 showToast(
                     "Maximum image size is 10 MB."
@@ -3983,10 +3443,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            if (
+            if(
                 !file.type ||
                 !file.type.startsWith("image/")
-            ) {
+            ){
 
                 showToast(
                     "Please select an image."
@@ -4017,16 +3477,15 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* =========================================================
+    /* =====================================================
        CAMERA
-    ========================================================= */
+    ===================================================== */
 
     cameraButton.addEventListener(
         "click",
         () => {
 
-            fileInput.value =
-                "";
+            fileInput.value = "";
 
             fileInput.setAttribute(
                 "accept",
@@ -4044,19 +3503,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* =========================================================
-       VOICE
-    ========================================================= */
-
-    voiceButton.addEventListener(
-        "click",
-        startVoiceInput
-    );
-
-
-    /* =========================================================
-       CHAT CONTROLS
-    ========================================================= */
+    /* =====================================================
+       CONTROLS
+    ===================================================== */
 
     newChatButton.addEventListener(
         "click",
@@ -4096,13 +3545,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chatSearch.addEventListener(
         "input",
-        searchChats
+        () => {
+
+            const query =
+                chatSearch.value
+                    .trim()
+                    .toLowerCase();
+
+
+            document
+                .querySelectorAll(
+                    ".recent-item"
+                )
+                .forEach(item => {
+
+                    item.style.display =
+                        !query ||
+                        item.textContent
+                            .toLowerCase()
+                            .includes(query)
+                            ? "flex"
+                            : "none";
+
+                });
+
+        }
     );
 
 
-    /* =========================================================
-       MOBILE MENU
-    ========================================================= */
+    /* =====================================================
+       MOBILE
+    ===================================================== */
 
     mobileMenu.addEventListener(
         "click",
@@ -4116,10 +3589,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* =========================================================
-       CLOSE SIDEBAR
-    ========================================================= */
-
     chatMessages.addEventListener(
         "click",
         () => {
@@ -4132,27 +3601,75 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    /* =========================================================
+    /* =====================================================
+       KEYBOARD SHORTCUT
+    ===================================================== */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            /*
+             * Ctrl + Shift + V
+             * = Voice assistant
+             */
+
+            if(
+                event.ctrlKey &&
+                event.shiftKey &&
+                event.key.toLowerCase() === "v"
+            ){
+
+                event.preventDefault();
+
+                startVoiceInput();
+
+            }
+
+            /*
+             * Escape = stop speaking
+             */
+
+            if(event.key === "Escape"){
+
+                stopSpeaking();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
        READY
-    ========================================================= */
+    ===================================================== */
 
     console.log(
         "CivicAI Life Helper initialized."
     );
 
     console.log(
-        "Normal chat endpoint:",
+        "Chat endpoint:",
         CHAT_API_ENDPOINT
     );
 
     console.log(
-        "Image analysis endpoint:",
+        "Analyze endpoint:",
         ANALYZE_API_ENDPOINT
+    );
+
+    console.log(
+        "Voice recognition:",
+        !!getSpeechRecognition()
+    );
+
+    console.log(
+        "Voice synthesis:",
+        "speechSynthesis" in window
     );
 
 });
 </script>
-
 
 </body>
 </html>
