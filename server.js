@@ -4,7 +4,7 @@
 //
 // CIVICAI BACKEND
 //
-// AI ARCHITECTURE npm install multer
+// AI ARCHITECTURE
 // ------------------------------------------------------------
 //
 // AI LIFE HELPER        -> GROQ
