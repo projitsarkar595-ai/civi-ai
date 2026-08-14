@@ -836,10 +836,22 @@ let detectedVoiceLanguage="";
 let recognitionFallback=null;
 
 const VOICE_TRANSCRIBE_ENDPOINT="/api/transcribe";
-const VOICE_SILENCE_MS=1900;
+
+/*
+  1.9 sec = end-of-sentence pause.
+  7 sec   = full voice-assistant idle timeout.
+  So a short pause submits the sentence, but if the user then
+  stays silent for 7 seconds the microphone turns OFF completely.
+*/
+const VOICE_SENTENCE_SILENCE_MS=1900;
+const VOICE_IDLE_TIMEOUT_MS=7000;
 const VOICE_MIN_SPEECH_MS=350;
 const VOICE_RMS_THRESHOLD=0.018;
+
 let voiceSpeechStartedAt=0;
+let voiceLastSpeechAt=0;
+let voiceIdleTimer=null;
+let voiceAutoStopped=false;
 
 function setVoiceStatus(message){
     if(voiceStatus){
@@ -848,10 +860,32 @@ function setVoiceStatus(message){
     }
 }
 
+function clearVoiceIdleTimer(){
+    if(voiceIdleTimer){
+        clearTimeout(voiceIdleTimer);
+        voiceIdleTimer=null;
+    }
+}
+
+function armVoiceIdleTimer(){
+    clearVoiceIdleTimer();
+
+    if(!voiceMode || voiceProcessing || voiceAutoStopped) return;
+
+    voiceIdleTimer=setTimeout(()=>{
+        if(!voiceMode || voiceProcessing) return;
+
+        voiceAutoStopped=true;
+        showToast("No voice detected for 7 seconds. Voice Assistant OFF.");
+        stopVoiceMode();
+    },VOICE_IDLE_TIMEOUT_MS);
+}
+
 function resetVoiceSentence(){
     voiceHasSpeech=false;
     voiceSilenceStarted=0;
     voiceSpeechStartedAt=0;
+    voiceLastSpeechAt=performance.now();
     voiceChunks=[];
 }
 
@@ -906,6 +940,11 @@ async function transcribeVoiceBlob(blob){
     }
 
     if(!r.ok){
+        if(r.status===404){
+            throw new Error(
+                "Voice API not found (404). Add the /api/transcribe route to server.js and restart Node."
+            );
+        }
         throw new Error(data?.error||data?.message||`Voice transcription failed: HTTP ${r.status}`);
     }
 
@@ -941,6 +980,7 @@ function monitorVoiceLevel(){
         const n=(data[i]-128)/128;
         sum+=n*n;
     }
+
     const rms=Math.sqrt(sum/data.length);
     const now=performance.now();
 
@@ -949,21 +989,50 @@ function monitorVoiceLevel(){
             voiceHasSpeech=true;
             voiceSpeechStartedAt=now;
         }
+
+        voiceLastSpeechAt=now;
         voiceSilenceStarted=0;
-        setVoiceStatus("Listening… speak naturally. I’ll wait until you finish.");
+
+        /* Any real speech resets the 7-second idle countdown. */
+        armVoiceIdleTimer();
+
+        setVoiceStatus("Listening… speak naturally.");
     }else if(voiceHasSpeech){
         if(!voiceSilenceStarted) voiceSilenceStarted=now;
 
         const enoughSpeech=(now-voiceSpeechStartedAt)>=VOICE_MIN_SPEECH_MS;
-        if(enoughSpeech && now-voiceSilenceStarted>=VOICE_SILENCE_MS){
+
+        if(
+            enoughSpeech &&
+            now-voiceSilenceStarted>=VOICE_SENTENCE_SILENCE_MS
+        ){
+            /*
+              Submit this sentence, then start a fresh recording.
+              The separate 7-second idle timer will switch the
+              entire Voice Assistant OFF if the user remains silent.
+            */
             stopCurrentVoiceRecording();
             return;
         }
     }
 
+    /*
+      If the user never spoke at all after Voice ON, the same
+      7-second timeout turns Voice Assistant OFF.
+    */
+    if(
+        voiceMode &&
+        !voiceHasSpeech &&
+        now-voiceLastSpeechAt>=VOICE_IDLE_TIMEOUT_MS
+    ){
+        voiceAutoStopped=true;
+        showToast("No voice detected for 7 seconds. Voice Assistant OFF.");
+        stopVoiceMode();
+        return;
+    }
+
     voiceMonitorFrame=requestAnimationFrame(monitorVoiceLevel);
 }
-
 function startVoiceMonitor(){
     try{
         voiceAudioContext=new (window.AudioContext||window.webkitAudioContext)();
@@ -1016,8 +1085,9 @@ async function processVoiceRecording(blob){
         }
     }finally{
         voiceProcessing=false;
-        if(voiceMode && !isSpeaking){
+        if(voiceMode && !isSpeaking && !voiceAutoStopped){
             setVoiceStatus("Listening…");
+            armVoiceIdleTimer();
             setTimeout(()=>startVoiceRecorder(),250);
         }
     }
@@ -1089,8 +1159,10 @@ async function startVoiceRecorder(){
         };
 
         voiceRecorder.start(250);
+        voiceAutoStopped=false;
         voiceButton.classList.add("active");
-        setVoiceStatus("Listening… speak naturally. I’ll wait until you finish.");
+        setVoiceStatus("Listening… speak naturally.");
+        armVoiceIdleTimer();
         startVoiceMonitor();
     }catch(error){
         console.error("Microphone recorder:",error);
@@ -1225,6 +1297,8 @@ function stopBrowserVoiceFallback(){
 
 function startVoiceMode(){
     voiceMode=true;
+    voiceAutoStopped=false;
+    clearVoiceIdleTimer();
     voiceToggle.classList.add("on");
     voiceToggle.innerHTML='<i class="fa-solid fa-microphone"></i> Voice ON';
 
@@ -1243,6 +1317,7 @@ function startVoiceMode(){
 
 function stopVoiceMode(){
     voiceMode=false;
+    clearVoiceIdleTimer();
     speechGeneration++;
     speechQueue=[];
 
