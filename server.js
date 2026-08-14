@@ -39,6 +39,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import twilio from "twilio";
 import { fileURLToPath } from "url";
+import multer from "multer";
 
 dotenv.config();
 
@@ -1233,7 +1234,139 @@ FINAL RULE
 
 Answer the user's question naturally and helpfully.
 `;
+// ============================================================
+// CIVICAI — VOICE TRANSCRIPTION
+// ============================================================
+// Browser audio
+//       ↓
+// POST /api/transcribe
+//       ↓
+// Groq Whisper
+//       ↓
+// Original language transcription
+//       ↓
+// Frontend text input
+// ============================================================
 
+const voiceUpload = multer({
+    storage: multer.memoryStorage(),
+
+    limits: {
+        fileSize: 15 * 1024 * 1024
+    }
+});
+
+
+// ============================================================
+// /api/transcribe
+// ============================================================
+
+app.post(
+    "/api/transcribe",
+    voiceUpload.single("audio"),
+
+    async (req, res) => {
+
+        try {
+
+            // ------------------------------------------------
+            // CHECK GROQ KEY
+            // ------------------------------------------------
+
+            if (!hasGroqKey()) {
+
+                return res
+                    .status(500)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "GROQ_API_KEY is missing."
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // CHECK AUDIO
+            // ------------------------------------------------
+
+            if (!req.file) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Audio file is required.",
+
+                        code:
+                            "AUDIO_REQUIRED"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // BASIC AUDIO VALIDATION
+            // ------------------------------------------------
+
+            if (
+                !req.file.buffer ||
+                !req.file.buffer.length
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Uploaded audio is empty.",
+
+                        code:
+                            "EMPTY_AUDIO"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // MIME TYPE
+            // ------------------------------------------------
+
+            const mimeType =
+                req.file.mimetype ||
+                "audio/webm";
+
+
+            // ------------------------------------------------
+            // FILE EXTENSION
+            // ------------------------------------------------
+
+            let extension = "webm";
+
+
+            if (
+                mimeType.includes("wav")
+            ) {
+
+                extension = "wav";
+
+            }
+
+            else if (
+                mimeType.includes("mpeg") ||
+                mimeType.includes("mp3")
+            )
+            { extension = "mp3"; }
 // ============================================================
 // /api/chat
 // ============================================================
