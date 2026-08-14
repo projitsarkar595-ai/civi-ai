@@ -1,325 +1,971 @@
-// =========================================================
+// ============================================================
 // CIVICAI — COMPLETE BACKEND SERVER
-// Express + Google Gemini
-// Civic AI Analysis
-// Gmail OTP Verification
-// Phone OTP Verification
-// Authority Routing
-// Automatic Complaint Letter
-// Gmail Complaint Sending
-// =========================================================
+// ============================================================
+//
+// Frontend compatible with:
+//   /api/chat
+//   /api/analyze
+//   /api/transcribe
+//
+// Also supports:
+//   Gmail OTP
+//   Phone OTP / Twilio
+//
+// IMPORTANT:
+// Create a .env file beside this server.js
+//
+// Required AI:
+// GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+//
+// Optional Gmail OTP:
+// GMAIL_USER=yourgmail@gmail.com
+// GMAIL_APP_PASSWORD=your-gmail-app-password
+//
+// Optional Twilio OTP:
+// TWILIO_ACCOUNT_SID=xxxx
+// TWILIO_AUTH_TOKEN=xxxx
+// TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
+//
+// ============================================================
 
 "use strict";
-
-// =========================================================
-// IMPORTS
-// =========================================================
 
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import fs from "fs";
 import path from "path";
-import crypto from "crypto";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import twilio from "twilio";
 
-import {
-    fileURLToPath
-} from "url";
+// Gemini
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-
-// =========================================================
-// ENVIRONMENT
-// =========================================================
+// ============================================================
+// BASIC SETUP
+// ============================================================
 
 dotenv.config();
 
-
-// =========================================================
-// APP
-// =========================================================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const PORT =
-    Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT || 3000);
 
-
-// =========================================================
-// ES MODULE PATH
-// =========================================================
-
-const __filename =
-    fileURLToPath(import.meta.url);
-
-const __dirname =
-    path.dirname(__filename);
-
-
-// =========================================================
-// DIRECTORIES
-// =========================================================
-
-const FRONTEND_DIR =
-    __dirname;
-
-const DATA_DIR =
-    path.join(
-        __dirname,
-        "data"
-    );
-
-const REPORTS_FILE =
-    path.join(
-        DATA_DIR,
-        "reports.json"
-    );
-
-
-// =========================================================
-// GEMINI CONFIGURATION
-// =========================================================
+// ============================================================
+// ENVIRONMENT
+// ============================================================
 
 const GEMINI_API_KEY =
-    process.env.GEMINI_API_KEY || "";
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    "";
 
-const GEMINI_MODEL =
-    process.env.GEMINI_MODEL ||
-    "gemini-3.1-flash-lite";
+const GMAIL_USER =
+    process.env.GMAIL_USER ||
+    process.env.EMAIL_USER ||
+    "";
 
-const GEMINI_API_URL =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-
-// =========================================================
-// EMAIL CONFIGURATION
-// =========================================================
-
-const EMAIL_USER =
-    process.env.EMAIL_USER || "";
-
-const EMAIL_PASSWORD =
-    process.env.EMAIL_PASSWORD || "";
-
-const EMAIL_FROM =
-    process.env.EMAIL_FROM ||
-    EMAIL_USER;
-
-
-// =========================================================
-// TWILIO CONFIGURATION
-// =========================================================
+const GMAIL_APP_PASSWORD =
+    process.env.GMAIL_APP_PASSWORD ||
+    process.env.EMAIL_PASS ||
+    "";
 
 const TWILIO_ACCOUNT_SID =
-    process.env.TWILIO_ACCOUNT_SID || "";
+    process.env.TWILIO_ACCOUNT_SID ||
+    "";
 
 const TWILIO_AUTH_TOKEN =
-    process.env.TWILIO_AUTH_TOKEN || "";
+    process.env.TWILIO_AUTH_TOKEN ||
+    "";
 
 const TWILIO_PHONE_NUMBER =
-    process.env.TWILIO_PHONE_NUMBER || "";
+    process.env.TWILIO_PHONE_NUMBER ||
+    "";
 
-
-// =========================================================
-// OTP CONFIGURATION
-// =========================================================
-
-const OTP_EXPIRY_MS =
-    5 * 60 * 1000;
-
-const MAX_OTP_ATTEMPTS =
-    5;
-
-
-// =========================================================
-// IN-MEMORY OTP STORE
-// =========================================================
-//
-// Production-এ Redis/database ব্যবহার করা ভালো.
-// বর্তমানে সহজ implementation হিসেবে memory ব্যবহার করা হচ্ছে.
-//
-
-const otpStore =
-    new Map();
-
-
-// =========================================================
-// VERIFIED USERS
-// =========================================================
-
-const verifiedUsers =
-    new Map();
-
-
-// =========================================================
+// ============================================================
 // MIDDLEWARE
-// =========================================================
+// ============================================================
 
 app.use(
     cors({
         origin: true,
-        credentials: false
+        credentials: true
     })
 );
 
 app.use(
     express.json({
-        limit: "12mb"
+        limit: "25mb"
     })
 );
 
 app.use(
     express.urlencoded({
         extended: true,
-        limit: "12mb"
+        limit: "25mb"
     })
 );
 
+// ============================================================
+// FRONTEND DIRECTORY
+// ============================================================
+//
+// This server assumes your HTML is in the same folder as
+// server.js.
+//
+// Example:
+//
+// CivicAI/
+// ├── server.js
+// ├── index.html
+// ├── login.html
+// ├── register.html
+// └── ...
+//
+// If your HTML files are inside a client folder, change:
+// FRONTEND_DIR = path.join(__dirname, "client");
+//
+// ============================================================
 
-// =========================================================
-// DATA DIRECTORY
-// =========================================================
+const FRONTEND_DIR = __dirname;
 
-if (
-    !fs.existsSync(
-        DATA_DIR
-    )
-) {
+app.use(
+    express.static(FRONTEND_DIR, {
+        extensions: ["html"],
+        index: false
+    })
+);
 
-    fs.mkdirSync(
-        DATA_DIR,
-        {
-            recursive: true
-        }
+// ============================================================
+// GEMINI SETUP
+// ============================================================
+
+let gemini = null;
+
+if (GEMINI_API_KEY) {
+    gemini = new GoogleGenerativeAI(GEMINI_API_KEY);
+    console.log("✓ Gemini API configured");
+} else {
+    console.warn(
+        "⚠ GEMINI_API_KEY is missing. AI endpoints will not work until it is added."
     );
-
 }
 
+// ============================================================
+// GEMINI MODEL
+// ============================================================
 
-// =========================================================
-// REPORT FILE
-// =========================================================
-
-if (
-    !fs.existsSync(
-        REPORTS_FILE
-    )
-) {
-
-    fs.writeFileSync(
-        REPORTS_FILE,
-        "[]",
-        "utf8"
-    );
-
-}
-
-
-// =========================================================
-// UTILITY
-// =========================================================
-
-function cleanText(value) {
-
-    if (
-        value === undefined ||
-        value === null
-    ) {
-
-        return "";
-
+function getGeminiModel() {
+    if (!gemini) {
+        throw new Error(
+            "Gemini API key is not configured. Add GEMINI_API_KEY to .env"
+        );
     }
 
-    return String(value)
+    return gemini.getGenerativeModel({
+        model: "gemini-2.5-flash"
+    });
+}
+
+// ============================================================
+// SAFE STRING
+// ============================================================
+
+function safeString(value, fallback = "") {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+
+    return String(value);
+}
+
+// ============================================================
+// REMOVE MARKDOWN CODE FENCES
+// ============================================================
+
+function cleanAIText(text) {
+    return safeString(text)
+        .replace(/^```(?:json)?/i, "")
+        .replace(/```$/i, "")
         .trim();
-
 }
 
+// ============================================================
+// HEALTH CHECK
+// ============================================================
 
-// =========================================================
-// GEMINI KEY CHECK
-// =========================================================
+app.get("/api/health", (req, res) => {
+    res.json({
+        success: true,
+        service: "CivicAI",
+        status: "online",
+        port: PORT,
+        ai: Boolean(GEMINI_API_KEY),
+        gmailOTP: Boolean(
+            GMAIL_USER && GMAIL_APP_PASSWORD
+        ),
+        phoneOTP: Boolean(
+            TWILIO_ACCOUNT_SID &&
+            TWILIO_AUTH_TOKEN &&
+            TWILIO_PHONE_NUMBER
+        ),
+        endpoints: [
+            "POST /api/chat",
+            "POST /api/analyze",
+            "POST /api/transcribe"
+        ]
+    });
+});
 
-function hasGeminiKey() {
+// ============================================================
+// NORMAL CIVICAI CHAT
+// ============================================================
 
-    return Boolean(
-        GEMINI_API_KEY &&
-        String(
-            GEMINI_API_KEY
-        ).trim()
-    );
+app.post("/api/chat", async (req, res) => {
 
-}
+    try {
 
+        const message = safeString(req.body?.message).trim();
 
-// =========================================================
-// EMAIL CHECK
-// =========================================================
+        const conversation = Array.isArray(
+            req.body?.conversation
+        )
+            ? req.body.conversation
+            : [];
 
-function hasEmailConfig() {
+        if (!message) {
+            return res.status(400).json({
+                success: false,
+                error: "Message is required."
+            });
+        }
 
-    return Boolean(
-        EMAIL_USER &&
-        EMAIL_PASSWORD
-    );
+        const model = getGeminiModel();
 
-}
+        // ----------------------------------------------------
+        // Build previous conversation
+        // ----------------------------------------------------
 
+        let historyText = "";
 
-// =========================================================
-// TWILIO CHECK
-// =========================================================
+        const recentConversation =
+            conversation.slice(-20);
 
-function hasTwilioConfig() {
+        if (recentConversation.length) {
 
-    return Boolean(
-        TWILIO_ACCOUNT_SID &&
-        TWILIO_AUTH_TOKEN &&
-        TWILIO_PHONE_NUMBER
-    );
+            historyText =
+                recentConversation
+                    .map(item => {
 
-}
+                        const role =
+                            item.role === "assistant"
+                                ? "CivicAI"
+                                : "User";
 
+                        return `${role}: ${safeString(
+                            item.content
+                        )}`;
 
-// =========================================================
-// EMAIL TRANSPORTER
-// =========================================================
+                    })
+                    .join("\n\n");
+        }
 
-let emailTransporter = null;
+        // ----------------------------------------------------
+        // CivicAI normal assistant personality
+        // ----------------------------------------------------
 
-if (
-    hasEmailConfig()
-) {
+        const systemInstruction = `
+You are CivicAI, a helpful AI life assistant.
 
-    emailTransporter =
-        nodemailer.createTransport({
+Your job is to have a natural, friendly, intelligent conversation.
 
-            service: "gmail",
+IMPORTANT:
 
-            auth: {
+1. Behave like a normal modern AI assistant.
+2. Do NOT automatically turn every conversation into a civic complaint.
+3. Do NOT generate "Problem", "Category", "Severity", "Department",
+   "Authority", "Recommendation" etc. unless the user actually asks
+   about a civic problem, report, complaint or authority.
+4. If the user asks a normal question, answer normally.
+5. If the user asks about programming, explain programming normally.
+6. If the user asks about products, explain products naturally.
+7. If the user asks about a civic issue, you may explain the issue,
+   suggest the correct authority and help prepare a complaint.
+8. Never pretend that you contacted an authority unless the backend
+   actually did so.
+9. Do not invent phone numbers, email addresses or official websites.
+10. If information is uncertain, clearly say that it should be verified.
+11. Answer in the language used by the user whenever possible.
+12. If the user writes Bengali, answer naturally in Bengali.
+13. If the user writes English, answer in English.
+14. If the user mixes Bengali and English, you may naturally mix them.
+15. Keep answers clear and useful.
+16. Do not unnecessarily repeat the user's question.
 
-                user:
-                    EMAIL_USER,
+Previous conversation:
 
-                pass:
-                    EMAIL_PASSWORD
+${historyText}
 
-            }
+Current user message:
 
+${message}
+`;
+
+        const result =
+            await model.generateContent(
+                systemInstruction
+            );
+
+        const response =
+            result?.response;
+
+        const answer =
+            response?.text?.() ||
+            "I couldn't generate a response.";
+
+        return res.json({
+            success: true,
+            answer: answer.trim()
         });
 
+    } catch (error) {
+
+        console.error(
+            "CHAT ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            error:
+                error?.message ||
+                "CivicAI chat failed."
+        });
+    }
+});
+
+// ============================================================
+// IMAGE / PRODUCT ANALYSIS
+// ============================================================
+
+app.post("/api/analyze", async (req, res) => {
+
+    try {
+
+        const description =
+            safeString(
+                req.body?.description
+            ).trim();
+
+        const location =
+            safeString(
+                req.body?.location
+            ).trim();
+
+        const reporterName =
+            safeString(
+                req.body?.reporterName,
+                "CivicAI User"
+            );
+
+        const image =
+            safeString(
+                req.body?.image
+            ).trim();
+
+        if (!image) {
+            return res.status(400).json({
+                success: false,
+                error: "Image is required."
+            });
+        }
+
+        // ----------------------------------------------------
+        // Validate data URL
+        // ----------------------------------------------------
+
+        if (
+            !image.startsWith(
+                "data:image/"
+            )
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                error:
+                    "Invalid image format. Please upload a valid image."
+            });
+        }
+
+        // ----------------------------------------------------
+        // Extract MIME and Base64
+        // ----------------------------------------------------
+
+        const match =
+            image.match(
+                /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+            );
+
+        if (!match) {
+
+            return res.status(400).json({
+                success: false,
+                error:
+                    "Invalid image data."
+            });
+        }
+
+        const mimeType = match[1];
+        const base64Data = match[2];
+
+        // ----------------------------------------------------
+        // Gemini
+        // ----------------------------------------------------
+
+        const model =
+            getGeminiModel();
+
+        const prompt = `
+You are CivicAI's visual AI assistant.
+
+Analyze the uploaded image naturally and intelligently.
+
+IMPORTANT:
+
+- Do NOT assume this is a civic complaint.
+- First determine what the image appears to contain.
+- If it is a product, explain the product naturally.
+- If it is medicine, identify only what can reasonably be identified
+  from the image and clearly mention uncertainty.
+- If it is a civic problem such as road damage, garbage, water leakage,
+  drainage, streetlight, pollution, broken infrastructure etc.,
+  explain that naturally.
+- If the user provided a description, use it as additional context.
+- If the image is unclear, say so.
+- Never invent text that cannot be read.
+- Never claim a product is safe or unsafe with certainty from an image alone.
+- Never provide a medical diagnosis.
+
+User description:
+${description || "No additional description provided."}
+
+Location:
+${location || "Not provided."}
+
+Reporter:
+${reporterName}
+
+Return a helpful natural-language answer suitable for a normal AI chat.
+Do not force a report template unless the image clearly represents
+a civic problem or the user asks for a report.
+`;
+
+        const result =
+            await model.generateContent([
+                {
+                    text: prompt
+                },
+                {
+                    inlineData: {
+                        mimeType,
+                        data: base64Data
+                    }
+                }
+            ]);
+
+        const answer =
+            result?.response?.text?.() ||
+            "I couldn't analyze this image.";
+
+        return res.json({
+            success: true,
+            answer: answer.trim()
+        });
+
+    } catch (error) {
+
+        console.error(
+            "IMAGE ANALYSIS ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            error:
+                error?.message ||
+                "Image analysis failed."
+        });
+    }
+});
+
+// ============================================================
+// VOICE TRANSCRIPTION
+// ============================================================
+//
+// Frontend sends:
+//
+// {
+//   audio: base64,
+//   mimeType: "audio/webm",
+//   languageHint: "en-IN"
+// }
+//
+// Gemini multimodal audio is used to detect/transcribe the
+// spoken language.
+//
+// ============================================================
+
+app.post("/api/transcribe", async (req, res) => {
+
+    try {
+
+        const audio =
+            safeString(
+                req.body?.audio
+            ).trim();
+
+        const mimeType =
+            safeString(
+                req.body?.mimeType,
+                "audio/webm"
+            );
+
+        const languageHint =
+            safeString(
+                req.body?.languageHint,
+                "en-IN"
+            );
+
+        if (!audio) {
+
+            return res.status(400).json({
+                success: false,
+                error:
+                    "Audio data is required."
+            });
+        }
+
+        const model =
+            getGeminiModel();
+
+        // ----------------------------------------------------
+        // Ask Gemini to detect language and transcribe
+        // ----------------------------------------------------
+
+        const prompt = `
+You are CivicAI's voice transcription engine.
+
+Listen carefully to this audio.
+
+Your task:
+
+1. Detect the spoken language.
+2. Transcribe the user's actual spoken words.
+3. Preserve the original language/script whenever possible.
+4. Bengali speech should be returned in Bengali script.
+5. Hindi speech should be returned in Devanagari.
+6. English speech should be returned in English.
+7. Do not translate the sentence.
+8. Do not summarize.
+9. Do not add explanations.
+10. Do not add words that were not spoken.
+11. If the audio contains mixed Bengali and English, preserve
+    the natural mixed language.
+12. Return JSON only.
+
+The user's browser language hint is:
+${languageHint}
+
+Return exactly:
+
+{
+  "language": "detected language",
+  "text": "exact transcription"
+}
+`;
+
+        const result =
+            await model.generateContent([
+                {
+                    text: prompt
+                },
+                {
+                    inlineData: {
+                        mimeType,
+                        data: audio
+                    }
+                }
+            ]);
+
+        let raw =
+            result?.response?.text?.() ||
+            "";
+
+        raw = cleanAIText(raw);
+
+        let parsed;
+
+        try {
+
+            parsed =
+                JSON.parse(raw);
+
+        } catch {
+
+            // -----------------------------------------------
+            // Gemini sometimes returns extra text.
+            // Try extracting JSON object.
+            // -----------------------------------------------
+
+            const jsonMatch =
+                raw.match(
+                    /\{[\s\S]*\}/
+                );
+
+            if (jsonMatch) {
+
+                try {
+                    parsed =
+                        JSON.parse(
+                            jsonMatch[0]
+                        );
+                } catch {
+                    parsed = null;
+                }
+
+            } else {
+                parsed = null;
+            }
+        }
+
+        if (!parsed) {
+
+            return res.json({
+                success: true,
+                language: "",
+                text: raw.trim()
+            });
+        }
+
+        return res.json({
+            success: true,
+            language:
+                safeString(
+                    parsed.language
+                ),
+            text:
+                safeString(
+                    parsed.text
+                ).trim()
+        });
+
+    } catch (error) {
+
+        console.error(
+            "TRANSCRIPTION ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            error:
+                error?.message ||
+                "Voice transcription failed."
+        });
+    }
+});
+
+// ============================================================
+// GMAIL OTP
+// ============================================================
+
+const otpStore = new Map();
+
+// OTP expiry = 5 minutes
+const OTP_EXPIRY = 5 * 60 * 1000;
+
+// Generate OTP
+function generateOTP() {
+    return String(
+        Math.floor(
+            100000 +
+            Math.random() * 900000
+        )
+    );
 }
 
+// Create Gmail transporter
+let mailTransporter = null;
 
-// =========================================================
-// TWILIO CLIENT
-// =========================================================
+if (
+    GMAIL_USER &&
+    GMAIL_APP_PASSWORD
+) {
+
+    mailTransporter =
+        nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: GMAIL_USER,
+                pass: GMAIL_APP_PASSWORD
+            }
+        });
+
+    console.log(
+        "✓ Gmail OTP configured"
+    );
+
+} else {
+
+    console.warn(
+        "⚠ Gmail OTP is not configured."
+    );
+}
+
+// ============================================================
+// SEND EMAIL OTP
+// ============================================================
+
+app.post(
+    "/api/send-email-otp",
+    async (req, res) => {
+
+        try {
+
+            const email =
+                safeString(
+                    req.body?.email
+                )
+                    .trim()
+                    .toLowerCase();
+
+            if (!email) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Email address is required."
+                });
+            }
+
+            if (!mailTransporter) {
+
+                return res.status(500).json({
+                    success: false,
+                    error:
+                        "Gmail OTP is not configured on the server."
+                });
+            }
+
+            const otp =
+                generateOTP();
+
+            otpStore.set(
+                `email:${email}`,
+                {
+                    otp,
+                    expires:
+                        Date.now() +
+                        OTP_EXPIRY,
+                    attempts: 0
+                }
+            );
+
+            await mailTransporter.sendMail({
+                from:
+                    `"CivicAI" <${GMAIL_USER}>`,
+                to: email,
+                subject:
+                    "Your CivicAI verification OTP",
+                text:
+                    `Your CivicAI verification code is ${otp}. This code will expire in 5 minutes.`,
+                html: `
+                    <div style="
+                        font-family:Arial,sans-serif;
+                        background:#f5f7fb;
+                        padding:30px;
+                    ">
+                        <div style="
+                            max-width:520px;
+                            margin:auto;
+                            background:white;
+                            border-radius:16px;
+                            padding:30px;
+                            box-shadow:0 10px 30px rgba(0,0,0,.08);
+                        ">
+                            <h2 style="margin:0 0 10px;">
+                                CivicAI
+                            </h2>
+
+                            <p>
+                                Your verification code is:
+                            </p>
+
+                            <div style="
+                                font-size:34px;
+                                font-weight:bold;
+                                letter-spacing:8px;
+                                margin:25px 0;
+                            ">
+                                ${otp}
+                            </div>
+
+                            <p style="color:#666;">
+                                This OTP will expire in 5 minutes.
+                            </p>
+                        </div>
+                    </div>
+                `
+            });
+
+            return res.json({
+                success: true,
+                message:
+                    "OTP sent successfully."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "EMAIL OTP ERROR:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                error:
+                    error?.message ||
+                    "Failed to send email OTP."
+            });
+        }
+    }
+);
+
+// ============================================================
+// VERIFY EMAIL OTP
+// ============================================================
+
+app.post(
+    "/api/verify-email-otp",
+    (req, res) => {
+
+        try {
+
+            const email =
+                safeString(
+                    req.body?.email
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const otp =
+                safeString(
+                    req.body?.otp
+                ).trim();
+
+            if (!email || !otp) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Email and OTP are required."
+                });
+            }
+
+            const key =
+                `email:${email}`;
+
+            const record =
+                otpStore.get(key);
+
+            if (!record) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "OTP not found or expired."
+                });
+            }
+
+            if (
+                Date.now() >
+                record.expires
+            ) {
+
+                otpStore.delete(key);
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "OTP expired. Please request a new OTP."
+                });
+            }
+
+            record.attempts++;
+
+            if (
+                record.attempts > 5
+            ) {
+
+                otpStore.delete(key);
+
+                return res.status(429).json({
+                    success: false,
+                    error:
+                        "Too many incorrect attempts."
+                });
+            }
+
+            if (
+                record.otp !== otp
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Incorrect OTP."
+                });
+            }
+
+            otpStore.delete(key);
+
+            return res.json({
+                success: true,
+                verified: true,
+                message:
+                    "Email verified successfully."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "EMAIL VERIFY ERROR:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                error:
+                    "Email OTP verification failed."
+            });
+        }
+    }
+);
+
+// ============================================================
+// TWILIO SETUP
+// ============================================================
 
 let twilioClient = null;
 
 if (
-    hasTwilioConfig()
+    TWILIO_ACCOUNT_SID &&
+    TWILIO_AUTH_TOKEN &&
+    TWILIO_PHONE_NUMBER
 ) {
 
     twilioClient =
@@ -328,3194 +974,493 @@ if (
             TWILIO_AUTH_TOKEN
         );
 
-}
-
-
-// =========================================================
-// HEALTH
-// =========================================================
-
-app.get(
-    "/api/health",
-    (req, res) => {
-
-        return res.json({
-
-            success: true,
-
-            status:
-                "online",
-
-            service:
-                "CivicAI Backend",
-
-            aiProvider:
-                "Google Gemini",
-
-            aiConfigured:
-                hasGeminiKey(),
-
-            geminiModel:
-                GEMINI_MODEL,
-
-            emailConfigured:
-                hasEmailConfig(),
-
-            phoneConfigured:
-                hasTwilioConfig(),
-
-            timestamp:
-                new Date()
-                    .toISOString()
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// API INFO
-// =========================================================
-
-app.get(
-    "/api",
-    (req, res) => {
-
-        return res.json({
-
-            success: true,
-
-            message:
-                "CivicAI backend API is running.",
-
-            endpoints: {
-
-                health:
-                    "GET /api/health",
-
-                analyze:
-                    "POST /api/analyze",
-
-                analyzeProduct:
-                    "POST /api/analyze-product",
-
-                productQuestion:
-                    "POST /api/product-question",
-
-                requestOtp:
-                    "POST /api/request-otp",
-
-                verifyOtp:
-                    "POST /api/verify-otp",
-
-                sendReport:
-                    "POST /api/send-report",
-
-                createReport:
-                    "POST /api/reports",
-
-                reports:
-                    "GET /api/reports",
-
-                singleReport:
-                    "GET /api/reports/:reportId"
-
-            }
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// IMAGE VALIDATION
-// =========================================================
-
-function validateImage(image) {
-
-    if (
-        !image ||
-        typeof image !== "string"
-    ) {
-
-        return {
-
-            valid: false,
-
-            error:
-                "Image is required."
-
-        };
-
-    }
-
-
-    if (
-        !image.startsWith(
-            "data:image/"
-        )
-    ) {
-
-        return {
-
-            valid: false,
-
-            error:
-                "Invalid image format."
-
-        };
-
-    }
-
-
-    if (
-        image.length >
-        7_000_000
-    ) {
-
-        return {
-
-            valid: false,
-
-            error:
-                "Image is too large."
-
-        };
-
-    }
-
-
-    return {
-
-        valid: true
-
-    };
-
-}
-
-
-// =========================================================
-// IMAGE → GEMINI PART
-// =========================================================
-
-function imageToGeminiPart(
-    imageDataUrl
-) {
-
-    const match =
-        imageDataUrl.match(
-            /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
-        );
-
-
-    if (!match) {
-
-        throw new Error(
-            "Invalid image data."
-        );
-
-    }
-
-
-    return {
-
-        inline_data: {
-
-            mime_type:
-                match[1],
-
-            data:
-                match[2]
-
-        }
-
-    };
-
-}
-
-
-// =========================================================
-// GEMINI REQUEST
-// =========================================================
-
-async function callGemini({
-
-    systemPrompt,
-
-    userText,
-
-    image = null,
-
-    temperature = 0.4,
-
-    maxOutputTokens = 1200,
-
-    jsonMode = true
-
-}) {
-
-    if (
-        !hasGeminiKey()
-    ) {
-
-        throw new Error(
-            "GEMINI_API_KEY is missing."
-        );
-
-    }
-
-
-    const parts = [];
-
-
-    parts.push({
-
-        text:
-            userText
-
-    });
-
-
-    if (
-        image
-    ) {
-
-        parts.push(
-            imageToGeminiPart(
-                image
-            )
-        );
-
-    }
-
-
-    const generationConfig = {
-
-        temperature,
-
-        maxOutputTokens
-
-    };
-
-
-    if (
-        jsonMode
-    ) {
-
-        generationConfig.responseMimeType =
-            "application/json";
-
-    }
-
-
-    const requestBody = {
-
-        system_instruction: {
-
-            parts: [
-
-                {
-
-                    text:
-                        systemPrompt
-
-                }
-
-            ]
-
-        },
-
-        contents: [
-
-            {
-
-                role:
-                    "user",
-
-                parts
-
-            }
-
-        ],
-
-        generationConfig
-
-    };
-
-
-    const controller =
-        new AbortController();
-
-
-    const timeout =
-        setTimeout(
-            () => {
-
-                controller.abort();
-
-            },
-            60_000
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                GEMINI_API_URL,
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "x-goog-api-key":
-                            GEMINI_API_KEY
-
-                    },
-
-                    body:
-                        JSON.stringify(
-                            requestBody
-                        ),
-
-                    signal:
-                        controller.signal
-
-                }
-            );
-
-
-        const responseText =
-            await response.text();
-
-
-        if (
-            !response.ok
-        ) {
-
-            let errorMessage =
-                responseText;
-
-
-            try {
-
-                const errorData =
-                    JSON.parse(
-                        responseText
-                    );
-
-                errorMessage =
-                    errorData
-                        ?.error
-                        ?.message ||
-                    responseText;
-
-            }
-            catch {
-
-                // ignore
-
-            }
-
-
-            throw new Error(
-                `Gemini API ${response.status}: ${errorMessage}`
-            );
-
-        }
-
-
-        let data;
-
-        try {
-
-            data =
-                JSON.parse(
-                    responseText
-                );
-
-        }
-        catch {
-
-            throw new Error(
-                "Gemini returned invalid JSON."
-            );
-
-        }
-
-
-        const content =
-            data
-                ?.candidates
-                ?.[0]
-                ?.content
-                ?.parts
-                ?.map(
-                    part =>
-                        part.text || ""
-                )
-                .join("")
-                .trim();
-
-
-        if (
-            !content
-        ) {
-
-            throw new Error(
-                "Gemini returned empty response."
-            );
-
-        }
-
-
-        return content;
-
-    }
-    catch (error) {
-
-        if (
-            error?.name ===
-            "AbortError"
-        ) {
-
-            throw new Error(
-                "Gemini request timed out."
-            );
-
-        }
-
-        throw error;
-
-    }
-    finally {
-
-        clearTimeout(
-            timeout
-        );
-
-    }
-
-}
-
-
-// =========================================================
-// PARSE AI JSON
-// =========================================================
-
-function parseAIJson(
-    content
-) {
-
-    if (
-        !content
-    ) {
-
-        throw new Error(
-            "AI returned empty response."
-        );
-
-    }
-
-
-    let cleaned =
-        String(
-            content
-        )
-        .trim();
-
-
-    cleaned =
-        cleaned
-            .replace(
-                /^```json\s*/i,
-                ""
-            )
-            .replace(
-                /^```\s*/i,
-                ""
-            )
-            .replace(
-                /\s*```$/i,
-                ""
-            )
-            .trim();
-
-
-    try {
-
-        return JSON.parse(
-            cleaned
-        );
-
-    }
-    catch {
-
-        // continue
-
-    }
-
-
-    const start =
-        cleaned.indexOf(
-            "{"
-        );
-
-    const end =
-        cleaned.lastIndexOf(
-            "}"
-        );
-
-
-    if (
-        start !== -1 &&
-        end !== -1 &&
-        end > start
-    ) {
-
-        try {
-
-            return JSON.parse(
-                cleaned.slice(
-                    start,
-                    end + 1
-                )
-            );
-
-        }
-        catch {
-
-            // continue
-
-        }
-
-    }
-
-
-    throw new Error(
-        "AI returned invalid JSON."
+    console.log(
+        "✓ Twilio phone OTP configured"
     );
 
+} else {
+
+    console.warn(
+        "⚠ Twilio phone OTP is not configured."
+    );
 }
 
-
-// =========================================================
-// CIVIC AI SYSTEM PROMPT
-// =========================================================
-
-const CIVIC_SYSTEM_PROMPT = `
-
-You are CivicAI, an advanced civic complaint analysis AI.
-
-Your job is to analyze a citizen's description and/or uploaded photograph.
-
-Carefully inspect EVERYTHING provided.
-
-Determine:
-
-1. Whether there is a genuine civic/public problem.
-2. What the actual problem is.
-3. Category.
-4. Severity.
-5. Risk.
-6. Urgency.
-7. Appropriate government department.
-8. Appropriate authority level.
-9. Whether escalation to a higher authority is necessary.
-10. What evidence is visible.
-11. What information is missing.
-12. Recommended action.
-
-Do NOT invent facts.
-
-Do NOT invent a location.
-
-Do NOT invent evidence.
-
-Do NOT claim certainty when the image is unclear.
-
-Severity:
-
-Low
-Medium
-High
-Critical
-
-Risk:
-
-Low
-Medium
-High
-Critical
-
-Urgency:
-
-Routine
-Soon
-Urgent
-Emergency
-
-Authority levels:
-
-Local
-Municipal
-District
-State
-Emergency
-
-Examples:
-
-Pothole -> Roads / Municipal Engineering
-
-Garbage -> Municipal Sanitation
-
-Drainage -> Drainage / Municipal Engineering
-
-Street light -> Electricity / Municipal Authority
-
-Water leakage -> Water Supply
-
-Sewage overflow -> Sanitation / Sewerage
-
-Dangerous exposed wire -> Electricity / Emergency
-
-Major road collapse -> Roads / Municipal Engineering / Higher Authority
-
-Flooding -> Disaster Management / Municipal Authority
-
-If there is immediate danger to life, classify the issue as Critical and Emergency.
-
-Return ONLY JSON.
-
-Use:
-
-{
-"isCivicIssue": true,
-"responseType": "civic_issue",
-"problem": "",
-"category": "",
-"severity": "Low",
-"risk": "Low",
-"urgency": "Routine",
-"department": "",
-"authorityLevel": "Local",
-"escalationRequired": false,
-"location": "",
-"confidence": "Medium",
-"visibleEvidence": "",
-"summary": "",
-"recommendation": "",
-"message": ""
-}
-
-responseType:
-
-greeting
-general_question
-civic_issue
-unclear
-
-confidence:
-
-High
-Medium
-Low
-
-`;
-
-
-// =========================================================
-// ANALYZE CIVIC PROBLEM
-// =========================================================
-
-app.post(
-    "/api/analyze",
-    async (req, res) => {
-
-        try {
-
-            const {
-                description,
-                location,
-                reporterName,
-                image
-            } =
-                req.body || {};
-
-
-            const cleanDescription =
-                cleanText(
-                    description
-                );
-
-            const cleanLocation =
-                cleanText(
-                    location
-                );
-
-            const cleanReporterName =
-                cleanText(
-                    reporterName
-                );
-
-
-            const cleanImage =
-                typeof image === "string" &&
-                image.startsWith(
-                    "data:image/"
-                )
-                    ? image
-                    : null;
-
-
-            if (
-                !cleanDescription &&
-                !cleanImage
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Please provide description or image."
-
-                    });
-
-            }
-
-
-            const userText = `
-
-Citizen name:
-${cleanReporterName || "Anonymous"}
-
-Citizen description:
-${cleanDescription || "No description provided."}
-
-Citizen location:
-${cleanLocation || "Location not provided."}
-
-Analyze the attached evidence carefully.
-
-`;
-
-
-
-            const aiContent =
-                await callGemini({
-
-                    systemPrompt:
-                        CIVIC_SYSTEM_PROMPT,
-
-                    userText,
-
-                    image:
-                        cleanImage,
-
-                    temperature:
-                        0.25,
-
-                    maxOutputTokens:
-                        1400,
-
-                    jsonMode:
-                        true
-
-                });
-
-
-            const analysis =
-                parseAIJson(
-                    aiContent
-                );
-
-
-            const result = {
-
-                isCivicIssue:
-                    analysis.isCivicIssue === true,
-
-                responseType:
-                    cleanText(
-                        analysis.responseType
-                    ) || "unclear",
-
-                problem:
-                    cleanText(
-                        analysis.problem
-                    ),
-
-                category:
-                    cleanText(
-                        analysis.category
-                    ),
-
-                severity:
-                    cleanText(
-                        analysis.severity
-                    ) || "Low",
-
-                risk:
-                    cleanText(
-                        analysis.risk
-                    ) || "Low",
-
-                urgency:
-                    cleanText(
-                        analysis.urgency
-                    ) || "Routine",
-
-                department:
-                    cleanText(
-                        analysis.department
-                    ),
-
-                authorityLevel:
-                    cleanText(
-                        analysis.authorityLevel
-                    ) || "Local",
-
-                escalationRequired:
-                    analysis.escalationRequired === true,
-
-                location:
-                    cleanText(
-                        analysis.location
-                    ) ||
-                    cleanLocation,
-
-                confidence:
-                    cleanText(
-                        analysis.confidence
-                    ) || "Medium",
-
-                visibleEvidence:
-                    cleanText(
-                        analysis.visibleEvidence
-                    ),
-
-                summary:
-                    cleanText(
-                        analysis.summary
-                    ),
-
-                recommendation:
-                    cleanText(
-                        analysis.recommendation
-                    ),
-
-                message:
-                    cleanText(
-                        analysis.message
-                    )
-
-            };
-
-
-            return res.json({
-
-                success: true,
-
-                source:
-                    "google-gemini",
-
-                model:
-                    GEMINI_MODEL,
-
-                analysis:
-                    result
-
-            });
-
-        }
-        catch (error) {
-
-            console.error(
-                "CIVIC AI ERROR:",
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success: false,
-
-                    error:
-                        error?.message ||
-                        "AI analysis failed."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// AUTHORITY DATABASE
-// =========================================================
-//
-// এগুলো example.
-// তোমার actual authority Gmail/phone এখানে বসাবে.
-//
-
-const AUTHORITIES = {
-
-    roads: {
-
-        department:
-            "Roads / Municipal Engineering",
-
-        email:
-            process.env.ROAD_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.ROAD_AUTHORITY_PHONE || ""
-
-    },
-
-    sanitation: {
-
-        department:
-            "Municipal Sanitation",
-
-        email:
-            process.env.SANITATION_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.SANITATION_AUTHORITY_PHONE || ""
-
-    },
-
-    drainage: {
-
-        department:
-            "Drainage / Sewerage",
-
-        email:
-            process.env.DRAINAGE_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.DRAINAGE_AUTHORITY_PHONE || ""
-
-    },
-
-    electricity: {
-
-        department:
-            "Electricity Department",
-
-        email:
-            process.env.ELECTRICITY_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.ELECTRICITY_AUTHORITY_PHONE || ""
-
-    },
-
-    water: {
-
-        department:
-            "Water Supply Department",
-
-        email:
-            process.env.WATER_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.WATER_AUTHORITY_PHONE || ""
-
-    },
-
-    general: {
-
-        department:
-            "Municipal Authority",
-
-        email:
-            process.env.GENERAL_AUTHORITY_EMAIL || "",
-
-        phone:
-            process.env.GENERAL_AUTHORITY_PHONE || ""
-
-    }
-
-};
-
-
-// =========================================================
-// AUTHORITY ROUTING
-// =========================================================
-
-function getAuthority(
-    analysis
-) {
-
-    const department =
-        cleanText(
-            analysis?.department
-        ).toLowerCase();
-
-
-    if (
-        department.includes("road")
-    ) {
-
-        return AUTHORITIES.roads;
-
-    }
-
-
-    if (
-        department.includes("garbage") ||
-        department.includes("sanitation") ||
-        department.includes("waste")
-    ) {
-
-        return AUTHORITIES.sanitation;
-
-    }
-
-
-    if (
-        department.includes("drain") ||
-        department.includes("sewer")
-    ) {
-
-        return AUTHORITIES.drainage;
-
-    }
-
-
-    if (
-        department.includes("electric")
-    ) {
-
-        return AUTHORITIES.electricity;
-
-    }
-
-
-    if (
-        department.includes("water")
-    ) {
-
-        return AUTHORITIES.water;
-
-    }
-
-
-    return AUTHORITIES.general;
-
-}
-
-
-// =========================================================
-// OTP GENERATOR
-// =========================================================
-
-function generateOTP() {
-
-    return crypto
-        .randomInt(
-            100000,
-            1000000
-        )
-        .toString();
-
-}
-
-
-// =========================================================
-// OTP HASH
-// =========================================================
-
-function hashOTP(
-    otp
-) {
-
-    return crypto
-        .createHash(
-            "sha256"
-        )
-        .update(
-            otp
-        )
-        .digest(
-            "hex"
-        );
-
-}
-
-
-// =========================================================
-// OTP REQUEST ID
-// =========================================================
-
-function generateOtpId() {
-
-    return crypto
-        .randomBytes(
-            24
-        )
-        .toString(
-            "hex"
-        );
-
-}
-
-
-// =========================================================
-// SEND EMAIL OTP
-// =========================================================
-
-async function sendEmailOTP(
-    email,
-    otp
-) {
-
-    if (
-        !emailTransporter
-    ) {
-
-        throw new Error(
-            "Gmail SMTP is not configured."
-        );
-
-    }
-
-
-    await emailTransporter.sendMail({
-
-        from:
-            EMAIL_FROM,
-
-        to:
-            email,
-
-        subject:
-            "CivicAI Verification Code",
-
-        text:
-            `Your CivicAI verification code is ${otp}. This code expires in 5 minutes. Do not share this code with anyone.`,
-
-        html: `
-
-<!DOCTYPE html>
-
-<html>
-
-<body style="
-font-family:Arial,sans-serif;
-background:#f4f7fb;
-padding:30px;
-">
-
-<div style="
-max-width:600px;
-margin:auto;
-background:white;
-padding:30px;
-border-radius:16px;
-">
-
-<h2 style="
-color:#003566;
-">
-CivicAI Verification
-</h2>
-
-<p>
-Your verification code is:
-</p>
-
-<div style="
-font-size:36px;
-font-weight:bold;
-letter-spacing:8px;
-color:#003566;
-padding:20px;
-background:#f1f5f9;
-text-align:center;
-border-radius:12px;
-">
-
-${otp}
-
-</div>
-
-<p>
-This code will expire in <b>5 minutes</b>.
-</p>
-
-<p>
-If you did not request this verification, you can safely ignore this email.
-</p>
-
-<hr>
-
-<p style="color:#777;">
-CivicAI
-</p>
-
-</div>
-
-</body>
-
-</html>
-
-`
-
-    });
-
-}
-
-
-// =========================================================
+// ============================================================
 // SEND PHONE OTP
-// =========================================================
-
-async function sendPhoneOTP(
-    phone,
-    otp
-) {
-
-    if (
-        !twilioClient
-    ) {
-
-        throw new Error(
-            "Twilio is not configured."
-        );
-
-    }
-
-
-    await twilioClient.messages.create({
-
-        body:
-            `CivicAI verification code: ${otp}. This code expires in 5 minutes. Do not share it.`,
-
-        from:
-            TWILIO_PHONE_NUMBER,
-
-        to:
-            phone
-
-    });
-
-}
-
-
-// =========================================================
-// REQUEST OTP
-// =========================================================
+// ============================================================
 
 app.post(
-    "/api/request-otp",
+    "/api/send-phone-otp",
     async (req, res) => {
 
         try {
 
-            const {
-                email,
-                phone
-            } =
-                req.body || {};
+            const phone =
+                safeString(
+                    req.body?.phone
+                ).trim();
 
+            if (!phone) {
 
-            const cleanEmail =
-                cleanText(
-                    email
-                ).toLowerCase();
-
-
-            const cleanPhone =
-                cleanText(
-                    phone
-                );
-
-
-            if (
-                !cleanEmail &&
-                !cleanPhone
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Email or phone number is required."
-
-                    });
-
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Phone number is required."
+                });
             }
 
+            if (!twilioClient) {
 
-            if (
-                cleanEmail &&
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                    .test(
-                        cleanEmail
-                    )
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Invalid email address."
-
-                    });
-
+                return res.status(500).json({
+                    success: false,
+                    error:
+                        "Twilio OTP is not configured on the server."
+                });
             }
-
 
             const otp =
                 generateOTP();
 
-
-            const otpId =
-                generateOtpId();
-
-
-            const record = {
-
-                otpHash:
-                    hashOTP(
-                        otp
-                    ),
-
-                email:
-                    cleanEmail,
-
-                phone:
-                    cleanPhone,
-
-                expiresAt:
-                    Date.now() +
-                    OTP_EXPIRY_MS,
-
-                attempts:
-                    0,
-
-                verified:
-                    false
-
-            };
-
-
             otpStore.set(
-                otpId,
-                record
-            );
-
-
-            let emailSent =
-                false;
-
-            let phoneSent =
-                false;
-
-
-            if (
-                cleanEmail
-            ) {
-
-                await sendEmailOTP(
-                    cleanEmail,
-                    otp
-                );
-
-                emailSent =
-                    true;
-
-            }
-
-
-            if (
-                cleanPhone
-            ) {
-
-                await sendPhoneOTP(
-                    cleanPhone,
-                    otp
-                );
-
-                phoneSent =
-                    true;
-
-            }
-
-
-            return res.json({
-
-                success: true,
-
-                otpId,
-
-                emailSent,
-
-                phoneSent,
-
-                expiresInSeconds:
-                    300
-
-            });
-
-        }
-        catch (error) {
-
-            console.error(
-                "OTP REQUEST ERROR:",
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success: false,
-
-                    error:
-                        error?.message ||
-                        "Unable to send OTP."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// VERIFY OTP
-// =========================================================
-
-app.post(
-    "/api/verify-otp",
-    (req, res) => {
-
-        try {
-
-            const {
-                otpId,
-                otp
-            } =
-                req.body || {};
-
-
-            const cleanOtpId =
-                cleanText(
-                    otpId
-                );
-
-            const cleanOtp =
-                cleanText(
-                    otp
-                );
-
-
-            if (
-                !cleanOtpId ||
-                !cleanOtp
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "OTP ID and OTP are required."
-
-                    });
-
-            }
-
-
-            const record =
-                otpStore.get(
-                    cleanOtpId
-                );
-
-
-            if (
-                !record
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "OTP session expired or invalid."
-
-                    });
-
-            }
-
-
-            if (
-                Date.now() >
-                record.expiresAt
-            ) {
-
-                otpStore.delete(
-                    cleanOtpId
-                );
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "OTP has expired."
-
-                    });
-
-            }
-
-
-            record.attempts++;
-
-
-            if (
-                record.attempts >
-                MAX_OTP_ATTEMPTS
-            ) {
-
-                otpStore.delete(
-                    cleanOtpId
-                );
-
-                return res
-                    .status(429)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Too many OTP attempts."
-
-                    });
-
-            }
-
-
-            if (
-                hashOTP(
-                    cleanOtp
-                ) !==
-                record.otpHash
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Incorrect OTP."
-
-                    });
-
-            }
-
-
-            const verificationToken =
-                crypto
-                    .randomBytes(
-                        32
-                    )
-                    .toString(
-                        "hex"
-                    );
-
-
-            verifiedUsers.set(
-                verificationToken,
+                `phone:${phone}`,
                 {
-
-                    email:
-                        record.email,
-
-                    phone:
-                        record.phone,
-
-                    verifiedAt:
-                        Date.now(),
-
-                    expiresAt:
+                    otp,
+                    expires:
                         Date.now() +
-                        30 * 60 * 1000
-
+                        OTP_EXPIRY,
+                    attempts: 0
                 }
             );
 
-
-            otpStore.delete(
-                cleanOtpId
-            );
-
-
-            return res.json({
-
-                success: true,
-
-                verified: true,
-
-                verificationToken,
-
-                message:
-                    "User verified successfully."
-
-            });
-
-        }
-        catch (error) {
-
-            console.error(
-                "OTP VERIFY ERROR:",
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success: false,
-
-                    error:
-                        "OTP verification failed."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// CHECK VERIFICATION
-// =========================================================
-
-function getVerifiedUser(
-    token
-) {
-
-    if (
-        !token
-    ) {
-
-        return null;
-
-    }
-
-
-    const user =
-        verifiedUsers.get(
-            token
-        );
-
-
-    if (
-        !user
-    ) {
-
-        return null;
-
-    }
-
-
-    if (
-        Date.now() >
-        user.expiresAt
-    ) {
-
-        verifiedUsers.delete(
-            token
-        );
-
-        return null;
-
-    }
-
-
-    return user;
-
-}
-
-
-// =========================================================
-// GENERATE REPORT ID
-// =========================================================
-
-function generateReportId() {
-
-    return (
-        "CIVIC-" +
-        Date.now().toString().slice(-8) +
-        "-" +
-        crypto
-            .randomInt(
-                1000,
-                9999
-            )
-    );
-
-}
-
-
-// =========================================================
-// GENERATE COMPLAINT LETTER
-// =========================================================
-
-async function generateComplaintLetter({
-
-    reporterName,
-
-    description,
-
-    location,
-
-    analysis,
-
-    authority
-
-}) {
-
-    const systemPrompt = `
-
-You are CivicAI Complaint Letter Generator.
-
-Create a formal, professional civic complaint letter.
-
-The letter must be based ONLY on the supplied facts and AI analysis.
-
-Never invent facts.
-
-Never invent dates.
-
-Never invent evidence.
-
-Never invent authority names.
-
-The letter should include:
-
-- Subject
-- Respectful greeting
-- Problem description
-- Location
-- Severity/risk
-- Evidence summary
-- Requested action
-- Closing
-- Citizen name
-
-Write a clear professional complaint suitable for sending to a government authority.
-
-Return ONLY JSON:
-
-{
-    "subject": "",
-    "body": ""
-}
-
-`;
-
-
-    const userText = `
-
-Citizen name:
-${reporterName || "Citizen"}
-
-Description:
-${description || "No written description provided."}
-
-Location:
-${location || "Not provided"}
-
-AI analysis:
-${JSON.stringify(
-    analysis,
-    null,
-    2
-)}
-
-Target department:
-${authority?.department || "Municipal Authority"}
-
-Write the complete complaint letter.
-
-`;
-
-
-    const aiContent =
-        await callGemini({
-
-            systemPrompt,
-
-            userText,
-
-            temperature:
-                0.25,
-
-            maxOutputTokens:
-                1600,
-
-            jsonMode:
-                true
-
-        });
-
-
-    const result =
-        parseAIJson(
-            aiContent
-        );
-
-
-    return {
-
-        subject:
-            cleanText(
-                result.subject
-            ) ||
-            "Civic Complaint",
-
-        body:
-            cleanText(
-                result.body
-            ) ||
-            "Please investigate and take appropriate action regarding the reported civic issue."
-
-    };
-
-}
-
-
-// =========================================================
-// SEND REPORT TO AUTHORITY
-// =========================================================
-
-app.post(
-    "/api/send-report",
-    async (req, res) => {
-
-        try {
-
-            const {
-                verificationToken,
-                reporterName,
-                reporterEmail,
-                reporterPhone,
-                description,
-                location,
-                analysis
-            } =
-                req.body || {};
-
-
-            // =================================================
-            // USER VERIFICATION
-            // =================================================
-
-            const verifiedUser =
-                getVerifiedUser(
-                    cleanText(
-                        verificationToken
-                    )
-                );
-
-
-            if (
-                !verifiedUser
-            ) {
-
-                return res
-                    .status(403)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "User verification required before sending the complaint."
-
-                    });
-
-            }
-
-
-            // =================================================
-            // VALIDATION
-            // =================================================
-
-            if (
-                !analysis ||
-                analysis.isCivicIssue !== true
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "A valid civic issue analysis is required."
-
-                    });
-
-            }
-
-
-            if (
-                !cleanText(
-                    location
-                )
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Location is required."
-
-                    });
-
-            }
-
-
-            // =================================================
-            // AUTHORITY
-            // =================================================
-
-            const authority =
-                getAuthority(
-                    analysis
-                );
-
-
-            if (
-                !authority.email
-            ) {
-
-                return res
-                    .status(500)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "No authority email has been configured for this issue."
-
-                    });
-
-            }
-
-
-            // =================================================
-            // COMPLAINT LETTER
-            // =================================================
-
-            const complaint =
-                await generateComplaintLetter({
-
-                    reporterName:
-                        cleanText(
-                            reporterName
-                        ) ||
-                        "Citizen",
-
-                    description:
-                        cleanText(
-                            description
-                        ),
-
-                    location:
-                        cleanText(
-                            location
-                        ),
-
-                    analysis,
-
-                    authority
-
-                });
-
-
-            // =================================================
-            // EMAIL
-            // =================================================
-
-            if (
-                !emailTransporter
-            ) {
-
-                return res
-                    .status(500)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Gmail is not configured on the server."
-
-                    });
-
-            }
-
-
-            const reportId =
-                generateReportId();
-
-
-            const mailSubject =
-                `[CivicAI ${analysis.severity || "Issue"}] ${complaint.subject} — ${reportId}`;
-
-
-            await emailTransporter.sendMail({
-
+            await twilioClient.messages.create({
+                body:
+                    `Your CivicAI verification code is ${otp}. It expires in 5 minutes.`,
                 from:
-                    EMAIL_FROM,
-
-                to:
-                    authority.email,
-
-                replyTo:
-                    cleanText(
-                        reporterEmail
-                    ) ||
-                    verifiedUser.email ||
-                    EMAIL_USER,
-
-                subject:
-                    mailSubject,
-
-                text:
-                    complaint.body,
-
-                html: `
-
-<!DOCTYPE html>
-
-<html>
-
-<head>
-
-<meta charset="UTF-8">
-
-</head>
-
-<body style="
-margin:0;
-padding:30px;
-background:#f4f7fb;
-font-family:Arial,sans-serif;
-color:#172033;
-">
-
-<div style="
-max-width:720px;
-margin:auto;
-background:#ffffff;
-border-radius:18px;
-overflow:hidden;
-box-shadow:0 10px 30px rgba(0,0,0,.08);
-">
-
-<div style="
-background:linear-gradient(
-135deg,
-#000814,
-#001d3d,
-#003566
-);
-padding:28px;
-color:white;
-">
-
-<h1 style="
-margin:0;
-font-size:25px;
-">
-CivicAI
-</h1>
-
-<p style="
-margin:8px 0 0;
-opacity:.85;
-">
-Official Civic Complaint
-</p>
-
-</div>
-
-<div style="
-padding:30px;
-">
-
-<div style="
-background:#f4f7fb;
-padding:18px;
-border-radius:12px;
-margin-bottom:22px;
-">
-
-<p>
-<b>Report ID:</b>
-${reportId}
-</p>
-
-<p>
-<b>Department:</b>
-${authority.department}
-</p>
-
-<p>
-<b>Severity:</b>
-${cleanText(analysis.severity)}
-</p>
-
-<p>
-<b>Risk:</b>
-${cleanText(analysis.risk)}
-</p>
-
-<p>
-<b>Urgency:</b>
-${cleanText(analysis.urgency)}
-</p>
-
-<p>
-<b>Location:</b>
-${cleanText(location)}
-</p>
-
-</div>
-
-<h2>
-${complaint.subject}
-</h2>
-
-<div style="
-white-space:pre-line;
-line-height:1.75;
-font-size:15px;
-">
-
-${complaint.body
-    .replace(
-        /\n/g,
-        "<br>"
-    )}
-
-</div>
-
-<hr style="
-margin:28px 0;
-border:0;
-border-top:1px solid #ddd;
-">
-
-<p style="
-font-size:13px;
-color:#777;
-">
-
-This complaint was analyzed and prepared by CivicAI based on information supplied by the citizen.
-
-</p>
-
-</div>
-
-</div>
-
-</body>
-
-</html>
-
-`
-
+                    TWILIO_PHONE_NUMBER,
+                to: phone
             });
-
-
-            // =================================================
-            // SAVE REPORT
-            // =================================================
-
-            const reports =
-                readReports();
-
-
-            const report = {
-
-                reportId,
-
-                reporterName:
-                    cleanText(
-                        reporterName
-                    ) ||
-                    "Anonymous",
-
-                reporterEmail:
-                    cleanText(
-                        reporterEmail
-                    ) ||
-                    verifiedUser.email,
-
-                reporterPhone:
-                    cleanText(
-                        reporterPhone
-                    ) ||
-                    verifiedUser.phone,
-
-                description:
-                    cleanText(
-                        description
-                    ),
-
-                location:
-                    cleanText(
-                        location
-                    ),
-
-                analysis,
-
-                authority: {
-
-                    department:
-                        authority.department,
-
-                    email:
-                        authority.email,
-
-                    phone:
-                        authority.phone
-
-                },
-
-                complaint: {
-
-                    subject:
-                        complaint.subject,
-
-                    body:
-                        complaint.body
-
-                },
-
-                status:
-                    "Sent to Authority",
-
-                verified:
-                    true,
-
-                submittedAt:
-                    new Date()
-                        .toISOString(),
-
-                createdAt:
-                    new Date()
-                        .toISOString()
-
-            };
-
-
-            reports.push(
-                report
-            );
-
-
-            saveReports(
-                reports
-            );
-
-
-            // =================================================
-            // CONSUME VERIFICATION TOKEN
-            // =================================================
-
-            verifiedUsers.delete(
-                cleanText(
-                    verificationToken
-                )
-            );
-
 
             return res.json({
-
                 success: true,
-
-                sent: true,
-
-                reportId,
-
-                authority: {
-
-                    department:
-                        authority.department,
-
-                    email:
-                        authority.email
-
-                },
-
-                complaint,
-
                 message:
-                    "Your complaint has been verified and successfully sent to the appropriate authority."
-
+                    "OTP sent successfully."
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "SEND REPORT ERROR:",
+                "PHONE OTP ERROR:",
                 error
             );
 
-
-            return res
-                .status(500)
-                .json({
-
-                    success: false,
-
-                    error:
-                        error?.message ||
-                        "Unable to send complaint."
-
-                });
-
+            return res.status(500).json({
+                success: false,
+                error:
+                    error?.message ||
+                    "Failed to send phone OTP."
+            });
         }
-
     }
 );
 
-
-// =========================================================
-// READ REPORTS
-// =========================================================
-
-function readReports() {
-
-    try {
-
-        const content =
-            fs.readFileSync(
-                REPORTS_FILE,
-                "utf8"
-            );
-
-
-        const reports =
-            JSON.parse(
-                content
-            );
-
-
-        return Array.isArray(
-            reports
-        )
-            ? reports
-            : [];
-
-    }
-    catch {
-
-        return [];
-
-    }
-
-}
-
-
-// =========================================================
-// SAVE REPORTS
-// =========================================================
-
-function saveReports(
-    reports
-) {
-
-    fs.writeFileSync(
-
-        REPORTS_FILE,
-
-        JSON.stringify(
-            reports,
-            null,
-            2
-        ),
-
-        "utf8"
-
-    );
-
-}
-
-
-// =========================================================
-// CREATE REPORT MANUALLY
-// =========================================================
+// ============================================================
+// VERIFY PHONE OTP
+// ============================================================
 
 app.post(
-    "/api/reports",
+    "/api/verify-phone-otp",
     (req, res) => {
 
         try {
 
-            const body =
-                req.body || {};
+            const phone =
+                safeString(
+                    req.body?.phone
+                ).trim();
 
+            const otp =
+                safeString(
+                    req.body?.otp
+                ).trim();
 
-            const {
-                reporterName,
-                description,
-                location,
-                analysis,
-                submittedAt
-            } =
-                body;
+            if (!phone || !otp) {
 
-
-            if (
-                !analysis ||
-                typeof analysis !==
-                "object"
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "AI analysis is required."
-
-                    });
-
-            }
-
-
-            if (
-                !cleanText(
-                    location
-                )
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "Report location is required."
-
-                    });
-
-            }
-
-
-            if (
-                analysis.isCivicIssue ===
-                false
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success: false,
-
-                        error:
-                            "This is not a civic issue."
-
-                    });
-
-            }
-
-
-            const reports =
-                readReports();
-
-
-            const reportId =
-                generateReportId();
-
-
-            const report = {
-
-                reportId,
-
-                reporterName:
-                    cleanText(
-                        reporterName
-                    ) ||
-                    "Anonymous",
-
-                description:
-                    cleanText(
-                        description
-                    ),
-
-                location:
-                    cleanText(
-                        location
-                    ),
-
-                analysis,
-
-                status:
-                    "Submitted",
-
-                submittedAt:
-                    submittedAt ||
-                    new Date()
-                        .toISOString(),
-
-                createdAt:
-                    new Date()
-                        .toISOString()
-
-            };
-
-
-            reports.push(
-                report
-            );
-
-
-            saveReports(
-                reports
-            );
-
-
-            return res
-                .status(201)
-                .json({
-
-                    success: true,
-
-                    message:
-                        "Civic report saved.",
-
-                    reportId,
-
-                    report
-
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Phone number and OTP are required."
                 });
+            }
 
-        }
-        catch (error) {
+            const key =
+                `phone:${phone}`;
+
+            const record =
+                otpStore.get(key);
+
+            if (!record) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "OTP not found or expired."
+                });
+            }
+
+            if (
+                Date.now() >
+                record.expires
+            ) {
+
+                otpStore.delete(key);
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "OTP expired. Please request a new OTP."
+                });
+            }
+
+            record.attempts++;
+
+            if (
+                record.attempts > 5
+            ) {
+
+                otpStore.delete(key);
+
+                return res.status(429).json({
+                    success: false,
+                    error:
+                        "Too many incorrect attempts."
+                });
+            }
+
+            if (
+                record.otp !== otp
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    error:
+                        "Incorrect OTP."
+                });
+            }
+
+            otpStore.delete(key);
+
+            return res.json({
+                success: true,
+                verified: true,
+                message:
+                    "Phone number verified successfully."
+            });
+
+        } catch (error) {
 
             console.error(
-                "REPORT ERROR:",
+                "PHONE VERIFY ERROR:",
                 error
             );
 
-
-            return res
-                .status(500)
-                .json({
-
-                    success: false,
-
-                    error:
-                        "Unable to save report."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// GET ALL REPORTS
-// =========================================================
-
-app.get(
-    "/api/reports",
-    (req, res) => {
-
-        const reports =
-            readReports();
-
-
-        return res.json({
-
-            success: true,
-
-            count:
-                reports.length,
-
-            reports
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// GET SINGLE REPORT
-// =========================================================
-
-app.get(
-    "/api/reports/:reportId",
-    (req, res) => {
-
-        const reports =
-            readReports();
-
-
-        const report =
-            reports.find(
-                item =>
-                    item.reportId ===
-                    req.params.reportId
-            );
-
-
-        if (
-            !report
-        ) {
-
-            return res
-                .status(404)
-                .json({
-
-                    success: false,
-
-                    error:
-                        "Report not found."
-
-                });
-
-        }
-
-
-        return res.json({
-
-            success: true,
-
-            report
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// BLOCK PRIVATE FILES
-// =========================================================
-
-app.use(
-    (req, res, next) => {
-
-        const requestedPath =
-            req.path.toLowerCase();
-
-
-        const blocked =
-            requestedPath ===
-                "/server.js" ||
-
-            requestedPath ===
-                "/package.json" ||
-
-            requestedPath ===
-                "/package-lock.json" ||
-
-            requestedPath ===
-                "/.env" ||
-
-            requestedPath.startsWith(
-                "/data/"
-            ) ||
-
-            requestedPath.startsWith(
-                "/node_modules/"
-            );
-
-
-        if (
-            blocked
-        ) {
-
-            return res
-                .status(404)
-                .send(
-                    "Not found"
-                );
-
-        }
-
-
-        next();
-
-    }
-);
-
-
-// =========================================================
-// API 404
-// =========================================================
-
-app.use(
-    "/api",
-    (req, res) => {
-
-        return res
-            .status(404)
-            .json({
-
+            return res.status(500).json({
                 success: false,
-
                 error:
-                    "API endpoint not found.",
-
-                path:
-                    req.originalUrl,
-
-                method:
-                    req.method
-
+                    "Phone OTP verification failed."
             });
-
+        }
     }
 );
 
-
-// =========================================================
-// STATIC FRONTEND
-// =========================================================
-
-app.use(
-    express.static(
-        FRONTEND_DIR,
-        {
-
-            index: false,
-
-            dotfiles:
-                "ignore",
-
-            fallthrough:
-                true
-
-        }
-    )
-);
-
-
-// =========================================================
+// ============================================================
 // FRONTEND ROUTES
-// =========================================================
+// ============================================================
 
-const frontendPages = [
-
-    "index.html",
-
-    "login.html",
-
-    "register.html",
-
-    "report.html",
-
-    "report-proble.html",
-
-    "citizen.html",
-
-    "life-helper.html",
-
-    "track.html",
-
-    "admin.html"
-
-];
-
-
-for (
-    const page of
-    frontendPages
+function sendFrontendFile(
+    filename,
+    res
 ) {
 
-    app.get(
-        `/${page}`,
-        (req, res) => {
+    const filePath =
+        path.join(
+            FRONTEND_DIR,
+            filename
+        );
 
-            const filePath =
-                path.join(
-                    FRONTEND_DIR,
-                    page
-                );
+    if (
+        fs.existsSync(filePath)
+    ) {
 
+        return res.sendFile(
+            filePath
+        );
+    }
 
-            if (
-                !fs.existsSync(
-                    filePath
-                )
-            ) {
-
-                return res
-                    .status(404)
-                    .send(
-                        `${page} not found`
-                    );
-
-            }
-
-
-            return res.sendFile(
-                filePath
-            );
-
-        }
+    return res.status(404).send(
+        `${filename} not found`
     );
-
 }
 
-
-// =========================================================
-// ROOT
-// =========================================================
+// ============================================================
+// INDEX
+// ============================================================
 
 app.get(
     "/",
     (req, res) => {
 
-        const indexPath =
-            path.join(
-                FRONTEND_DIR,
-                "index.html"
-            );
-
-
-        if (
-            !fs.existsSync(
-                indexPath
-            )
-        ) {
-
-            return res
-                .status(404)
-                .send(
-                    "index.html not found"
-                );
-
-        }
-
-
-        return res.sendFile(
-            indexPath
-        );
-
-    }
-);
-
-
-// =========================================================
-// FRONTEND FALLBACK
-// =========================================================
-
-app.use(
-    (req, res, next) => {
-
-        const extension =
-            path.extname(
-                req.path
-            );
-
-
-        if (
-            extension
-        ) {
-
-            return next();
-
-        }
-
-
-        const indexPath =
-            path.join(
-                FRONTEND_DIR,
-                "index.html"
-            );
-
-
+        // If index.html exists
         if (
             fs.existsSync(
-                indexPath
+                path.join(
+                    FRONTEND_DIR,
+                    "index.html"
+                )
             )
         ) {
 
-            return res.sendFile(
-                indexPath
+            return sendFrontendFile(
+                "index.html",
+                res
             );
-
         }
 
+        // If the provided Life Helper HTML
+        // is saved as citizen.html
+        if (
+            fs.existsSync(
+                path.join(
+                    FRONTEND_DIR,
+                    "citizen.html"
+                )
+            )
+        ) {
 
-        next();
+            return sendFrontendFile(
+                "citizen.html",
+                res
+            );
+        }
 
+        return res.status(404).send(
+            "CivicAI frontend file not found."
+        );
     }
 );
 
+// ============================================================
+// COMMON HTML PAGES
+// ============================================================
 
-// =========================================================
-// FINAL 404
-// =========================================================
+app.get(
+    "/index.html",
+    (req, res) =>
+        sendFrontendFile(
+            "index.html",
+            res
+        )
+);
+
+app.get(
+    "/login",
+    (req, res) =>
+        sendFrontendFile(
+            "login.html",
+            res
+        )
+);
+
+app.get(
+    "/register",
+    (req, res) =>
+        sendFrontendFile(
+            "register.html",
+            res
+        )
+);
+
+app.get(
+    "/report",
+    (req, res) =>
+        sendFrontendFile(
+            "report.html",
+            res
+        )
+);
+
+app.get(
+    "/citizen",
+    (req, res) =>
+        sendFrontendFile(
+            "citizen.html",
+            res
+        )
+);
+
+// ============================================================
+// 404 API HANDLER
+// ============================================================
+
+app.use(
+    "/api",
+    (req, res) => {
+
+        res.status(404).json({
+            success: false,
+            error:
+                `API endpoint not found: ${req.method} ${req.originalUrl}`
+        });
+    }
+);
+
+// ============================================================
+// GENERAL 404
+// ============================================================
 
 app.use(
     (req, res) => {
 
-        return res
-            .status(404)
-            .json({
+        if (
+            req.accepts("html")
+        ) {
 
-                success: false,
+            return res.status(404).send(
+                "CivicAI page not found."
+            );
+        }
 
-                error:
-                    "CivicAI: Page not found."
-
-            });
-
+        return res.status(404).json({
+            success: false,
+            error:
+                "Route not found."
+        });
     }
 );
 
-
-// =========================================================
-// GLOBAL ERROR
-// =========================================================
+// ============================================================
+// GLOBAL ERROR HANDLER
+// ============================================================
 
 app.use(
-    (
-        error,
-        req,
-        res,
-        next
-    ) => {
+    (error, req, res, next) => {
 
         console.error(
             "GLOBAL SERVER ERROR:",
             error
         );
 
+        if (res.headersSent) {
+            return next(error);
+        }
 
-        return res
-            .status(500)
-            .json({
-
-                success: false,
-
-                error:
-                    "Internal server error."
-
-            });
-
+        res.status(500).json({
+            success: false,
+            error:
+                error?.message ||
+                "Internal server error."
+        });
     }
 );
 
-
-// =========================================================
+// ============================================================
 // START SERVER
-// =========================================================
+// ============================================================
 
 app.listen(
     PORT,
     () => {
 
         console.log("");
-
         console.log(
-            "=========================================="
+            "============================================================"
+        );
+        console.log(
+            "                 CIVICAI SERVER"
+        );
+        console.log(
+            "============================================================"
         );
 
         console.log(
-            "        CIVICAI BACKEND SERVER"
-        );
-
-        console.log(
-            "=========================================="
-        );
-
-        console.log("");
-
-        console.log(
-            `Server running on port: ${PORT}`
-        );
-
-        console.log(
-            `Local URL: http://localhost:${PORT}`
+            `✓ Server running: http://localhost:${PORT}`
         );
 
         console.log("");
-
         console.log(
-            "FRONTEND:"
+            "AI ENDPOINTS:"
         );
 
         console.log(
-            `INDEX:       http://localhost:${PORT}/`
+            `  POST http://localhost:${PORT}/api/chat`
         );
 
         console.log(
-            `LOGIN:       http://localhost:${PORT}/login.html`
+            `  POST http://localhost:${PORT}/api/analyze`
         );
 
         console.log(
-            `REGISTER:    http://localhost:${PORT}/register.html`
-        );
-
-        console.log(
-            `REPORT:      http://localhost:${PORT}/report-proble.html`
+            `  POST http://localhost:${PORT}/api/transcribe`
         );
 
         console.log("");
-
         console.log(
-            "AI:"
+            "OTP ENDPOINTS:"
         );
 
         console.log(
-            "Provider: Google Gemini"
+            `  POST http://localhost:${PORT}/api/send-email-otp`
         );
 
         console.log(
-            `Model: ${GEMINI_MODEL}`
+            `  POST http://localhost:${PORT}/api/verify-email-otp`
         );
 
         console.log(
-            `Gemini: ${
-                hasGeminiKey()
-                    ? "CONFIGURED"
-                    : "NOT CONFIGURED"
-            }`
+            `  POST http://localhost:${PORT}/api/send-phone-otp`
+        );
+
+        console.log(
+            `  POST http://localhost:${PORT}/api/verify-phone-otp`
         );
 
         console.log("");
-
         console.log(
-            "VERIFICATION:"
+            `✓ Health: http://localhost:${PORT}/api/health`
+        );
+
+        console.log("");
+        console.log(
+            "CONFIGURATION:"
         );
 
         console.log(
-            `Gmail OTP: ${
-                hasEmailConfig()
-                    ? "CONFIGURED"
+            `  Gemini: ${
+                GEMINI_API_KEY
+                    ? "READY"
                     : "NOT CONFIGURED"
             }`
         );
 
         console.log(
-            `Phone OTP: ${
-                hasTwilioConfig()
-                    ? "CONFIGURED"
+            `  Gmail OTP: ${
+                mailTransporter
+                    ? "READY"
                     : "NOT CONFIGURED"
             }`
         );
 
-        console.log("");
-
         console.log(
-            "AUTHORITY EMAIL:"
-        );
-
-        console.log(
-            `Roads: ${
-                AUTHORITIES.roads.email
-                    ? "YES"
-                    : "NO"
+            `  Phone OTP: ${
+                twilioClient
+                    ? "READY"
+                    : "NOT CONFIGURED"
             }`
         );
 
         console.log(
-            `Sanitation: ${
-                AUTHORITIES.sanitation.email
-                    ? "YES"
-                    : "NO"
-            }`
-        );
-
-        console.log(
-            `Drainage: ${
-                AUTHORITIES.drainage.email
-                    ? "YES"
-                    : "NO"
-            }`
-        );
-
-        console.log(
-            `Electricity: ${
-                AUTHORITIES.electricity.email
-                    ? "YES"
-                    : "NO"
-            }`
-        );
-
-        console.log(
-            `Water: ${
-                AUTHORITIES.water.email
-                    ? "YES"
-                    : "NO"
-            }`
-        );
-
-        console.log(
-            `General: ${
-                AUTHORITIES.general.email
-                    ? "YES"
-                    : "NO"
-            }`
+            "============================================================"
         );
 
         console.log("");
-
-        console.log(
-            "=========================================="
-        );
-
-        console.log("");
-
     }
 );
