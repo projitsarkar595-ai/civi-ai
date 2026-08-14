@@ -294,6 +294,234 @@ body.light-mode .header-menu{
         padding-bottom:calc(20px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+/* =========================================================
+   CIVICAI FINAL UX FIXES
+========================================================= */
+.welcome-logo{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#6675ff 0%,#7b4df2 52%,#9a5cf6 100%);
+}
+.welcome-logo::before{
+    content:"";
+    position:absolute;
+    width:44px;height:44px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.30);
+    box-shadow:0 0 25px rgba(255,255,255,.12);
+}
+.welcome-logo-mark{
+    position:relative;z-index:2;
+    font-size:34px;font-weight:900;
+    letter-spacing:-2px;color:#fff;
+    text-shadow:0 4px 15px rgba(0,0,0,.18);
+}
+.welcome-logo-dot{
+    position:absolute;right:16px;top:14px;width:8px;height:8px;border-radius:50%;
+    background:#fff;box-shadow:0 0 12px rgba(255,255,255,.9);
+}
+.input-wrapper{
+    bottom:10px !important;
+    padding:10px 20px 12px !important;
+}
+.input-container{
+    position:relative;
+}
+.chat-input{
+    min-height:42px;
+}
+.send-btn{
+    flex:0 0 42px;
+}
+@media(max-width:850px){
+    .input-wrapper{
+        bottom:8px !important;
+        padding:8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+    }
+    .chat-area{
+        padding-bottom:190px !important;
+    }
+}
+@media(max-width:500px){
+    .input-wrapper{
+        bottom:6px !important;
+        padding:7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
+    }
+    .input-row{
+        padding:8px;
+        gap:5px;
+    }
+    .tool-btn{width:34px;height:34px}
+    .send-btn{width:40px;height:40px;flex-basis:40px}
+    .chat-input{font-size:14px;padding:8px 3px}
+    .input-footer{padding-bottom:5px}
+}
+/* Keep the draggable assistant from covering the input field by default. */
+@media(max-width:850px){
+    .assistant-dock{
+        bottom:118px !important;
+    }
+}
+@media(max-width:500px){
+    .assistant-dock{
+        bottom:112px !important;
+    }
+}
+
+
+.header-actions .icon-btn{
+    display:grid !important;
+    place-items:center !important;
+    opacity:1 !important;
+    visibility:visible !important;
+}
+.header-actions .icon-btn i{
+    display:block !important;
+    font-size:16px !important;
+}
+
+
+/* =========================================================
+   LIGHT MODE — REAL THEME
+========================================================= */
+body.light-mode{
+    --bg:#f3f6fb;
+    --panel:#ffffff;
+    --panel2:#eef2f8;
+    --text:#172033;
+    --text2:#536078;
+    --muted:#7b879c;
+    --border:rgba(20,35,60,.10);
+    --border2:rgba(20,35,60,.18);
+    background:radial-gradient(circle at 15% 10%,rgba(91,124,255,.10),transparent 30%),
+               radial-gradient(circle at 85% 85%,rgba(139,92,246,.08),transparent 30%),var(--bg);
+}
+body.light-mode .sidebar{
+    background:rgba(255,255,255,.94);
+}
+body.light-mode .header{
+    background:rgba(255,255,255,.78);
+}
+body.light-mode .input-container{
+    background:rgba(255,255,255,.94);
+}
+body.light-mode .message-bubble{
+    background:rgba(20,35,60,.045);
+    color:#25314a;
+}
+body.light-mode .message.user .message-bubble{
+    background:linear-gradient(135deg,rgba(91,124,255,.16),rgba(124,92,255,.12));
+}
+body.light-mode .chat-input{
+    color:#172033;
+}
+body.light-mode .chat-input::placeholder{
+    color:#8792a6;
+}
+body.light-mode .tool-btn,
+body.light-mode .icon-btn{
+    color:#58657b;
+}
+body.light-mode .sidebar-btn{
+    color:#5d6a80;
+}
+body.light-mode .new-chat{
+    color:#27324a;
+}
+body.light-mode .search-box input{
+    color:#172033;
+    background:rgba(20,35,60,.035);
+}
+body.light-mode .header-menu{
+    background:rgba(255,255,255,.98);
+    color:#172033;
+}
+body.light-mode .header-menu button{
+    color:#536078;
+}
+body.light-mode .header-menu button:hover{
+    background:rgba(20,35,60,.06);
+    color:#172033;
+}
+body.light-mode .input-footer{
+    color:#7b879c;
+}
+body.light-mode .assistant-label{
+    color:#5f6c82;
+}
+
+
+/* =========================================================
+   FINAL MOBILE INPUT POSITION + LOGO VISIBILITY
+========================================================= */
+.welcome-logo{
+    display:grid !important;
+    place-items:center !important;
+    min-width:76px !important;
+    min-height:76px !important;
+    opacity:1 !important;
+    visibility:visible !important;
+}
+.welcome-logo > i{
+    position:relative;
+    z-index:3;
+    color:#fff;
+    font-size:34px;
+    text-shadow:0 5px 18px rgba(0,0,0,.25);
+}
+.input-wrapper{
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:max(12px, env(safe-area-inset-bottom)) !important;
+    padding:8px 20px 0 !important;
+    z-index:10000 !important;
+}
+.input-container{
+    margin:0 auto !important;
+    width:min(900px,100%) !important;
+}
+.chat-area{
+    padding-bottom:170px !important;
+}
+@media(max-width:850px){
+    .input-wrapper{
+        bottom:max(14px, env(safe-area-inset-bottom)) !important;
+        padding:6px 10px 0 !important;
+    }
+    .chat-area{
+        padding-bottom:185px !important;
+    }
+}
+@media(max-width:500px){
+    .input-wrapper{
+        bottom:max(16px, env(safe-area-inset-bottom)) !important;
+        padding:5px 8px 0 !important;
+    }
+    .chat-area{
+        padding-bottom:195px !important;
+    }
+    .input-row{
+        padding:9px !important;
+        gap:5px !important;
+    }
+    .tool-btn{
+        width:34px !important;
+        height:36px !important;
+    }
+    .send-btn{
+        width:40px !important;
+        height:40px !important;
+    }
+    .chat-input{
+        min-height:40px !important;
+        font-size:14px !important;
+    }
+    .input-footer{
+        padding-bottom:6px !important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -336,7 +564,7 @@ body.light-mode .header-menu{
 
 <section class="chat-area" id="chatMessages">
  <div class="chat-container" id="chatContainer">
-  <div class="welcome" id="welcomeScreen"><div class="welcome-logo"><i class="fa-solid fa-sparkles"></i></div>
+  <div class="welcome" id="welcomeScreen"><div class="welcome-logo" aria-label="CivicAI AI Assistant"><i class="fa-solid fa-brain"></i><span class="welcome-logo-dot"></span></div>
    <h1>How can I help you?</h1><p>CivicAI is your AI life helper. Ask questions, speak naturally, upload an image, or keep Voice Assistant on for a hands-free conversation.</p>
   </div>
   <div class="typing" id="typingIndicator"><div class="typing-avatar"><i class="fa-solid fa-sparkles"></i></div>
@@ -450,11 +678,15 @@ chatInput.readOnly=false;
 chatInput.tabIndex=0;
 chatInput.setAttribute("aria-disabled","false");
 
-chatInput.addEventListener("input",resize);
+chatInput.addEventListener("input",()=>{
+    resize();
+    chatInput.dataset.userTyping="1";
+});
 
 chatInput.addEventListener("keydown",e=>{
     if(e.key==="Enter"&&!e.shiftKey){
         e.preventDefault();
+        e.stopPropagation();
         sendMessage();
     }
 });
@@ -463,8 +695,15 @@ chatInput.addEventListener("focus",()=>{
     chatInput.style.pointerEvents="auto";
 });
 
-chatInput.addEventListener("click",()=>{
+chatInput.addEventListener("click",e=>{
+    e.stopPropagation();
     chatInput.focus();
+});
+
+sendButton.addEventListener("click",e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    sendMessage();
 });
 
 /* ---------- backend ---------- */
@@ -489,7 +728,11 @@ async function getAI(text,file){
 async function sendMessage(){
  if(isSending)return;
  const text=String(chatInput.value||"").trim(),file=selectedFile;
- if(!text&&!file){showToast("Write a message or speak first.");return}
+ if(!text&&!file){showToast("Write a message or speak first.");chatInput.focus();return}
+ if(recognition && text){
+     /* Do not let a late recognition event overwrite a manually typed message. */
+     chatInput.dataset.ignoreRecognitionUntil=String(Date.now()+1200);
+ }
  isSending=true;sendButton.disabled=true;
  const shown=file?(text?text+"\n\n📎 Attached: "+file.name:"📎 Attached: "+file.name):text;
  renderMessage("user",shown);if(text)addRecent(text);
@@ -511,7 +754,7 @@ function clearAttachment(){selectedFile=null;attachmentPreview.classList.remove(
 function chooseFemaleVoice(){
  const voices=speechSynthesis.getVoices();
  if(!voices.length)return null;
- const preferred=["female","zira","samantha","google uk english female","google us english","microsoft heera","microsoft zira","karen"];
+ const preferred=["female","zira","samantha","heera","google uk english female","google us english","microsoft heera","microsoft zira","karen"];
  return voices.find(v=>preferred.some(k=>v.name.toLowerCase().includes(k)))||
         voices.find(v=>/female|zira|samantha|heera|karen/i.test(v.name))||
         voices.find(v=>/^en(-|_)/i.test(v.lang))||voices[0];
@@ -528,86 +771,530 @@ function speak(text){
  speakNext(gen);
 }
 function speakNext(gen){
- if(gen!==speechGeneration||!voiceMode||!speechQueue.length){isSpeaking=false;aiOrb.classList.remove("speaking");voiceWave.classList.remove("show");return}
+ if(gen!==speechGeneration||!voiceMode||!speechQueue.length){
+    isSpeaking=false;
+    aiOrb.classList.remove("speaking");
+    voiceWave.classList.remove("show");
+    if(voiceMode && !voiceProcessing) setTimeout(startVoiceRecorder,250);
+    return;
+ }
+
+ /* Prevent the microphone from hearing CivicAI's own voice. */
+ stopVoiceMonitor();
+ if(voiceRecorder && voiceRecorder.state==="recording"){
+    try{voiceRecorder.stop()}catch{}
+ }
+
  const u=new SpeechSynthesisUtterance(speechQueue.shift());
  const v=chooseFemaleVoice();if(v)u.voice=v;
- /* Try to match the detected/script language. */
- u.lang=/[\u0980-\u09FF]/.test(u.text)?"bn-IN":(/[\u0900-\u097F]/.test(u.text)?"hi-IN":"en-US");
- u.rate=.98;u.pitch=1.12;u.volume=1;
- isSpeaking=true;aiOrb.classList.add("speaking");voiceWave.classList.add("show");
- u.onend=()=>speakNext(gen);u.onerror=()=>speakNext(gen);speechSynthesis.speak(u);
-}
-speechSynthesis?.addEventListener?.("voiceschanged",()=>{});
 
-/* ---------- voice input ---------- */
+ /* Match the spoken answer's actual script/language. */
+ if(/[\u0980-\u09FF]/.test(u.text)) u.lang="bn-IN";
+ else if(/[\u0900-\u097F]/.test(u.text)) u.lang="hi-IN";
+ else if(/[\u0B80-\u0BFF]/.test(u.text)) u.lang="ta-IN";
+ else if(/[\u0C00-\u0C7F]/.test(u.text)) u.lang="te-IN";
+ else u.lang="en-IN";
+
+ u.rate=.94;
+ u.pitch=1.10;
+ u.volume=1;
+
+ isSpeaking=true;
+ aiOrb.classList.add("speaking");
+ voiceWave.classList.add("show");
+
+ u.onend=()=>speakNext(gen);
+ u.onerror=()=>speakNext(gen);
+ speechSynthesis.speak(u);
+}
+if("speechSynthesis" in window){window.speechSynthesis.addEventListener?.("voiceschanged",()=>{});}
+
+/* ---------- VOICE INPUT — AUTO LANGUAGE + PATIENT SENTENCE CAPTURE ---------- */
+/*
+  Primary mode:
+  - Records microphone audio.
+  - Waits for a real pause before stopping the utterance.
+  - Sends the audio to /api/transcribe.
+  - The server/Gemini detects the spoken language and returns the original
+    language/script (e.g. Bengali speech -> বাংলা text).
+  - The text is inserted into the textarea and sent automatically.
+
+  Browser SpeechRecognition remains as a fallback, but it cannot reliably
+  auto-detect spoken language by itself.
+*/
+let voiceRecorder=null;
+let voiceStream=null;
+let voiceChunks=[];
+let voiceAudioContext=null;
+let voiceAnalyser=null;
+let voiceMonitorFrame=null;
+let voiceHasSpeech=false;
+let voiceSilenceStarted=0;
+let voiceRecorderStarting=false;
+let voiceProcessing=false;
+let detectedVoiceLanguage="";
+let recognitionFallback=null;
+
+const VOICE_TRANSCRIBE_ENDPOINT="/api/transcribe";
+const VOICE_SILENCE_MS=1900;
+const VOICE_MIN_SPEECH_MS=350;
+const VOICE_RMS_THRESHOLD=0.018;
+let voiceSpeechStartedAt=0;
+
+function setVoiceStatus(message){
+    if(voiceStatus){
+        voiceStatus.textContent=message||"";
+        voiceStatus.classList.toggle("show",!!message);
+    }
+}
+
+function resetVoiceSentence(){
+    voiceHasSpeech=false;
+    voiceSilenceStarted=0;
+    voiceSpeechStartedAt=0;
+    voiceChunks=[];
+}
+
+function audioMimeType(){
+    if(window.MediaRecorder?.isTypeSupported?.("audio/webm;codecs=opus"))
+        return "audio/webm;codecs=opus";
+    if(window.MediaRecorder?.isTypeSupported?.("audio/webm"))
+        return "audio/webm";
+    if(window.MediaRecorder?.isTypeSupported?.("audio/ogg;codecs=opus"))
+        return "audio/ogg;codecs=opus";
+    return "";
+}
+
+function blobToBase64(blob){
+    return new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>{
+            const result=String(reader.result||"");
+            const comma=result.indexOf(",");
+            resolve(comma>=0?result.slice(comma+1):result);
+        };
+        reader.onerror=()=>reject(new Error("Could not read microphone audio."));
+        reader.readAsDataURL(blob);
+    });
+}
+
+async function transcribeVoiceBlob(blob){
+    const base64=await blobToBase64(blob);
+    const mime=blob.type||"audio/webm";
+
+    const r=await fetch(VOICE_TRANSCRIBE_ENDPOINT,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json"
+        },
+        body:JSON.stringify({
+            audio:base64,
+            mimeType:mime,
+            languageHint: navigator.language || "en-IN"
+        })
+    });
+
+    const raw=await r.text();
+    let data={};
+    try{data=JSON.parse(raw)}catch{
+        throw new Error(
+            raw.trim().startsWith("<")
+            ? "Voice transcription endpoint returned HTML. Add /api/transcribe to server.js."
+            : "Voice transcription returned invalid JSON."
+        );
+    }
+
+    if(!r.ok){
+        throw new Error(data?.error||data?.message||`Voice transcription failed: HTTP ${r.status}`);
+    }
+
+    return {
+        text:String(data?.text||data?.transcript||data?.answer||"").trim(),
+        language:String(data?.language||data?.detectedLanguage||"").trim()
+    };
+}
+
+function stopVoiceMonitor(){
+    if(voiceMonitorFrame){
+        cancelAnimationFrame(voiceMonitorFrame);
+        voiceMonitorFrame=null;
+    }
+    if(voiceAudioContext){
+        try{voiceAudioContext.close()}catch{}
+        voiceAudioContext=null;
+    }
+    voiceAnalyser=null;
+}
+
+function monitorVoiceLevel(){
+    if(!voiceRecorder || voiceRecorder.state!=="recording" || !voiceMode){
+        stopVoiceMonitor();
+        return;
+    }
+
+    const data=new Uint8Array(voiceAnalyser.fftSize);
+    voiceAnalyser.getByteTimeDomainData(data);
+
+    let sum=0;
+    for(let i=0;i<data.length;i++){
+        const n=(data[i]-128)/128;
+        sum+=n*n;
+    }
+    const rms=Math.sqrt(sum/data.length);
+    const now=performance.now();
+
+    if(rms>VOICE_RMS_THRESHOLD){
+        if(!voiceHasSpeech){
+            voiceHasSpeech=true;
+            voiceSpeechStartedAt=now;
+        }
+        voiceSilenceStarted=0;
+        setVoiceStatus("Listening… speak naturally. I’ll wait until you finish.");
+    }else if(voiceHasSpeech){
+        if(!voiceSilenceStarted) voiceSilenceStarted=now;
+
+        const enoughSpeech=(now-voiceSpeechStartedAt)>=VOICE_MIN_SPEECH_MS;
+        if(enoughSpeech && now-voiceSilenceStarted>=VOICE_SILENCE_MS){
+            stopCurrentVoiceRecording();
+            return;
+        }
+    }
+
+    voiceMonitorFrame=requestAnimationFrame(monitorVoiceLevel);
+}
+
+function startVoiceMonitor(){
+    try{
+        voiceAudioContext=new (window.AudioContext||window.webkitAudioContext)();
+        const source=voiceAudioContext.createMediaStreamSource(voiceStream);
+        voiceAnalyser=voiceAudioContext.createAnalyser();
+        voiceAnalyser.fftSize=1024;
+        source.connect(voiceAnalyser);
+        voiceMonitorFrame=requestAnimationFrame(monitorVoiceLevel);
+    }catch(error){
+        console.warn("Voice level monitor unavailable:",error);
+        setVoiceStatus("Listening…");
+    }
+}
+
+async function processVoiceRecording(blob){
+    if(voiceProcessing || !blob || blob.size<1000) return;
+    voiceProcessing=true;
+    stopVoiceMonitor();
+
+    voiceButton.classList.add("active");
+    setVoiceStatus("Understanding your language and transcribing…");
+
+    try{
+        const result=await transcribeVoiceBlob(blob);
+        detectedVoiceLanguage=result.language||"";
+
+        if(!result.text){
+            showToast("I couldn't hear a complete sentence. Please try again.");
+            return;
+        }
+
+        /* Keep exactly what the transcription service detected. */
+        chatInput.value=result.text;
+        chatInput.dataset.userTyping="0";
+        resize();
+
+        /* No second Send tap is required for voice input. */
+        await sendMessage();
+    }catch(error){
+        console.error("Auto-language voice transcription:",error);
+        showToast(error.message||"Voice transcription failed.");
+
+        /*
+          If /api/transcribe is not available, use browser recognition as a
+          fallback. It is NOT true automatic language detection, so the main
+          path should remain /api/transcribe.
+        */
+        if(!recognitionFallback && SpeechRecognition){
+            startBrowserVoiceFallback();
+        }
+    }finally{
+        voiceProcessing=false;
+        if(voiceMode && !isSpeaking){
+            setVoiceStatus("Listening…");
+            setTimeout(()=>startVoiceRecorder(),250);
+        }
+    }
+}
+
+function stopCurrentVoiceRecording(){
+    if(!voiceRecorder || voiceRecorder.state==="inactive") return;
+    try{voiceRecorder.stop()}catch{}
+}
+
+async function startVoiceRecorder(){
+    if(!voiceMode || voiceProcessing || voiceRecorderStarting) return;
+
+    if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder){
+        startBrowserVoiceFallback();
+        return;
+    }
+
+    if(voiceRecorder && voiceRecorder.state==="recording") return;
+
+    voiceRecorderStarting=true;
+
+    try{
+        if(!voiceStream){
+            voiceStream=await navigator.mediaDevices.getUserMedia({
+                audio:{
+                    echoCancellation:true,
+                    noiseSuppression:true,
+                    autoGainControl:true,
+                    channelCount:1
+                }
+            });
+        }
+
+        const mime=audioMimeType();
+        voiceChunks=[];
+        resetVoiceSentence();
+
+        voiceRecorder=mime
+            ? new MediaRecorder(voiceStream,{mimeType:mime})
+            : new MediaRecorder(voiceStream);
+
+        voiceRecorder.ondataavailable=e=>{
+            if(e.data?.size) voiceChunks.push(e.data);
+        };
+
+        voiceRecorder.onstop=async()=>{
+            stopVoiceMonitor();
+
+            const blob=new Blob(
+                voiceChunks,
+                {type:voiceRecorder?.mimeType||mime||"audio/webm"}
+            );
+
+            voiceRecorder=null;
+            voiceChunks=[];
+
+            if(voiceMode && blob.size>=1000){
+                await processVoiceRecording(blob);
+            }else if(voiceMode){
+                setTimeout(()=>startVoiceRecorder(),150);
+            }
+        };
+
+        voiceRecorder.onerror=e=>{
+            console.warn("MediaRecorder error:",e);
+            voiceRecorder=null;
+            if(voiceMode) startBrowserVoiceFallback();
+        };
+
+        voiceRecorder.start(250);
+        voiceButton.classList.add("active");
+        setVoiceStatus("Listening… speak naturally. I’ll wait until you finish.");
+        startVoiceMonitor();
+    }catch(error){
+        console.error("Microphone recorder:",error);
+        showToast(
+            error?.name==="NotAllowedError"
+            ? "Microphone permission was denied."
+            : "Unable to start the microphone."
+        );
+        startBrowserVoiceFallback();
+    }finally{
+        voiceRecorderStarting=false;
+    }
+}
+
+function stopVoiceRecorder(){
+    stopVoiceMonitor();
+
+    if(voiceRecorder){
+        try{
+            if(voiceRecorder.state!=="inactive") voiceRecorder.stop();
+        }catch{}
+        voiceRecorder=null;
+    }
+
+    if(voiceStream){
+        voiceStream.getTracks().forEach(track=>{
+            try{track.stop()}catch{}
+        });
+        voiceStream=null;
+    }
+}
+
+/* -------- Browser fallback only -------- */
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-function languageForBrowser(){
- const l=(navigator.language||"en-US").toLowerCase();
- if(l.startsWith("bn"))return "bn-IN";
- if(l.startsWith("hi"))return "hi-IN";
- return l.includes("en")?"en-IN":navigator.language||"en-IN";
+
+function fallbackLanguage(){
+    const langs=navigator.languages||[];
+    const all=[...langs,navigator.language||"en-IN"].map(x=>String(x).toLowerCase());
+
+    if(all.some(x=>x.startsWith("bn"))) return "bn-IN";
+    if(all.some(x=>x.startsWith("hi"))) return "hi-IN";
+    if(all.some(x=>x.startsWith("ta"))) return "ta-IN";
+    if(all.some(x=>x.startsWith("te"))) return "te-IN";
+    if(all.some(x=>x.startsWith("mr"))) return "mr-IN";
+    return "en-IN";
 }
-function startRecognition(){
- if(!SpeechRecognition){showToast("Voice recognition is not supported here. Use Chrome/Edge.");return}
- if(recognition){stopRecognition();return}
- recognition=new SpeechRecognition();
- recognition.continuous=true;
- recognition.interimResults=true;
- recognition.maxAlternatives=3;
- recognition.lang=languageForBrowser();
- voiceButton.classList.add("active");voiceStatus.classList.add("show");
- voiceStatus.textContent="Listening… speak naturally. Your final sentence will be sent automatically.";
- showToast("Voice listening ON");
- recognition.onresult=e=>{
-  let finalText="",interim="";
-  for(let i=e.resultIndex;i<e.results.length;i++){
-   const txt=e.results[i][0].transcript;
-   if(e.results[i].isFinal)finalText+=txt;else interim+=txt;
-  }
-  /* Put live speech directly into the text box. */
-  if(interim){chatInput.value=(chatInput.dataset.base||"")+" "+interim;resize()}
-  if(finalText.trim()){
-   chatInput.dataset.base="";
-   chatInput.value=finalText.trim();
-   resize();
-   /* IMPORTANT: no Send button required. */
-   sendMessage();
-  }
- };
- recognition.onerror=e=>{
-  console.warn("Speech recognition:",e.error);
-  if(e.error==="not-allowed"){showToast("Microphone permission denied.");stopRecognition()}
-  else if(voiceMode&&["network","audio-capture"].includes(e.error))showToast("Voice recognition error: "+e.error);
- };
- recognition.onend=()=>{
-  recognition=null;
-  if(voiceMode){
-   /* Keep listening ON until user explicitly turns it OFF. */
-   setTimeout(()=>{if(voiceMode&&!recognition)startRecognition()},350);
-  }else stopRecognitionUI();
- };
- try{recognition.start()}catch{recognition=null;showToast("Unable to start microphone.")}
+
+function startBrowserVoiceFallback(){
+    if(!SpeechRecognition){
+        showToast("This browser cannot record voice.");
+        return;
+    }
+    if(recognitionFallback)return;
+
+    recognitionFallback=new SpeechRecognition();
+    recognitionFallback.continuous=true;
+    recognitionFallback.interimResults=true;
+    recognitionFallback.maxAlternatives=3;
+    recognitionFallback.lang=fallbackLanguage();
+
+    voiceButton.classList.add("active");
+    setVoiceStatus("Listening… browser fallback mode.");
+
+    let finalText="";
+
+    recognitionFallback.onresult=e=>{
+        let interim="";
+        for(let i=e.resultIndex;i<e.results.length;i++){
+            const result=e.results[i];
+            const txt=(result[0]?.transcript||"").trim();
+            if(!txt)continue;
+
+            if(result.isFinal){
+                finalText=(finalText+" "+txt).replace(/\s+/g," ").trim();
+                chatInput.value=finalText;
+                resize();
+
+                clearTimeout(startBrowserVoiceFallback.timer);
+                startBrowserVoiceFallback.timer=setTimeout(()=>{
+                    const t=finalText.trim();
+                    if(t && voiceMode){
+                        finalText="";
+                        chatInput.value=t;
+                        resize();
+                        sendMessage();
+                    }
+                },1900);
+            }else{
+                interim+=(interim?" ":"")+txt;
+            }
+        }
+
+        if(interim){
+            chatInput.value=(finalText+" "+interim).trim();
+            resize();
+        }
+    };
+
+    recognitionFallback.onerror=e=>{
+        console.warn("SpeechRecognition fallback:",e.error);
+        if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+            showToast("Microphone permission denied.");
+            stopVoiceMode();
+        }
+    };
+
+    recognitionFallback.onend=()=>{
+        recognitionFallback=null;
+        if(voiceMode && !voiceProcessing){
+            setTimeout(startBrowserVoiceFallback,300);
+        }
+    };
+
+    try{
+        recognitionFallback.start();
+    }catch{
+        recognitionFallback=null;
+        showToast("Unable to start voice input.");
+    }
 }
-function stopRecognition(){
- if(recognition){try{recognition.onend=null;recognition.stop()}catch{}recognition=null}
- stopRecognitionUI();
+
+function stopBrowserVoiceFallback(){
+    clearTimeout(startBrowserVoiceFallback.timer);
+    if(recognitionFallback){
+        try{
+            recognitionFallback.onend=null;
+            recognitionFallback.stop();
+        }catch{}
+        recognitionFallback=null;
+    }
 }
-function stopRecognitionUI(){voiceButton.classList.remove("active");voiceStatus.classList.remove("show")}
-voiceButton.onclick=()=>{voiceMode?stopVoiceMode():startVoiceMode()};
+
 function startVoiceMode(){
- voiceMode=true;voiceToggle.classList.add("on");voiceToggle.innerHTML='<i class="fa-solid fa-microphone"></i> Voice ON';
- /* Browser TTS must be unlocked by a user gesture; this call also primes it. */
- if("speechSynthesis"in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance("");u.volume=0;speechSynthesis.speak(u)}
- startRecognition();
+    voiceMode=true;
+    voiceToggle.classList.add("on");
+    voiceToggle.innerHTML='<i class="fa-solid fa-microphone"></i> Voice ON';
+
+    /* Unlock browser audio playback after the user's click/tap. */
+    if("speechSynthesis"in window){
+        try{
+            speechSynthesis.cancel();
+            const u=new SpeechSynthesisUtterance("");
+            u.volume=0;
+            speechSynthesis.speak(u);
+        }catch{}
+    }
+
+    startVoiceRecorder();
 }
+
 function stopVoiceMode(){
- voiceMode=false;speechGeneration++;speechQueue=[];if("speechSynthesis"in window)speechSynthesis.cancel();
- stopRecognition();aiOrb.classList.remove("speaking");voiceWave.classList.remove("show");
- voiceToggle.classList.remove("on");voiceToggle.innerHTML='<i class="fa-solid fa-microphone"></i> Voice OFF';
- voiceStatus.textContent="";
- showToast("Voice Assistant OFF");
+    voiceMode=false;
+    speechGeneration++;
+    speechQueue=[];
+
+    stopVoiceMonitor();
+    stopVoiceRecorder();
+    stopBrowserVoiceFallback();
+
+    if("speechSynthesis"in window){
+        try{speechSynthesis.cancel()}catch{}
+    }
+
+    aiOrb.classList.remove("speaking");
+    voiceWave.classList.remove("show");
+    voiceButton.classList.remove("active");
+    voiceToggle.classList.remove("on");
+    voiceToggle.innerHTML='<i class="fa-solid fa-microphone"></i> Voice OFF';
+    setVoiceStatus("");
+    showToast("Voice Assistant OFF");
 }
-voiceToggle.onclick=()=>voiceMode?stopVoiceMode():startVoiceMode();
+
+voiceButton.onclick=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(voiceMode){
+        /* Manual mic button toggles voice assistant OFF. */
+        stopVoiceMode();
+    }else{
+        startVoiceMode();
+    }
+};
+
+voiceToggle.onclick=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    voiceMode?stopVoiceMode():startVoiceMode();
+};
+
+/* ---------- conversation controls ---------- */
+function startNewChat(){
+    if(isSending)return;
+    messages=[];
+    saveMessages();
+    clearAttachment();
+    resetVoiceSentence();
+    chatContainer.querySelectorAll(".message").forEach(x=>x.remove());
+    welcome.style.display="flex";
+    chatInput.value="";
+    resize();
+    closeHeaderMenu();
+    chatInput.focus();
+    showToast("New conversation started.");
+}
 
 /* ---------- controls ---------- */
 function clearCurrentConversation(){
@@ -797,6 +1484,11 @@ console.log("CivicAI Life Helper ready. Text:",CHAT_API_ENDPOINT,"Image:",ANALYZ
 
     function startDrag(event){
         if(event.pointerType === "mouse" && event.button !== 0) return;
+
+        /* Buttons must remain clickable; drag only the assistant visual area. */
+        if(event.target.closest(".voice-toggle,.voice-wave")){
+            return;
+        }
 
         const rect = assistant.getBoundingClientRect();
 
