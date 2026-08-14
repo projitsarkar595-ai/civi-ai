@@ -4726,72 +4726,288 @@ CivicAI — AI-assisted Civic Reporting System`;
             );
 
         }
+/* =====================================================
+   SEND OTP / DIRECT SUBMIT MODE
+   OTP TEMPORARILY BYPASSED
+   ===================================================== */
 
+sendOtpButton.addEventListener(
+    "click",
+    async () => {
 
-        /* =====================================================
-           SEND OTP
-        ===================================================== */
+        hideAlert();
 
-        sendOtpButton.addEventListener(
-            "click",
-            async () => {
+        if (!currentReportPayload) {
+            showAlert(
+                "No report is ready for submission."
+            );
+            return;
+        }
 
-                hideAlert();
+        const email =
+            verificationContact.value.trim();
 
+        /*
+         * OTP is temporarily bypassed.
+         * We still require an email because
+         * the complaint will be sent by email.
+         */
 
-                const contact =
-                    verificationContact.value.trim();
+        if (!email) {
+            showAlert(
+                "Please enter your email address."
+            );
 
+            verificationContact.focus();
 
-                if (!contact) {
+            return;
+        }
 
-                    showAlert(
-                        selectedVerificationMethod === "email"
-                            ? "Please enter your email address."
-                            : "Please enter your phone number."
-                    );
+        /*
+         * Basic email validation
+         */
 
-                    verificationContact.focus();
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-                    return;
+        if (!emailPattern.test(email)) {
+            showAlert(
+                "Please enter a valid email address."
+            );
 
-                }
+            verificationContact.focus();
 
+            return;
+        }
 
-                /*
-                 * IMPORTANT:
-                 *
-                 * Your current server.js does not have an
-                 * OTP endpoint yet.
-                 *
-                 * Therefore we do not pretend that an OTP
-                 * has actually been sent.
-                 *
-                 * This frontend is ready for:
-                 *
-                 * POST /api/auth/send-otp
-                 *
-                 * which will be added to the backend.
-                 */
+        sendOtpButton.disabled = true;
 
+        const originalText =
+            sendOtpButton.innerHTML;
 
-                showAlert(
-                    "Verification UI is ready, but your current backend does not yet have a secure OTP endpoint. Add the OTP backend before enabling real submission.",
-                    "error"
+        sendOtpButton.innerHTML =
+            "⏳ Sending Report...";
+
+        try {
+
+            /*
+             * Add email to the report payload.
+             */
+
+            currentReportPayload.email =
+                email;
+
+            currentReportPayload.verificationBypass =
+                true;
+
+            currentReportPayload.otpVerified =
+                false;
+
+            /*
+             * -------------------------------------------------
+             * STEP 1
+             * Save the report
+             * -------------------------------------------------
+             */
+
+            const reportResponse =
+                await fetch(
+                    API_REPORTS,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                currentReportPayload
+                            )
+                    }
                 );
 
+            const reportData =
+                await reportResponse
+                    .json()
+                    .catch(
+                        () => ({})
+                    );
 
-                /*
-                 * TEMPORARILY STOP HERE.
-                 *
-                 * We deliberately do NOT use a fake OTP such
-                 * as 123456 because that would not be secure.
-                 */
+            if (!reportResponse.ok) {
+
+                throw new Error(
+                    reportData?.error ||
+                    "Unable to submit the civic report."
+                );
 
             }
-        );
 
+            if (!reportData?.success) {
 
+                throw new Error(
+                    reportData?.error ||
+                    "Report submission failed."
+                );
+
+            }
+
+            const reportId =
+                reportData.reportId ||
+                reportData.report?.reportId ||
+                "CIVIC-UNKNOWN";
+
+            /*
+             * -------------------------------------------------
+             * STEP 2
+             * Send complaint through Gmail
+             * -------------------------------------------------
+             */
+
+            const emailPayload = {
+
+                to: email,
+
+                email: email,
+
+                reportId: reportId,
+
+                reporterName:
+                    currentReportPayload
+                        .reporterName || "",
+
+                description:
+                    currentReportPayload
+                        .description || "",
+
+                location:
+                    currentReportPayload
+                        .location || "",
+
+                phone:
+                    currentReportPayload
+                        .phone || "",
+
+                analysis:
+                    currentReportPayload
+                        .analysis || {},
+
+                authority: {
+
+                    name:
+                        authorityName
+                            .textContent
+                            .trim(),
+
+                    department:
+                        authorityDepartment
+                            .textContent
+                            .trim(),
+
+                    contact:
+                        authorityContact
+                            .textContent
+                            .trim(),
+
+                    email:
+                        authorityEmail
+                            .textContent
+                            .trim()
+
+                },
+
+                complaint:
+                    currentComplaint || ""
+
+            };
+
+            const emailResponse =
+                await fetch(
+                    `${API_BASE}/api/send-report`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                emailPayload
+                            )
+                    }
+                );
+
+            const emailData =
+                await emailResponse
+                    .json()
+                    .catch(
+                        () => ({})
+                    );
+
+            if (!emailResponse.ok) {
+
+                throw new Error(
+                    emailData?.error ||
+                    "Report was saved, but email could not be sent."
+                );
+
+            }
+
+            if (!emailData?.success) {
+
+                throw new Error(
+                    emailData?.error ||
+                    "Report email could not be sent."
+                );
+
+            }
+
+            /*
+             * -------------------------------------------------
+             * SUCCESS
+             * -------------------------------------------------
+             */
+
+            showSuccess(
+                reportId
+            );
+
+            showAlert(
+                "✓ Report submitted and email sent successfully.",
+                "success"
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "DIRECT REPORT SUBMISSION ERROR:",
+                error
+            );
+
+            showAlert(
+                error?.message ||
+                "Unable to submit the report."
+            );
+
+        }
+        finally {
+
+            sendOtpButton.disabled =
+                false;
+
+            sendOtpButton.innerHTML =
+                originalText;
+
+        }
+
+    }
+);
+
+        
         /* =====================================================
            OTP VERIFY
         ===================================================== */
