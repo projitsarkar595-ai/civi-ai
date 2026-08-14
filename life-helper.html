@@ -1,15 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+    name="description"
+    content="CivicAI AI Life Helper with voice assistant"
+>
 
 <title>CivicAI — AI Life Helper</title>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+>
 
 <style>
+
+/* =========================================================
+   CIVICAI LIFE HELPER
+   COMPLETE SINGLE FILE
+========================================================= */
+
 *{
     margin:0;
     padding:0;
@@ -17,352 +36,991 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 }
 
 :root{
-    --bg:#060b16;
-    --panel:#0d1424;
-    --panel2:#111a2d;
+
+    --bg:#050914;
+    --bg2:#090f1d;
+
+    --panel:#0d1526;
+    --panel2:#111b2f;
+
     --border:rgba(255,255,255,.08);
-    --border-light:rgba(255,255,255,.14);
-    --text:#f5f7fb;
-    --text2:#aeb8ca;
-    --muted:#737f94;
+    --border2:rgba(255,255,255,.14);
+
+    --text:#f5f7ff;
+    --text2:#aeb9ce;
+    --muted:#6f7b91;
+
     --primary:#5b7cff;
-    --primary2:#7c5cff;
+    --primary2:#8b5cf6;
+
+    --cyan:#39d9ff;
+    --pink:#ff65b3;
+
     --green:#2dd4bf;
     --red:#ff5d73;
+
+    --shadow:
+        0 25px 80px rgba(0,0,0,.40);
+
+    --radius:18px;
 }
 
-html,body{
+html,
+body{
     width:100%;
     height:100%;
 }
 
 body{
-    font-family:Inter,ui-sans-serif,system-ui,-apple-system,
-    BlinkMacSystemFont,"Segoe UI",sans-serif;
 
-    background:
-        radial-gradient(circle at 15% 10%,
-        rgba(91,124,255,.12),transparent 30%),
-        radial-gradient(circle at 85% 85%,
-        rgba(124,92,255,.10),transparent 30%),
-        var(--bg);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 
     color:var(--text);
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(91,124,255,.15),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 90% 80%,
+            rgba(139,92,246,.12),
+            transparent 30%
+        ),
+        var(--bg);
+
     overflow:hidden;
 }
 
+/* =========================================================
+   APP
+========================================================= */
+
 .app{
+
     width:100%;
     height:100vh;
+
     display:flex;
 }
 
-/* ================= SIDEBAR ================= */
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
 .sidebar{
+
     width:280px;
     height:100vh;
-    background:rgba(8,13,26,.92);
-    border-right:1px solid var(--border);
+
+    flex-shrink:0;
+
+    background:
+        rgba(7,12,25,.92);
+
+    border-right:
+        1px solid var(--border);
+
+    padding:18px;
+
     display:flex;
     flex-direction:column;
-    padding:18px;
+
+    backdrop-filter:blur(25px);
+
     position:relative;
+
     z-index:50;
-    backdrop-filter:blur(20px);
+
+    transition:.3s ease;
 }
 
 .logo{
+
     display:flex;
     align-items:center;
+
     gap:12px;
-    padding:8px 8px 22px;
+
+    padding:
+        7px 8px 22px;
 }
 
 .logo-icon{
-    width:42px;
-    height:42px;
+
+    width:43px;
+    height:43px;
+
     border-radius:14px;
+
     display:flex;
     align-items:center;
     justify-content:center;
-    background:linear-gradient(135deg,var(--primary),var(--primary2));
-    box-shadow:0 8px 25px rgba(91,124,255,.25);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary2)
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(91,124,255,.3);
+
+    font-size:18px;
 }
 
 .logo-text{
+
     font-size:20px;
     font-weight:800;
 }
 
 .logo-text span{
-    color:#8295ff;
+    color:#8395ff;
 }
+
+/* =========================================================
+   NEW CHAT
+========================================================= */
 
 .new-chat{
+
     width:100%;
-    border:1px solid var(--border-light);
-    background:linear-gradient(
-        135deg,
-        rgba(91,124,255,.18),
-        rgba(124,92,255,.10)
-    );
-    color:var(--text);
-    border-radius:14px;
+
     padding:13px 15px;
+
+    border-radius:14px;
+
+    border:
+        1px solid var(--border2);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(91,124,255,.18),
+            rgba(139,92,246,.12)
+        );
+
+    color:white;
+
     display:flex;
     align-items:center;
+
     gap:10px;
+
     cursor:pointer;
-    font-size:14px;
+
     font-weight:700;
+
+    transition:.25s;
 }
 
+.new-chat:hover{
+
+    transform:translateY(-2px);
+
+    border-color:
+        rgba(124,92,255,.55);
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
 .search-box{
-    margin:18px 0;
+
     position:relative;
+
+    margin:18px 0;
 }
 
 .search-box i{
+
     position:absolute;
+
     left:13px;
     top:50%;
+
     transform:translateY(-50%);
+
     color:var(--muted);
+
+    font-size:13px;
 }
 
 .search-box input{
+
     width:100%;
-    padding:11px 12px 11px 36px;
+
+    padding:
+        11px 12px 11px 36px;
+
     border-radius:12px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.035);
-    color:var(--text);
+
+    border:
+        1px solid var(--border);
+
     outline:none;
+
+    background:
+        rgba(255,255,255,.035);
+
+    color:white;
 }
 
+.search-box input::placeholder{
+    color:#667187;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
 .sidebar-title{
+
     color:var(--muted);
+
     font-size:11px;
+
     text-transform:uppercase;
+
     letter-spacing:1.2px;
+
     font-weight:800;
-    margin:5px 5px 10px;
+
+    margin:
+        5px 5px 10px;
 }
 
 .recent-list{
-    overflow-y:auto;
+
     flex:1;
+
     min-height:0;
+
+    overflow-y:auto;
 }
 
 .recent-item{
+
     display:flex;
     align-items:center;
+
     gap:10px;
+
     padding:11px 10px;
+
     border-radius:11px;
-    cursor:pointer;
+
     color:var(--text2);
+
+    cursor:pointer;
+
     font-size:12px;
 }
 
 .recent-item:hover{
-    background:rgba(255,255,255,.05);
+
+    background:
+        rgba(255,255,255,.05);
+
     color:white;
 }
 
 .recent-item i{
-    color:#687cff;
+
     width:15px;
+
+    color:#7888ff;
 }
 
 .recent-item span{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+
     flex:1;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
 }
 
 .empty-recent{
+
     color:var(--muted);
+
     font-size:12px;
+
     line-height:1.6;
+
     padding:10px;
 }
 
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
 .sidebar-bottom{
-    border-top:1px solid var(--border);
-    padding-top:14px;
+
+    border-top:
+        1px solid var(--border);
+
     margin-top:12px;
+
+    padding-top:13px;
 }
 
 .sidebar-btn{
+
     width:100%;
+
+    border:none;
+
+    background:transparent;
+
+    color:var(--text2);
+
+    padding:11px 10px;
+
+    border-radius:11px;
+
     display:flex;
     align-items:center;
+
     gap:11px;
-    background:transparent;
-    border:none;
-    color:var(--text2);
-    padding:11px 10px;
-    border-radius:11px;
+
     cursor:pointer;
+
     font-size:13px;
+
+    text-align:left;
 }
 
 .sidebar-btn:hover{
-    background:rgba(255,255,255,.05);
+
+    background:
+        rgba(255,255,255,.05);
+
     color:white;
 }
 
-/* ================= MAIN ================= */
+/* =========================================================
+   MAIN
+========================================================= */
 
 .main{
+
     flex:1;
+
     min-width:0;
+
     height:100vh;
+
     display:flex;
+
     flex-direction:column;
+
     position:relative;
 }
 
+/* =========================================================
+   HEADER
+========================================================= */
+
 .header{
+
     height:70px;
+
+    flex-shrink:0;
+
+    padding:
+        0 28px;
+
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:0 28px;
-    border-bottom:1px solid var(--border);
-    background:rgba(6,11,22,.68);
-    backdrop-filter:blur(20px);
-    flex-shrink:0;
-    z-index:10;
+
+    border-bottom:
+        1px solid var(--border);
+
+    background:
+        rgba(5,9,20,.72);
+
+    backdrop-filter:blur(22px);
+
+    z-index:20;
 }
 
 .header-left{
+
     display:flex;
     align-items:center;
+
     gap:12px;
 }
 
 .mobile-menu{
+
     display:none;
+
     border:none;
+
     background:transparent;
+
     color:white;
+
     font-size:19px;
+
+    cursor:pointer;
 }
 
 .header-title{
-    font-weight:750;
+
     font-size:15px;
+
+    font-weight:800;
 }
 
 .status{
+
     display:flex;
     align-items:center;
+
     gap:7px;
-    font-size:11px;
+
     color:var(--text2);
+
+    font-size:11px;
+
+    margin-top:2px;
 }
 
 .status-dot{
+
     width:7px;
     height:7px;
+
     border-radius:50%;
+
     background:var(--green);
-    box-shadow:0 0 10px rgba(45,212,191,.8);
+
+    box-shadow:
+        0 0 12px
+        rgba(45,212,191,.8);
 }
 
 .header-actions{
+
     display:flex;
+
     gap:7px;
 }
 
 .icon-btn{
+
     width:38px;
     height:38px;
+
     border-radius:11px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.035);
+
+    border:
+        1px solid var(--border);
+
+    background:
+        rgba(255,255,255,.035);
+
     color:var(--text2);
+
     cursor:pointer;
+
     display:flex;
     align-items:center;
     justify-content:center;
+
+    transition:.2s;
 }
 
-/* ================= CHAT ================= */
+.icon-btn:hover{
+
+    color:white;
+
+    border-color:
+        rgba(91,124,255,.55);
+}
+
+/* =========================================================
+   CHAT AREA
+========================================================= */
 
 .chat-area{
+
     flex:1;
+
     min-height:0;
+
     overflow-y:auto;
-    padding:30px 20px 190px;
+
+    padding:
+        28px 20px 190px;
 }
 
 .chat-container{
+
     width:min(900px,100%);
+
     margin:auto;
 }
 
+/* =========================================================
+   AI ASSISTANT HERO
+========================================================= */
+
 .welcome{
-    min-height:52vh;
+
+    min-height:55vh;
+
     display:flex;
     flex-direction:column;
+
     align-items:center;
     justify-content:center;
+
     text-align:center;
+
     padding:30px 10px;
 }
 
-.welcome-logo{
-    width:76px;
-    height:76px;
-    border-radius:25px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:31px;
-    background:linear-gradient(135deg,#5b7cff,#8b5cf6);
-    box-shadow:0 18px 50px rgba(91,124,255,.25);
-    margin-bottom:24px;
-    animation:floating 4s ease-in-out infinite;
+/* =========================================================
+   BEAUTIFUL FEMALE AI AVATAR
+========================================================= */
+
+.ai-orb{
+
+    width:125px;
+    height:125px;
+
+    position:relative;
+
+    margin-bottom:25px;
 }
 
-@keyframes floating{
-    0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-7px)}
+.ai-orb::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:-18px;
+
+    border-radius:50%;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent,
+            rgba(91,124,255,.45),
+            rgba(255,101,179,.35),
+            transparent
+        );
+
+    filter:blur(7px);
+
+    animation:
+        orbRotate 7s linear infinite;
 }
+
+.ai-orb::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:-7px;
+
+    border-radius:50%;
+
+    border:
+        1px solid
+        rgba(125,139,255,.35);
+
+    box-shadow:
+        0 0 40px
+        rgba(91,124,255,.28);
+
+    animation:
+        orbPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes orbRotate{
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+@keyframes orbPulse{
+
+    0%,
+    100%{
+        transform:scale(.96);
+        opacity:.55;
+    }
+
+    50%{
+        transform:scale(1.04);
+        opacity:1;
+    }
+}
+
+/* =========================================================
+   FEMALE DIGITAL AVATAR
+========================================================= */
+
+.ai-face{
+
+    position:absolute;
+
+    width:94px;
+    height:108px;
+
+    left:50%;
+    top:50%;
+
+    transform:
+        translate(-50%,-50%);
+
+    border-radius:
+        48% 48% 44% 44%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffd9d0,
+            #eeb5b0 55%,
+            #c98791
+        );
+
+    box-shadow:
+        inset -8px -10px 20px
+        rgba(90,35,55,.12),
+
+        0 10px 30px
+        rgba(0,0,0,.25);
+
+    z-index:2;
+}
+
+/* hair */
+
+.ai-hair{
+
+    position:absolute;
+
+    width:108px;
+    height:112px;
+
+    left:50%;
+    top:50%;
+
+    transform:
+        translate(-50%,-55%);
+
+    border-radius:
+        52% 52% 40% 42%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #241b32,
+            #46304d 55%,
+            #171323
+        );
+
+    z-index:3;
+
+    pointer-events:none;
+
+    clip-path:
+        polygon(
+            4% 42%,
+            8% 18%,
+            25% 4%,
+            52% 0%,
+            78% 8%,
+            94% 28%,
+            96% 100%,
+            76% 91%,
+            70% 52%,
+            57% 29%,
+            42% 40%,
+            27% 26%,
+            20% 100%,
+            3% 100%
+        );
+}
+
+/* eyes */
+
+.ai-eye{
+
+    position:absolute;
+
+    width:9px;
+    height:5px;
+
+    top:48px;
+
+    border-radius:50%;
+
+    background:#38263e;
+
+    z-index:5;
+}
+
+.ai-eye.left{
+    left:23px;
+}
+
+.ai-eye.right{
+    right:23px;
+}
+
+.ai-eye::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:3px;
+    height:2px;
+
+    right:1px;
+    top:1px;
+
+    border-radius:50%;
+
+    background:white;
+}
+
+/* nose */
+
+.ai-nose{
+
+    position:absolute;
+
+    width:7px;
+    height:12px;
+
+    left:50%;
+    top:55px;
+
+    transform:translateX(-50%);
+
+    border-right:
+        1px solid
+        rgba(120,65,75,.25);
+
+    z-index:5;
+}
+
+/* smile */
+
+.ai-mouth{
+
+    position:absolute;
+
+    width:22px;
+    height:9px;
+
+    left:50%;
+    top:74px;
+
+    transform:translateX(-50%);
+
+    border-bottom:
+        2px solid
+        #9b4d6c;
+
+    border-radius:
+        0 0 50% 50%;
+
+    z-index:5;
+}
+
+/* glow */
+
+.ai-glow{
+
+    position:absolute;
+
+    width:35px;
+    height:35px;
+
+    border-radius:50%;
+
+    right:2px;
+    top:5px;
+
+    background:
+        rgba(91,124,255,.7);
+
+    filter:blur(16px);
+
+    z-index:1;
+
+    animation:
+        glowMove 3s ease-in-out infinite;
+}
+
+@keyframes glowMove{
+
+    0%,
+    100%{
+        transform:translate(0,0);
+        opacity:.5;
+    }
+
+    50%{
+        transform:translate(-12px,12px);
+        opacity:.9;
+    }
+}
+
+/* =========================================================
+   VOICE ACTIVE AVATAR
+========================================================= */
+
+.voice-active .ai-orb::before{
+
+    animation-duration:2s;
+}
+
+.voice-active .ai-orb::after{
+
+    animation-duration:.9s;
+
+    border-color:
+        rgba(255,101,179,.75);
+}
+
+.voice-active .ai-face{
+
+    box-shadow:
+        0 0 35px
+        rgba(255,101,179,.25),
+        inset -8px -10px 20px
+        rgba(90,35,55,.12);
+}
+
+/* =========================================================
+   WELCOME TEXT
+========================================================= */
 
 .welcome h1{
-    font-size:clamp(30px,5vw,48px);
-    letter-spacing:-1.5px;
+
+    font-size:
+        clamp(30px,5vw,48px);
+
+    letter-spacing:-1.6px;
+
     margin-bottom:12px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #fff,
+            #a9b7ff,
+            #f0a5d0
+        );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
 }
 
 .welcome p{
+
+    max-width:650px;
+
     color:var(--text2);
-    max-width:620px;
-    line-height:1.7;
+
     font-size:14px;
+
+    line-height:1.7;
 }
 
-/* ================= MESSAGES ================= */
+/* =========================================================
+   VOICE STATUS
+========================================================= */
+
+.voice-status{
+
+    margin-top:18px;
+
+    padding:9px 14px;
+
+    border-radius:999px;
+
+    border:
+        1px solid var(--border);
+
+    background:
+        rgba(255,255,255,.035);
+
+    color:var(--text2);
+
+    font-size:11px;
+
+    display:flex;
+    align-items:center;
+
+    gap:7px;
+}
+
+.voice-status.active{
+
+    color:#ff9ccc;
+
+    border-color:
+        rgba(255,101,179,.35);
+
+    background:
+        rgba(255,101,179,.07);
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
 
 .message{
+
     display:flex;
+
     gap:12px;
+
     margin-bottom:24px;
-    animation:messageIn .3s ease;
+
+    animation:
+        messageIn .3s ease;
 }
 
 @keyframes messageIn{
+
     from{
         opacity:0;
-        transform:translateY(7px);
+        transform:translateY(8px);
     }
+
     to{
         opacity:1;
         transform:translateY(0);
@@ -370,25 +1028,43 @@ body{
 }
 
 .message.user{
+
     flex-direction:row-reverse;
 }
 
 .message-avatar{
+
     width:36px;
     height:36px;
+
     flex-shrink:0;
+
     border-radius:12px;
+
     display:flex;
     align-items:center;
     justify-content:center;
-    background:linear-gradient(135deg,#5b7cff,#7c5cff);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary2)
+        );
 }
 
 .message.user .message-avatar{
-    background:linear-gradient(135deg,#27344e,#1c263a);
+
+    background:
+        linear-gradient(
+            135deg,
+            #27344e,
+            #1b2539
+        );
 }
 
 .message-body{
+
     max-width:min(75%,720px);
 }
 
@@ -397,45 +1073,79 @@ body{
 }
 
 .message-bubble{
-    padding:14px 17px;
+
+    padding:
+        14px 17px;
+
     border-radius:17px;
-    background:rgba(255,255,255,.045);
-    border:1px solid var(--border);
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid var(--border);
+
     color:#e9edf5;
+
     line-height:1.7;
+
     font-size:14px;
-    word-wrap:break-word;
+
     text-align:left;
+
+    overflow-wrap:anywhere;
 }
 
 .message.user .message-bubble{
-    background:linear-gradient(
-        135deg,
-        rgba(91,124,255,.20),
-        rgba(124,92,255,.16)
-    );
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(91,124,255,.20),
+            rgba(139,92,246,.16)
+        );
+
+    border-color:
+        rgba(91,124,255,.20);
 }
 
 .message-bubble pre{
+
     background:#050913;
-    border:1px solid var(--border);
+
+    border:
+        1px solid var(--border);
+
     padding:14px;
+
     border-radius:10px;
+
     overflow-x:auto;
+
     margin:10px 0;
 }
 
 .message-bubble code{
-    font-family:Consolas,monospace;
+
+    font-family:
+        Consolas,
+        monospace;
+
     font-size:12px;
 }
 
 .message-meta{
+
     display:flex;
+
     align-items:center;
+
     gap:10px;
+
     margin-top:5px;
+
     color:#5e697d;
+
     font-size:10px;
 }
 
@@ -444,23 +1154,34 @@ body{
 }
 
 .message-actions{
+
     display:flex;
     gap:5px;
 }
 
 .message-actions button{
+
     border:none;
+
     background:transparent;
+
     color:#657188;
+
     cursor:pointer;
 }
 
-/* ================= TYPING ================= */
+/* =========================================================
+   TYPING
+========================================================= */
 
 .typing{
+
     display:none;
+
     align-items:center;
+
     gap:10px;
+
     margin-bottom:20px;
 }
 
@@ -469,43 +1190,74 @@ body{
 }
 
 .typing-avatar{
+
     width:36px;
     height:36px;
+
     border-radius:12px;
-    background:linear-gradient(135deg,#5b7cff,#7c5cff);
+
     display:flex;
     align-items:center;
     justify-content:center;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary2)
+        );
 }
 
 .typing-bubble{
+
     padding:13px 16px;
-    background:rgba(255,255,255,.04);
-    border:1px solid var(--border);
+
     border-radius:15px;
+
+    border:
+        1px solid var(--border);
+
+    background:
+        rgba(255,255,255,.04);
 }
 
 .typing-dots{
+
     display:flex;
+
     gap:4px;
 }
 
 .typing-dots span{
+
     width:6px;
     height:6px;
-    background:#8490ff;
+
     border-radius:50%;
-    animation:dot 1.2s infinite;
+
+    background:#8490ff;
+
+    animation:
+        dot 1.2s infinite;
 }
 
-.typing-dots span:nth-child(2){animation-delay:.15s}
-.typing-dots span:nth-child(3){animation-delay:.3s}
+.typing-dots span:nth-child(2){
+    animation-delay:.15s;
+}
+
+.typing-dots span:nth-child(3){
+    animation-delay:.3s;
+}
 
 @keyframes dot{
-    0%,60%,100%{
+
+    0%,
+    60%,
+    100%{
         transform:translateY(0);
-        opacity:.45;
+        opacity:.4;
     }
+
     30%{
         transform:translateY(-4px);
         opacity:1;
@@ -513,299 +1265,85 @@ body{
 }
 
 /* =========================================================
-   ANIMATED VOICE ASSISTANT
+   INPUT AREA
 ========================================================= */
 
-.voice-assistant{
-    position:fixed;
-    right:30px;
-    bottom:115px;
-    width:92px;
-    height:92px;
-    z-index:30;
-    cursor:pointer;
-    user-select:none;
-}
-
-.voice-orb{
-    width:92px;
-    height:92px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-
-    background:
-        radial-gradient(
-            circle at 35% 30%,
-            #aab7ff 0%,
-            #687cff 25%,
-            #7c5cff 55%,
-            #281d69 100%
-        );
-
-    box-shadow:
-        0 0 30px rgba(91,124,255,.55),
-        0 0 70px rgba(124,92,255,.25);
-
-    animation:orbFloat 3s ease-in-out infinite;
-}
-
-.voice-orb::before,
-.voice-orb::after{
-    content:"";
-    position:absolute;
-    inset:-9px;
-    border-radius:50%;
-    border:1px solid rgba(124,92,255,.35);
-    animation:orbRing 2.5s linear infinite;
-}
-
-.voice-orb::after{
-    inset:-18px;
-    border-color:rgba(91,124,255,.18);
-    animation-delay:.8s;
-}
-
-.voice-orb i{
-    font-size:29px;
-    color:white;
-    filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));
-}
-
-@keyframes orbFloat{
-    0%,100%{
-        transform:translateY(0) scale(1);
-    }
-    50%{
-        transform:translateY(-8px) scale(1.03);
-    }
-}
-
-@keyframes orbRing{
-    0%{
-        transform:scale(.85);
-        opacity:.8;
-    }
-    100%{
-        transform:scale(1.25);
-        opacity:0;
-    }
-}
-
-.voice-label{
-    position:absolute;
-    top:100%;
-    left:50%;
-    transform:translateX(-50%);
-    margin-top:9px;
-    white-space:nowrap;
-    font-size:10px;
-    color:#aeb8ca;
-    background:rgba(13,20,36,.92);
-    padding:5px 9px;
-    border-radius:8px;
-    border:1px solid var(--border);
-}
-
-/* LISTENING */
-
-.voice-assistant.listening .voice-orb{
-    animation:
-        voicePulse .8s ease-in-out infinite;
-}
-
-.voice-assistant.listening .voice-orb::before{
-    animation:
-        listeningRing 1s linear infinite;
-}
-
-@keyframes voicePulse{
-    0%,100%{
-        transform:scale(1);
-        box-shadow:
-            0 0 30px rgba(91,124,255,.6),
-            0 0 70px rgba(124,92,255,.3);
-    }
-    50%{
-        transform:scale(1.13);
-        box-shadow:
-            0 0 45px rgba(91,124,255,.9),
-            0 0 100px rgba(124,92,255,.5);
-    }
-}
-
-@keyframes listeningRing{
-    from{
-        transform:scale(.8);
-        opacity:1;
-    }
-    to{
-        transform:scale(1.5);
-        opacity:0;
-    }
-}
-
-/* THINKING */
-
-.voice-assistant.thinking .voice-orb{
-    animation:
-        thinkingSpin 1.3s linear infinite;
-}
-
-@keyframes thinkingSpin{
-    0%{transform:rotate(0deg) scale(1)}
-    50%{transform:rotate(180deg) scale(1.08)}
-    100%{transform:rotate(360deg) scale(1)}
-}
-
-/* SPEAKING */
-
-.voice-assistant.speaking .voice-orb{
-    animation:
-        speakingPulse .45s ease-in-out infinite alternate;
-}
-
-.voice-assistant.speaking .voice-orb i{
-    animation:
-        speakingIcon .45s ease-in-out infinite alternate;
-}
-
-@keyframes speakingPulse{
-    from{
-        transform:scale(.96);
-    }
-    to{
-        transform:scale(1.12);
-    }
-}
-
-@keyframes speakingIcon{
-    from{
-        transform:scale(.9);
-    }
-    to{
-        transform:scale(1.15);
-    }
-}
-
-/* ================= INPUT ================= */
-
 .input-wrapper{
+
     position:absolute;
-    bottom:0;
+
     left:0;
     right:0;
-    padding:20px 20px 24px;
-    background:linear-gradient(
-        to top,
-        var(--bg) 65%,
-        transparent
-    );
-    z-index:20;
+    bottom:0;
+
+    padding:
+        20px 20px 24px;
+
+    background:
+        linear-gradient(
+            to top,
+            var(--bg) 65%,
+            transparent
+        );
+
+    z-index:30;
 }
 
 .input-container{
+
     width:min(900px,100%);
+
     margin:auto;
-    position:relative;
-    border:1px solid var(--border-light);
-    background:rgba(13,20,36,.90);
+
+    border:
+        1px solid var(--border2);
+
+    background:
+        rgba(13,20,36,.94);
+
     border-radius:20px;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);
+
+    box-shadow:var(--shadow);
+
     backdrop-filter:blur(20px);
+
+    transition:.25s;
 }
 
-.input-row{
-    display:flex;
-    align-items:flex-end;
-    gap:8px;
-    padding:12px;
-}
+.input-container:focus-within{
 
-.input-actions{
-    display:flex;
-    gap:4px;
-}
+    border-color:
+        rgba(91,124,255,.5);
 
-.tool-btn{
-    width:38px;
-    height:38px;
-    border:none;
-    border-radius:11px;
-    background:transparent;
-    color:#7b879c;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.tool-btn:hover{
-    background:rgba(255,255,255,.05);
-    color:white;
-}
-
-.tool-btn.voice-active{
-    color:#7c8cff;
-    background:rgba(91,124,255,.12);
-}
-
-.chat-input{
-    flex:1;
-    min-width:0;
-    max-height:130px;
-    resize:none;
-    overflow-y:auto;
-    border:none;
-    outline:none;
-    background:transparent;
-    color:white;
-    padding:9px 5px;
-    font-size:14px;
-    line-height:1.5;
-    font-family:inherit;
-}
-
-.chat-input::placeholder{
-    color:#69758a;
-}
-
-.send-btn{
-    width:42px;
-    height:42px;
-    border:none;
-    border-radius:13px;
-    background:linear-gradient(135deg,#5b7cff,#7c5cff);
-    color:white;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.send-btn:disabled{
-    opacity:.5;
-    cursor:not-allowed;
-}
-
-.input-footer{
-    text-align:center;
-    color:#4f5a6d;
-    font-size:10px;
-    padding:0 15px 10px;
+    box-shadow:
+        0 20px 70px rgba(0,0,0,.45),
+        0 0 0 3px
+        rgba(91,124,255,.05);
 }
 
 .attachment-preview{
+
     display:none;
+
     align-items:center;
+
     gap:9px;
-    margin:12px 14px 0;
-    padding:9px 11px;
+
+    margin:
+        12px 14px 0;
+
+    padding:
+        9px 11px;
+
     border-radius:10px;
-    background:rgba(91,124,255,.08);
-    border:1px solid rgba(91,124,255,.16);
+
+    background:
+        rgba(91,124,255,.08);
+
+    border:
+        1px solid
+        rgba(91,124,255,.16);
+
     font-size:12px;
 }
 
@@ -815,87 +1353,335 @@ body{
 
 .attachment-preview span{
     flex:1;
+
     overflow:hidden;
+
     text-overflow:ellipsis;
+
     white-space:nowrap;
 }
 
 .remove-attachment{
+
     border:none;
+
     background:transparent;
+
     color:#8792a6;
+
     cursor:pointer;
 }
 
-/* ================= TOAST ================= */
+.input-row{
+
+    display:flex;
+
+    align-items:flex-end;
+
+    gap:8px;
+
+    padding:12px;
+}
+
+.input-actions{
+
+    display:flex;
+
+    gap:3px;
+}
+
+.tool-btn{
+
+    width:38px;
+    height:38px;
+
+    flex-shrink:0;
+
+    border:none;
+
+    border-radius:11px;
+
+    background:transparent;
+
+    color:#7b879c;
+
+    cursor:pointer;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    transition:.2s;
+}
+
+.tool-btn:hover{
+
+    background:
+        rgba(255,255,255,.06);
+
+    color:white;
+}
+
+.tool-btn.voice-active{
+
+    color:#ff71b9;
+
+    background:
+        rgba(255,101,179,.10);
+
+    box-shadow:
+        0 0 18px
+        rgba(255,101,179,.15);
+}
+
+/* =========================================================
+   TEXT INPUT
+========================================================= */
+
+.chat-input{
+
+    flex:1;
+
+    min-width:0;
+
+    width:100%;
+
+    min-height:40px;
+
+    max-height:130px;
+
+    resize:none;
+
+    overflow-y:auto;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    color:white;
+
+    padding:
+        9px 5px;
+
+    font-size:14px;
+
+    line-height:1.5;
+
+    font-family:inherit;
+
+    display:block;
+
+    opacity:1;
+
+    pointer-events:auto;
+
+    user-select:text;
+}
+
+.chat-input:disabled,
+.chat-input[readonly]{
+
+    opacity:1;
+
+    cursor:text;
+}
+
+.chat-input::placeholder{
+    color:#69758a;
+}
+
+.send-btn{
+
+    width:42px;
+    height:42px;
+
+    flex-shrink:0;
+
+    border:none;
+
+    border-radius:13px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #5b7cff,
+            #7c5cff
+        );
+
+    color:white;
+
+    cursor:pointer;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    transition:.25s;
+}
+
+.send-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 12px 30px
+        rgba(91,124,255,.35);
+}
+
+.send-btn:disabled{
+
+    opacity:.55;
+
+    cursor:not-allowed;
+
+    transform:none;
+}
+
+.input-footer{
+
+    text-align:center;
+
+    color:#4f5a6d;
+
+    font-size:10px;
+
+    padding:
+        0 15px 10px;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
 
 .toast{
+
     position:fixed;
-    bottom:95px;
+
     left:50%;
-    transform:translate(-50%,20px);
+    bottom:100px;
+
+    transform:
+        translate(-50%,20px);
+
     opacity:0;
+
     pointer-events:none;
+
     background:#151e32;
+
     color:white;
-    border:1px solid var(--border-light);
+
+    border:
+        1px solid var(--border2);
+
     border-radius:12px;
-    padding:11px 17px;
+
+    padding:
+        11px 17px;
+
     font-size:12px;
-    box-shadow:0 15px 40px rgba(0,0,0,.35);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0,0,0,.35);
+
     transition:.3s;
+
     z-index:100;
 }
 
 .toast.show{
+
     opacity:1;
-    transform:translate(-50%,0);
+
+    transform:
+        translate(-50%,0);
 }
 
-/* ================= LIGHT ================= */
+/* =========================================================
+   LIGHT MODE
+========================================================= */
 
 body.light-mode{
+
     --bg:#f5f7fb;
+    --panel:#fff;
+
+    --border:rgba(20,30,50,.09);
+    --border2:rgba(20,30,50,.15);
+
     --text:#172033;
     --text2:#596579;
     --muted:#7d8797;
-    --border:rgba(20,30,50,.09);
-    --border-light:rgba(20,30,50,.15);
-    background:#f5f7fb;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(91,124,255,.10),
+            transparent 30%
+        ),
+        #f5f7fb;
 }
 
 body.light-mode .sidebar{
-    background:rgba(255,255,255,.9);
+
+    background:
+        rgba(255,255,255,.92);
 }
 
 body.light-mode .header{
-    background:rgba(245,247,251,.85);
+
+    background:
+        rgba(245,247,251,.85);
 }
 
 body.light-mode .input-container{
-    background:rgba(255,255,255,.9);
+
+    background:
+        rgba(255,255,255,.94);
 }
 
 body.light-mode .message-bubble{
-    background:rgba(20,30,50,.035);
+
     color:#253149;
+
+    background:
+        rgba(20,30,50,.035);
+}
+
+body.light-mode .message.user .message-bubble{
+
+    background:
+        rgba(91,124,255,.10);
 }
 
 body.light-mode .chat-input{
     color:#172033;
 }
 
-/* ================= MOBILE ================= */
+body.light-mode .logo-text{
+    color:#172033;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media(max-width:850px){
 
     .sidebar{
+
         position:fixed;
+
         left:-300px;
+
         top:0;
-        height:100%;
-        transition:.3s;
-        box-shadow:20px 0 50px rgba(0,0,0,.3);
+
+        box-shadow:
+            20px 0 50px
+            rgba(0,0,0,.3);
     }
 
     .sidebar.open{
@@ -907,50 +1693,59 @@ body.light-mode .chat-input{
     }
 
     .header{
-        padding:0 15px;
+        padding:
+            0 15px;
     }
 
     .chat-area{
-        padding:20px 12px 180px;
+        padding:
+            20px 12px 180px;
     }
 
     .input-wrapper{
-        padding:15px 10px 18px;
+        padding:
+            14px 10px 17px;
     }
 
     .message-body{
         max-width:82%;
     }
 
-    .voice-assistant{
-        right:18px;
-        bottom:105px;
-        width:68px;
-        height:68px;
+    .welcome{
+        min-height:48vh;
     }
 
-    .voice-orb{
-        width:68px;
-        height:68px;
+    .ai-orb{
+
+        width:105px;
+        height:105px;
     }
 
-    .voice-orb i{
-        font-size:22px;
+    .ai-face{
+
+        width:80px;
+        height:94px;
     }
 
-    .voice-label{
-        display:none;
+    .ai-hair{
+
+        width:92px;
+        height:98px;
     }
 }
 
 @media(max-width:500px){
+
+    .header-title{
+        font-size:13px;
+    }
 
     .status{
         display:none;
     }
 
     .welcome h1{
-        font-size:31px;
+        font-size:30px;
     }
 
     .welcome p{
@@ -958,8 +1753,11 @@ body.light-mode .chat-input{
     }
 
     .message-avatar{
+
         width:32px;
         height:32px;
+
+        border-radius:10px;
     }
 
     .message-body{
@@ -967,34 +1765,55 @@ body.light-mode .chat-input{
     }
 
     .message-bubble{
+
         font-size:13px;
-        padding:12px 13px;
+
+        padding:
+            12px 13px;
     }
 
     .tool-btn{
+
         width:34px;
         height:34px;
     }
 
     .send-btn{
+
         width:39px;
         height:39px;
     }
+
+    .input-row{
+        gap:5px;
+    }
+
+    .input-actions{
+        gap:0;
+    }
 }
+
 </style>
+
 </head>
+
 
 <body>
 
 <div class="app">
 
+
 <!-- =====================================================
      SIDEBAR
-===================================================== -->
+====================================================== -->
 
-<aside class="sidebar" id="sidebar">
+<aside
+    class="sidebar"
+    id="sidebar"
+>
 
     <div class="logo">
+
         <div class="logo-icon">
             <i class="fa-solid fa-brain"></i>
         </div>
@@ -1002,62 +1821,108 @@ body.light-mode .chat-input{
         <div class="logo-text">
             Civic<span>AI</span>
         </div>
+
     </div>
 
-    <button class="new-chat" id="sidebarNewChat">
+
+    <button
+        class="new-chat"
+        id="sidebarNewChat"
+    >
+
         <i class="fa-solid fa-plus"></i>
+
         New conversation
+
     </button>
 
+
     <div class="search-box">
+
         <i class="fa-solid fa-magnifying-glass"></i>
 
         <input
-            type="text"
             id="chatSearch"
-            placeholder="Search chats...">
+            type="text"
+            placeholder="Search chats..."
+        >
+
     </div>
+
 
     <div class="sidebar-title">
         Recent
     </div>
 
-    <div class="recent-list" id="recentSearchList"></div>
+
+    <div
+        class="recent-list"
+        id="recentSearchList"
+    ></div>
+
 
     <div class="sidebar-bottom">
 
-        <button class="sidebar-btn" id="saveChatButton">
+        <button
+            class="sidebar-btn"
+            id="saveChatButton"
+        >
+
             <i class="fa-regular fa-bookmark"></i>
+
             Save conversation
+
         </button>
 
-        <button class="sidebar-btn" id="exportChatButton">
+
+        <button
+            class="sidebar-btn"
+            id="exportChatButton"
+        >
+
             <i class="fa-solid fa-copy"></i>
+
             Copy conversation
+
         </button>
 
-        <button class="sidebar-btn" id="clearHistoryButton">
+
+        <button
+            class="sidebar-btn"
+            id="clearHistoryButton"
+        >
+
             <i class="fa-regular fa-trash-can"></i>
+
             Clear conversation
+
         </button>
 
     </div>
 
 </aside>
 
+
 <!-- =====================================================
      MAIN
-===================================================== -->
+====================================================== -->
 
 <main class="main">
+
 
 <header class="header">
 
     <div class="header-left">
 
-        <button class="mobile-menu" id="mobileMenu">
+        <button
+            class="mobile-menu"
+            id="mobileMenu"
+        >
+
             <i class="fa-solid fa-bars"></i>
+
         </button>
+
 
         <div>
 
@@ -1066,29 +1931,36 @@ body.light-mode .chat-input{
             </div>
 
             <div class="status">
+
                 <span class="status-dot"></span>
+
                 AI assistant online
+
             </div>
 
         </div>
 
     </div>
 
+
     <div class="header-actions">
 
         <button
             class="icon-btn"
             id="newChatButton"
-            title="New conversation">
+            title="New conversation"
+        >
 
             <i class="fa-solid fa-plus"></i>
 
         </button>
 
+
         <button
             class="icon-btn"
             id="themeButton"
-            title="Toggle theme">
+            title="Toggle theme"
+        >
 
             <i class="fa-solid fa-moon"></i>
 
@@ -1098,164 +1970,236 @@ body.light-mode .chat-input{
 
 </header>
 
+
 <!-- =====================================================
-     CHAT AREA
-===================================================== -->
+     CHAT
+====================================================== -->
 
-<section class="chat-area" id="chatMessages">
+<section
+    class="chat-area"
+    id="chatMessages"
+>
 
-<div class="chat-container" id="chatContainer">
+<div
+    class="chat-container"
+    id="chatContainer"
+>
 
-    <div class="welcome" id="welcomeScreen">
 
-        <div class="welcome-logo">
-            <i class="fa-solid fa-brain"></i>
+<!-- =====================================================
+     WELCOME + AI FEMALE ASSISTANT
+====================================================== -->
+
+<div
+    class="welcome"
+    id="welcomeScreen"
+>
+
+    <div
+        class="ai-orb"
+        id="aiOrb"
+    >
+
+        <div class="ai-glow"></div>
+
+        <div class="ai-face">
+
+            <div class="ai-eye left"></div>
+
+            <div class="ai-eye right"></div>
+
+            <div class="ai-nose"></div>
+
+            <div class="ai-mouth"></div>
+
         </div>
 
-        <h1>
-            How can I help you?
-        </h1>
-
-        <p>
-            CivicAI is your AI life helper.
-            Ask questions, describe a problem,
-            get explanations, ideas, guidance,
-            or upload an image and let AI understand it.
-        </p>
+        <div class="ai-hair"></div>
 
     </div>
 
-    <div class="typing" id="typingIndicator">
 
-        <div class="typing-avatar">
-            <i class="fa-solid fa-brain"></i>
-        </div>
+    <h1>
+        How can I help you?
+    </h1>
 
-        <div class="typing-bubble">
 
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+    <p>
+        I'm your CivicAI Life Helper.
+        You can type, speak, upload an image,
+        or simply tell me what you need.
+    </p>
+
+
+    <div
+        class="voice-status"
+        id="voiceStatus"
+    >
+
+        <i class="fa-solid fa-microphone"></i>
+
+        <span id="voiceStatusText">
+            Voice assistant is off
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TYPING
+====================================================== -->
+
+<div
+    class="typing"
+    id="typingIndicator"
+>
+
+    <div class="typing-avatar">
+
+        <i class="fa-solid fa-brain"></i>
+
+    </div>
+
+
+    <div class="typing-bubble">
+
+        <div class="typing-dots">
+
+            <span></span>
+            <span></span>
+            <span></span>
 
         </div>
 
     </div>
+
+</div>
 
 </div>
 
 </section>
 
-<!-- =====================================================
-     ANIMATED AI VOICE ASSISTANT
-===================================================== -->
-
-<div
-    class="voice-assistant"
-    id="voiceAssistant"
-    title="Talk to CivicAI">
-
-    <div class="voice-orb">
-
-        <i class="fa-solid fa-microphone"></i>
-
-    </div>
-
-    <div class="voice-label" id="voiceLabel">
-        Talk to CivicAI
-    </div>
-
-</div>
 
 <!-- =====================================================
      INPUT
-===================================================== -->
+====================================================== -->
 
 <div class="input-wrapper">
 
 <div class="input-container">
 
-    <div
-        class="attachment-preview"
-        id="attachmentPreview">
 
-        <i id="attachmentIcon"
-           class="fa-solid fa-image">
-        </i>
+<div
+    class="attachment-preview"
+    id="attachmentPreview"
+>
 
-        <span id="attachmentName"></span>
+    <i
+        id="attachmentIcon"
+        class="fa-solid fa-file"
+    ></i>
 
-        <button
-            class="remove-attachment"
-            id="removeAttachment">
+    <span id="attachmentName"></span>
 
-            <i class="fa-solid fa-xmark"></i>
+    <button
+        class="remove-attachment"
+        id="removeAttachment"
+        title="Remove attachment"
+    >
 
-        </button>
+        <i class="fa-solid fa-xmark"></i>
 
-    </div>
+    </button>
 
-    <div class="input-row">
+</div>
 
-        <div class="input-actions">
 
-            <button
-                class="tool-btn"
-                id="fileButton"
-                title="Upload image">
+<div class="input-row">
 
-                <i class="fa-solid fa-paperclip"></i>
 
-            </button>
+<div class="input-actions">
 
-            <button
-                class="tool-btn"
-                id="cameraButton"
-                title="Camera">
 
-                <i class="fa-solid fa-camera"></i>
+<button
+    class="tool-btn"
+    id="fileButton"
+    title="Upload image"
+>
 
-            </button>
+    <i class="fa-solid fa-paperclip"></i>
 
-            <button
-                class="tool-btn"
-                id="voiceButton"
-                title="Voice input">
+</button>
 
-                <i class="fa-solid fa-microphone"></i>
 
-            </button>
+<button
+    class="tool-btn"
+    id="cameraButton"
+    title="Camera"
+>
 
-        </div>
+    <i class="fa-solid fa-camera"></i>
 
-        <textarea
-            class="chat-input"
-            id="chatInput"
-            rows="1"
-            placeholder="Message CivicAI..."></textarea>
+</button>
 
-        <button
-            class="send-btn"
-            id="sendButton"
-            title="Send">
 
-            <i class="fa-solid fa-paper-plane"></i>
+<button
+    class="tool-btn"
+    id="voiceButton"
+    title="Start voice assistant"
+>
 
-        </button>
+    <i class="fa-solid fa-microphone"></i>
 
-    </div>
+</button>
 
-    <div class="input-footer">
-        CivicAI can make mistakes.
-        Verify important information when necessary.
-    </div>
 
-    <input
-        type="file"
-        id="fileInput"
-        hidden
-        accept="image/*">
+</div>
+
+
+<!-- =====================================================
+     IMPORTANT:
+     TEXTAREA IS ALWAYS ENABLED
+====================================================== -->
+
+<textarea
+    class="chat-input"
+    id="chatInput"
+    rows="1"
+    autocomplete="off"
+    spellcheck="true"
+    placeholder="Message CivicAI..."
+></textarea>
+
+
+<button
+    class="send-btn"
+    id="sendButton"
+    title="Send"
+>
+
+    <i class="fa-solid fa-paper-plane"></i>
+
+</button>
+
+</div>
+
+
+<div class="input-footer">
+
+    CivicAI can make mistakes.
+    Verify important information when necessary.
+
+</div>
+
+
+<input
+    type="file"
+    id="fileInput"
+    hidden
+    accept="image/*"
+>
 
 </div>
 
@@ -1265,248 +2209,292 @@ body.light-mode .chat-input{
 
 </div>
 
-<div class="toast" id="helperToast"></div>
+
+<div
+    class="toast"
+    id="helperToast"
+></div>
+
 
 <script>
+
 "use strict";
 
-document.addEventListener("DOMContentLoaded", () => {
 
-    /* =====================================================
-       ELEMENTS
-    ===================================================== */
+document.addEventListener(
+"DOMContentLoaded",
+() => {
 
-    const sidebar =
-        document.getElementById("sidebar");
 
-    const mobileMenu =
-        document.getElementById("mobileMenu");
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-    const chatMessages =
-        document.getElementById("chatMessages");
+const sidebar =
+    document.getElementById("sidebar");
 
-    const chatContainer =
-        document.getElementById("chatContainer");
+const mobileMenu =
+    document.getElementById("mobileMenu");
 
-    const chatInput =
-        document.getElementById("chatInput");
+const chatMessages =
+    document.getElementById("chatMessages");
 
-    const sendButton =
-        document.getElementById("sendButton");
+const chatContainer =
+    document.getElementById("chatContainer");
 
-    const fileButton =
-        document.getElementById("fileButton");
+const chatInput =
+    document.getElementById("chatInput");
 
-    const fileInput =
-        document.getElementById("fileInput");
+const sendButton =
+    document.getElementById("sendButton");
 
-    const cameraButton =
-        document.getElementById("cameraButton");
+const fileButton =
+    document.getElementById("fileButton");
 
-    const voiceButton =
-        document.getElementById("voiceButton");
+const fileInput =
+    document.getElementById("fileInput");
 
-    const voiceAssistant =
-        document.getElementById("voiceAssistant");
+const cameraButton =
+    document.getElementById("cameraButton");
 
-    const voiceLabel =
-        document.getElementById("voiceLabel");
+const voiceButton =
+    document.getElementById("voiceButton");
 
-    const typingIndicator =
-        document.getElementById("typingIndicator");
+const typingIndicator =
+    document.getElementById("typingIndicator");
 
-    const welcomeScreen =
-        document.getElementById("welcomeScreen");
+const welcomeScreen =
+    document.getElementById("welcomeScreen");
 
-    const newChatButton =
-        document.getElementById("newChatButton");
+const newChatButton =
+    document.getElementById("newChatButton");
 
-    const sidebarNewChat =
-        document.getElementById("sidebarNewChat");
+const sidebarNewChat =
+    document.getElementById("sidebarNewChat");
 
-    const clearHistoryButton =
-        document.getElementById("clearHistoryButton");
+const clearHistoryButton =
+    document.getElementById("clearHistoryButton");
 
-    const saveChatButton =
-        document.getElementById("saveChatButton");
+const saveChatButton =
+    document.getElementById("saveChatButton");
 
-    const exportChatButton =
-        document.getElementById("exportChatButton");
+const exportChatButton =
+    document.getElementById("exportChatButton");
 
-    const themeButton =
-        document.getElementById("themeButton");
+const themeButton =
+    document.getElementById("themeButton");
 
-    const attachmentPreview =
-        document.getElementById("attachmentPreview");
+const attachmentPreview =
+    document.getElementById("attachmentPreview");
 
-    const attachmentName =
-        document.getElementById("attachmentName");
+const attachmentName =
+    document.getElementById("attachmentName");
 
-    const attachmentIcon =
-        document.getElementById("attachmentIcon");
+const attachmentIcon =
+    document.getElementById("attachmentIcon");
 
-    const removeAttachment =
-        document.getElementById("removeAttachment");
+const removeAttachment =
+    document.getElementById("removeAttachment");
 
-    const recentSearchList =
-        document.getElementById("recentSearchList");
+const recentSearchList =
+    document.getElementById("recentSearchList");
 
-    const chatSearch =
-        document.getElementById("chatSearch");
+const chatSearch =
+    document.getElementById("chatSearch");
 
-    const helperToast =
-        document.getElementById("helperToast");
+const helperToast =
+    document.getElementById("helperToast");
 
+const aiOrb =
+    document.getElementById("aiOrb");
 
-    /* =====================================================
-       BACKEND
-    ===================================================== */
+const voiceStatus =
+    document.getElementById("voiceStatus");
 
-    const CHAT_API_ENDPOINT = "/api/chat";
+const voiceStatusText =
+    document.getElementById("voiceStatusText");
 
-    const ANALYZE_API_ENDPOINT = "/api/analyze";
 
+/* =========================================================
+   API
+========================================================= */
 
-    /* =====================================================
-       STATE
-    ===================================================== */
+const CHAT_API_ENDPOINT =
+    "/api/chat";
 
-    let selectedFile = null;
+const ANALYZE_API_ENDPOINT =
+    "/api/analyze";
 
-    let messages = [];
 
-    let recentSearches = [];
+/* =========================================================
+   STATE
+========================================================= */
 
-    let savedChats = [];
+let selectedFile = null;
 
-    let isSending = false;
+let messages = [];
 
-    let activeRecognition = null;
+let recentSearches = [];
 
-    let voiceMode = false;
+let savedChats = [];
 
+let isSending = false;
 
-    /* =====================================================
-       STORAGE
-    ===================================================== */
 
-    const STORAGE_MESSAGES =
-        "civicai_messages";
+/* =========================================================
+   VOICE STATE
+========================================================= */
 
-    const STORAGE_RECENT =
-        "civicai_recent";
+let recognition = null;
 
-    const STORAGE_SAVED =
-        "civicai_saved";
+let voiceListening = false;
 
-    const STORAGE_THEME =
-        "civicai_theme";
+let voiceAssistantEnabled = false;
 
-    const STORAGE_VOICE =
-        "civicai_voice_enabled";
+let speechWasInterrupted = false;
 
 
-    /* =====================================================
-       INIT
-    ===================================================== */
+/* =========================================================
+   STORAGE
+========================================================= */
 
-    loadStorage();
+const STORAGE_MESSAGES =
+    "civicai_messages";
 
-    renderRecentSearches();
+const STORAGE_RECENT =
+    "civicai_recent";
 
-    applySavedTheme();
+const STORAGE_SAVED =
+    "civicai_saved";
 
-    autoResizeTextarea();
+const STORAGE_THEME =
+    "civicai_theme";
 
 
-    /* =====================================================
-       STORAGE
-    ===================================================== */
+/* =========================================================
+   INIT
+========================================================= */
 
-    function loadStorage(){
+loadStorage();
 
-        try{
+renderRecentSearches();
 
-            const savedMessages =
-                localStorage.getItem(
-                    STORAGE_MESSAGES
-                );
+applySavedTheme();
 
-            const savedRecent =
-                localStorage.getItem(
-                    STORAGE_RECENT
-                );
+autoResizeTextarea();
 
-            const saved =
-                localStorage.getItem(
-                    STORAGE_SAVED
-                );
+setupVoiceRecognition();
 
-            const savedVoice =
-                localStorage.getItem(
-                    STORAGE_VOICE
-                );
+keepInputEnabled();
 
 
-            if(savedMessages){
+/* =========================================================
+   ALWAYS KEEP TEXT INPUT ENABLED
+========================================================= */
 
-                const parsed =
-                    JSON.parse(savedMessages);
+function keepInputEnabled(){
 
-                if(Array.isArray(parsed)){
-                    messages = parsed;
-                }
+    if(!chatInput){
+        return;
+    }
 
-            }
+    chatInput.disabled = false;
 
+    chatInput.readOnly = false;
 
-            if(savedRecent){
+    chatInput.removeAttribute("disabled");
 
-                const parsed =
-                    JSON.parse(savedRecent);
+    chatInput.removeAttribute("readonly");
 
-                if(Array.isArray(parsed)){
-                    recentSearches = parsed;
-                }
+}
 
-            }
 
+/* =========================================================
+   STORAGE
+========================================================= */
 
-            if(saved){
+function loadStorage(){
 
-                const parsed =
-                    JSON.parse(saved);
+    try{
 
-                if(Array.isArray(parsed)){
-                    savedChats = parsed;
-                }
+        const savedMessages =
+            localStorage.getItem(
+                STORAGE_MESSAGES
+            );
 
-            }
+        const savedRecent =
+            localStorage.getItem(
+                STORAGE_RECENT
+            );
 
+        const saved =
+            localStorage.getItem(
+                STORAGE_SAVED
+            );
 
-            voiceMode =
-                savedVoice === "true";
 
+        if(savedMessages){
 
-            if(messages.length){
-                restoreMessages();
+            const parsed =
+                JSON.parse(savedMessages);
+
+            if(Array.isArray(parsed)){
+                messages = parsed;
             }
 
         }
 
-        catch(error){
 
-            console.error(
-                "Storage error:",
-                error
-            );
+        if(savedRecent){
 
+            const parsed =
+                JSON.parse(savedRecent);
+
+            if(Array.isArray(parsed)){
+                recentSearches = parsed;
+            }
+
+        }
+
+
+        if(saved){
+
+            const parsed =
+                JSON.parse(saved);
+
+            if(Array.isArray(parsed)){
+                savedChats = parsed;
+            }
+
+        }
+
+
+        if(messages.length){
+            restoreMessages();
         }
 
     }
+    catch(error){
+
+        console.error(
+            "Storage error:",
+            error
+        );
+
+        messages = [];
+
+        recentSearches = [];
+
+        savedChats = [];
+
+    }
+
+}
 
 
-    function saveMessages(){
+function saveMessages(){
+
+    try{
 
         localStorage.setItem(
             STORAGE_MESSAGES,
@@ -1514,9 +2502,18 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 
 
-    function saveRecentSearches(){
+function saveRecentSearches(){
+
+    try{
 
         localStorage.setItem(
             STORAGE_RECENT,
@@ -1524,9 +2521,18 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 
 
-    function saveSavedChats(){
+function saveSavedChats(){
+
+    try{
 
         localStorage.setItem(
             STORAGE_SAVED,
@@ -1534,614 +2540,599 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 
 
-    /* =====================================================
-       TOAST
-    ===================================================== */
+/* =========================================================
+   WELCOME
+========================================================= */
 
-    function showToast(text){
+function hideWelcome(){
 
-        helperToast.textContent =
-            String(text);
+    if(welcomeScreen){
+        welcomeScreen.style.display = "none";
+    }
 
-        helperToast.classList.add("show");
+}
 
-        clearTimeout(showToast.timer);
 
-        showToast.timer =
-            setTimeout(() => {
+function showWelcome(){
+
+    if(welcomeScreen){
+        welcomeScreen.style.display = "flex";
+    }
+
+}
+
+
+/* =========================================================
+   RESTORE
+========================================================= */
+
+function restoreMessages(){
+
+    hideWelcome();
+
+    messages.forEach(message => {
+
+        if(
+            message &&
+            (
+                message.role === "user" ||
+                message.role === "ai"
+            ) &&
+            typeof message.content === "string"
+        ){
+
+            renderMessage(
+                message.role,
+                message.content,
+                false
+            );
+
+        }
+
+    });
+
+    scrollToBottom();
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(text){
+
+    if(!helperToast){
+        return;
+    }
+
+    helperToast.textContent =
+        String(text);
+
+    helperToast.classList.add("show");
+
+    clearTimeout(
+        showToast.timer
+    );
+
+    showToast.timer =
+        setTimeout(
+            () => {
 
                 helperToast.classList.remove(
                     "show"
                 );
 
-            },2800);
+            },
+            2800
+        );
+
+}
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+function escapeHTML(text){
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text ?? "";
+
+    return div.innerHTML;
+
+}
+
+
+/* =========================================================
+   FORMAT
+========================================================= */
+
+function formatMessage(text){
+
+    if(!text){
+        return "";
+    }
+
+    let html =
+        escapeHTML(
+            String(text)
+        );
+
+
+    html =
+        html.replace(
+            /```([\s\S]*?)```/g,
+            "<pre><code>$1</code></pre>"
+        );
+
+
+    html =
+        html.replace(
+            /`([^`]+)`/g,
+            "<code>$1</code>"
+        );
+
+
+    html =
+        html.replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+        );
+
+
+    html =
+        html.replace(
+            /^• (.*)$/gm,
+            "<div>• $1</div>"
+        );
+
+
+    html =
+        html.replace(
+            /^- (.*)$/gm,
+            "<div>• $1</div>"
+        );
+
+
+    html =
+        html.replace(
+            /^(\d+)\.\s+(.*)$/gm,
+            "<div>$1. $2</div>"
+        );
+
+
+    html =
+        html.replace(
+            /\n/g,
+            "<br>"
+        );
+
+
+    return html;
+
+}
+
+
+/* =========================================================
+   RENDER MESSAGE
+========================================================= */
+
+function renderMessage(
+    role,
+    content,
+    save = true
+){
+
+    hideWelcome();
+
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        `message ${role}`;
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.innerHTML =
+        role === "ai"
+        ? '<i class="fa-solid fa-brain"></i>'
+        : '<i class="fa-solid fa-user"></i>';
+
+
+    const body =
+        document.createElement("div");
+
+    body.className =
+        "message-body";
+
+
+    const bubble =
+        document.createElement("div");
+
+    bubble.className =
+        "message-bubble";
+
+
+    bubble.innerHTML =
+        formatMessage(content);
+
+
+    const meta =
+        document.createElement("div");
+
+    meta.className =
+        "message-meta";
+
+
+    const time =
+        document.createElement("span");
+
+    time.textContent =
+        getCurrentTime();
+
+
+    const actions =
+        document.createElement("div");
+
+    actions.className =
+        "message-actions";
+
+
+    if(role === "ai"){
+
+        const copy =
+            document.createElement("button");
+
+        copy.type = "button";
+
+        copy.innerHTML =
+            '<i class="fa-regular fa-copy"></i>';
+
+        copy.title =
+            "Copy response";
+
+        copy.onclick =
+            () => copyText(content);
+
+        actions.appendChild(copy);
 
     }
 
 
-    /* =====================================================
-       HTML ESCAPE
-    ===================================================== */
+    meta.appendChild(time);
 
-    function escapeHTML(text){
+    meta.appendChild(actions);
 
-        const div =
-            document.createElement("div");
+    body.appendChild(bubble);
 
-        div.textContent =
-            text ?? "";
+    body.appendChild(meta);
 
-        return div.innerHTML;
+    message.appendChild(avatar);
 
-    }
+    message.appendChild(body);
 
 
-    /* =====================================================
-       FORMAT
-    ===================================================== */
-
-    function formatMessage(text){
-
-        if(!text){
-            return "";
-        }
-
-        let html =
-            escapeHTML(String(text));
-
-
-        html =
-            html.replace(
-                /```([\s\S]*?)```/g,
-                "<pre><code>$1</code></pre>"
-            );
-
-
-        html =
-            html.replace(
-                /`([^`]+)`/g,
-                "<code>$1</code>"
-            );
-
-
-        html =
-            html.replace(
-                /\*\*(.*?)\*\*/g,
-                "<strong>$1</strong>"
-            );
-
-
-        html =
-            html.replace(
-                /^- (.*)$/gm,
-                "<div>• $1</div>"
-            );
-
-
-        html =
-            html.replace(
-                /^• (.*)$/gm,
-                "<div>• $1</div>"
-            );
-
-
-        html =
-            html.replace(
-                /^(\d+)\.\s+(.*)$/gm,
-                "<div>$1. $2</div>"
-            );
-
-
-        html =
-            html.replace(
-                /\n/g,
-                "<br>"
-            );
-
-
-        return html;
-
-    }
-
-
-    /* =====================================================
-       RENDER
-    ===================================================== */
-
-    function renderMessage(
-        role,
-        content,
-        save=true
+    if(
+        typingIndicator &&
+        typingIndicator.parentNode === chatContainer
     ){
 
-        hideWelcome();
-
-
-        const message =
-            document.createElement("div");
-
-        message.className =
-            `message ${role}`;
-
-
-        const avatar =
-            document.createElement("div");
-
-        avatar.className =
-            "message-avatar";
-
-
-        avatar.innerHTML =
-            role === "ai"
-                ? '<i class="fa-solid fa-brain"></i>'
-                : '<i class="fa-solid fa-user"></i>';
-
-
-        const body =
-            document.createElement("div");
-
-        body.className =
-            "message-body";
-
-
-        const bubble =
-            document.createElement("div");
-
-        bubble.className =
-            "message-bubble";
-
-
-        bubble.innerHTML =
-            formatMessage(content);
-
-
-        const meta =
-            document.createElement("div");
-
-        meta.className =
-            "message-meta";
-
-
-        const time =
-            document.createElement("span");
-
-        time.textContent =
-            getCurrentTime();
-
-
-        const actions =
-            document.createElement("div");
-
-        actions.className =
-            "message-actions";
-
-
-        if(role === "ai"){
-
-            const copy =
-                document.createElement("button");
-
-            copy.innerHTML =
-                '<i class="fa-regular fa-copy"></i>';
-
-            copy.title =
-                "Copy response";
-
-            copy.onclick =
-                () => copyText(content);
-
-            actions.appendChild(copy);
-
-        }
-
-
-        meta.appendChild(time);
-
-        meta.appendChild(actions);
-
-        body.appendChild(bubble);
-
-        body.appendChild(meta);
-
-        message.appendChild(avatar);
-
-        message.appendChild(body);
-
-
-        if(typingIndicator){
-
-            chatContainer.insertBefore(
-                message,
-                typingIndicator
-            );
-
-        }else{
-
-            chatContainer.appendChild(
-                message
-            );
-
-        }
-
-
-        if(save){
-
-            messages.push({
-
-                role,
-
-                content:String(content),
-
-                time:Date.now()
-
-            });
-
-            saveMessages();
-
-        }
-
-
-        scrollToBottom();
+        chatContainer.insertBefore(
+            message,
+            typingIndicator
+        );
 
     }
+    else{
 
-
-    function restoreMessages(){
-
-        hideWelcome();
-
-        messages.forEach(item => {
-
-            if(
-                item &&
-                (
-                    item.role === "user" ||
-                    item.role === "ai"
-                )
-            ){
-
-                renderMessage(
-                    item.role,
-                    item.content,
-                    false
-                );
-
-            }
-
-        });
-
-        scrollToBottom();
-
-    }
-
-
-    function hideWelcome(){
-
-        if(welcomeScreen){
-            welcomeScreen.style.display =
-                "none";
-        }
-
-    }
-
-
-    function showWelcome(){
-
-        if(welcomeScreen){
-            welcomeScreen.style.display =
-                "flex";
-        }
-
-    }
-
-
-    function getCurrentTime(){
-
-        return new Date().toLocaleTimeString(
-            [],
-            {
-                hour:"2-digit",
-                minute:"2-digit"
-            }
+        chatContainer.appendChild(
+            message
         );
 
     }
 
 
-    function scrollToBottom(){
+    if(save){
 
-        requestAnimationFrame(() => {
+        messages.push({
+
+            role:role,
+
+            content:String(content),
+
+            time:Date.now()
+
+        });
+
+        saveMessages();
+
+    }
+
+
+    scrollToBottom();
+
+}
+
+
+/* =========================================================
+   TIME
+========================================================= */
+
+function getCurrentTime(){
+
+    return new Date().toLocaleTimeString(
+        [],
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SCROLL
+========================================================= */
+
+function scrollToBottom(){
+
+    requestAnimationFrame(
+        () => {
 
             chatMessages.scrollTop =
                 chatMessages.scrollHeight;
 
-        });
-
-    }
-
-
-    /* =====================================================
-       TYPING
-    ===================================================== */
-
-    function showTyping(){
-
-        typingIndicator.classList.add(
-            "show"
-        );
-
-        scrollToBottom();
-
-    }
-
-
-    function hideTyping(){
-
-        typingIndicator.classList.remove(
-            "show"
-        );
-
-    }
-
-
-    /* =====================================================
-       SEND
-    ===================================================== */
-
-    async function sendMessage(){
-
-        if(isSending){
-            return;
         }
+    );
+
+}
 
 
-        const text =
-            String(chatInput.value || "").trim();
+/* =========================================================
+   TYPING
+========================================================= */
 
-        const file =
-            selectedFile;
+function showTyping(){
+
+    if(!typingIndicator){
+        return;
+    }
+
+    typingIndicator.classList.add(
+        "show"
+    );
+
+    scrollToBottom();
+
+}
 
 
-        if(!text && !file){
+function hideTyping(){
 
-            showToast(
-                "Write a message or attach an image."
+    if(!typingIndicator){
+        return;
+    }
+
+    typingIndicator.classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =========================================================
+   SEND MESSAGE
+========================================================= */
+
+async function sendMessage(){
+
+    if(isSending){
+        return;
+    }
+
+
+    keepInputEnabled();
+
+
+    const text =
+        String(
+            chatInput.value || ""
+        ).trim();
+
+
+    const file =
+        selectedFile;
+
+
+    if(!text && !file){
+
+        showToast(
+            "Write a message or attach an image."
+        );
+
+        chatInput.focus();
+
+        return;
+
+    }
+
+
+    isSending = true;
+
+    sendButton.disabled = true;
+
+
+    let userMessage =
+        text;
+
+
+    if(file){
+
+        userMessage =
+            text
+            ? `${text}\n\n📎 Attached: ${file.name}`
+            : `📎 Attached: ${file.name}`;
+
+    }
+
+
+    renderMessage(
+        "user",
+        userMessage
+    );
+
+
+    if(text){
+        addRecentSearch(text);
+    }
+
+
+    chatInput.value = "";
+
+    autoResizeTextarea();
+
+    showTyping();
+
+
+    try{
+
+        const response =
+            await getAIResponse(
+                text,
+                file
             );
 
-            chatInput.focus();
 
-            return;
-
-        }
-
-
-        isSending = true;
-
-        sendButton.disabled = true;
-
-
-        let userMessage = text;
-
-
-        if(file){
-
-            userMessage =
-                text
-                    ? `${text}\n\n📎 Attached: ${file.name}`
-                    : `📎 Attached: ${file.name}`;
-
-        }
+        hideTyping();
 
 
         renderMessage(
-            "user",
-            userMessage
+            "ai",
+            response
         );
 
 
-        if(text){
-            addRecentSearch(text);
-        }
+        /*
+         * IMPORTANT:
+         * Speak AI answer when voice mode is ON.
+         */
 
+        if(voiceAssistantEnabled){
 
-        chatInput.value = "";
-
-        autoResizeTextarea();
-
-        showTyping();
-
-
-        setAssistantState(
-            "thinking"
-        );
-
-
-        try{
-
-            const response =
-                await getAIResponse(
-                    text,
-                    file
-                );
-
-
-            hideTyping();
-
-
-            renderMessage(
-                "ai",
+            speakAIResponse(
                 response
             );
-
-
-            /*
-             * Voice reply
-             */
-
-            if(voiceMode){
-
-                await speakText(
-                    stripMarkdown(response)
-                );
-
-            }
-
-        }
-
-        catch(error){
-
-            hideTyping();
-
-            setAssistantState(
-                "idle"
-            );
-
-
-            console.error(
-                "CivicAI error:",
-                error
-            );
-
-
-            renderMessage(
-                "ai",
-                `**CivicAI couldn't process your request.**\n\n${error.message || "Unknown server error."}`
-            );
-
-        }
-
-        finally{
-
-            isSending = false;
-
-            sendButton.disabled = false;
-
-            clearAttachment();
-
-            resetFileInput();
-
-            chatInput.focus();
 
         }
 
     }
+    catch(error){
+
+        hideTyping();
+
+        console.error(
+            "CivicAI error:",
+            error
+        );
+
+
+        const errorMessage =
+            `**CivicAI couldn't process your request.**\n\n${error.message || "Unknown server error."}`;
+
+
+        renderMessage(
+            "ai",
+            errorMessage
+        );
+
+
+        if(voiceAssistantEnabled){
+
+            speakAIResponse(
+                "Sorry, I could not process that request."
+            );
+
+        }
+
+    }
+    finally{
+
+        isSending = false;
+
+        sendButton.disabled = false;
+
+        clearAttachment();
+
+        resetFileInput();
+
+        keepInputEnabled();
+
+        chatInput.focus();
+
+    }
+
+}
+
+
+/*
+ * Make sendMessage available to browser/debugging
+ */
+
+window.sendMessage =
+    sendMessage;
+
+
+/* =========================================================
+   AI RESPONSE
+========================================================= */
+
+async function getAIResponse(
+    text,
+    file
+){
+
+    const userText =
+        String(text || "").trim();
 
 
     /* =====================================================
-       AI RESPONSE
+       IMAGE
     ===================================================== */
 
-    async function getAIResponse(
-        text,
-        file
+    if(
+        file &&
+        file.type &&
+        file.type.startsWith("image/")
     ){
 
-        const userText =
-            String(text || "").trim();
-
-
-        /*
-         * IMAGE
-         */
-
-        if(
-            file &&
-            file.type &&
-            file.type.startsWith("image/")
-        ){
-
-            const image =
-                await fileToDataURL(file);
-
-
-            const response =
-                await fetch(
-                    ANALYZE_API_ENDPOINT,
-                    {
-
-                        method:"POST",
-
-                        headers:{
-                            "Content-Type":
-                                "application/json",
-
-                            "Accept":
-                                "application/json"
-                        },
-
-                        body:JSON.stringify({
-
-                            description:
-                                userText ||
-                                "Analyze this image naturally and explain what you can understand from it.",
-
-                            location:"",
-
-                            reporterName:
-                                "CivicAI User",
-
-                            image
-
-                        })
-
-                    }
-                );
-
-
-            return processServerResponse(
-                response
-            );
-
-        }
-
-
-        if(file){
-
-            throw new Error(
-                "Only image files are supported."
-            );
-
-        }
-
-
-        if(!userText){
-
-            throw new Error(
-                "Please enter a message."
-            );
-
-        }
-
-
-        /*
-         * Important:
-         * Remove current user message from
-         * conversation duplicate.
-         */
-
-        const conversation =
-            messages
-                .slice(-21,-1)
-                .map(item => ({
-
-                    role:
-                        item.role === "ai"
-                            ? "assistant"
-                            : "user",
-
-                    content:
-                        String(
-                            item.content || ""
-                        )
-
-                }));
+        const image =
+            await fileToDataURL(file);
 
 
         const response =
             await fetch(
-                CHAT_API_ENDPOINT,
+                ANALYZE_API_ENDPOINT,
                 {
 
                     method:"POST",
@@ -2156,9 +3147,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     body:JSON.stringify({
 
-                        message:userText,
+                        description:
+                            userText ||
+                            "Analyze this image naturally and explain what you understand. Answer like a normal AI assistant, not like a civic report.",
 
-                        conversation
+                        location:"",
+
+                        reporterName:
+                            "CivicAI User",
+
+                        image:image
 
                     })
 
@@ -2173,876 +3171,545 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    if(file){
+
+        throw new Error(
+            "Only image files are supported."
+        );
+
+    }
+
+
+    if(!userText){
+
+        throw new Error(
+            "Please enter a message."
+        );
+
+    }
+
+
     /* =====================================================
-       BACKEND RESPONSE
+       CONVERSATION
     ===================================================== */
 
-    async function processServerResponse(
+    const conversation =
+        messages
+        .slice(-20)
+        .map(
+            item => {
+
+                return {
+
+                    role:
+                        item.role === "ai"
+                        ? "assistant"
+                        : "user",
+
+                    content:
+                        String(
+                            item.content || ""
+                        )
+
+                };
+
+            }
+        );
+
+
+    const response =
+        await fetch(
+            CHAT_API_ENDPOINT,
+            {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":
+                        "application/json",
+
+                    "Accept":
+                        "application/json"
+                },
+
+                body:JSON.stringify({
+
+                    message:userText,
+
+                    conversation:conversation
+
+                })
+
+            }
+        );
+
+
+    return processServerResponse(
         response
+    );
+
+}
+
+
+/* =========================================================
+   SERVER RESPONSE
+========================================================= */
+
+async function processServerResponse(
+    response
+){
+
+    const raw =
+        await response.text();
+
+
+    if(!raw){
+
+        throw new Error(
+            `Backend returned an empty response. HTTP ${response.status}`
+        );
+
+    }
+
+
+    let data;
+
+
+    try{
+
+        data =
+            JSON.parse(raw);
+
+    }
+    catch(error){
+
+        console.error(
+            "Invalid backend response:",
+            raw
+        );
+
+
+        if(
+            raw.trim().startsWith("<")
+        ){
+
+            throw new Error(
+                "Backend returned HTML instead of JSON. Make sure server.js is running and /api/chat exists."
+            );
+
+        }
+
+
+        throw new Error(
+            `Backend returned invalid JSON. HTTP ${response.status}`
+        );
+
+    }
+
+
+    if(!response.ok){
+
+        const serverError =
+            data?.error ||
+            data?.message ||
+            data?.details ||
+            data?.response ||
+            data?.answer;
+
+
+        if(response.status === 401){
+
+            throw new Error(
+                "AI API key is invalid or unauthorized."
+            );
+
+        }
+
+
+        if(response.status === 403){
+
+            throw new Error(
+                serverError ||
+                "AI request was forbidden."
+            );
+
+        }
+
+
+        if(response.status === 404){
+
+            throw new Error(
+                serverError ||
+                "The API endpoint was not found."
+            );
+
+        }
+
+
+        if(response.status === 429){
+
+            throw new Error(
+                serverError ||
+                "AI rate limit reached. Please try again."
+            );
+
+        }
+
+
+        throw new Error(
+            serverError ||
+            `AI server error: HTTP ${response.status}`
+        );
+
+    }
+
+
+    const answer =
+        extractAIResponse(data);
+
+
+    if(!answer){
+
+        throw new Error(
+            "Backend responded but did not return an AI answer."
+        );
+
+    }
+
+
+    return answer.trim();
+
+}
+
+
+/* =========================================================
+   EXTRACT RESPONSE
+========================================================= */
+
+function extractAIResponse(data){
+
+    if(typeof data === "string"){
+        return data;
+    }
+
+
+    if(
+        !data ||
+        typeof data !== "object"
+    ){
+        return "";
+    }
+
+
+    const fields = [
+
+        "answer",
+        "response",
+        "reply",
+        "message",
+        "text",
+        "content",
+        "analysis"
+
+    ];
+
+
+    for(const key of fields){
+
+        if(
+            typeof data[key] === "string" &&
+            data[key].trim()
+        ){
+
+            return data[key].trim();
+
+        }
+
+    }
+
+
+    for(
+        const key of
+        ["response","answer","analysis"]
     ){
 
-        const raw =
-            await response.text();
+        if(
+            data[key] &&
+            typeof data[key] === "object"
+        ){
 
-
-        if(!raw){
-
-            throw new Error(
-                `Backend returned an empty response. HTTP ${response.status}`
-            );
-
-        }
-
-
-        let data;
-
-
-        try{
-
-            data =
-                JSON.parse(raw);
-
-        }
-
-        catch{
-
-            if(raw.trim().startsWith("<")){
-
-                throw new Error(
-                    `Backend returned HTML instead of JSON. Check your server.js and API endpoint. HTTP ${response.status}`
+            const nested =
+                extractAIResponse(
+                    data[key]
                 );
 
-            }
-
-            throw new Error(
-                `Backend returned invalid JSON. HTTP ${response.status}`
-            );
-
-        }
-
-
-        if(!response.ok){
-
-            throw new Error(
-                data?.error ||
-                data?.message ||
-                `AI server error: HTTP ${response.status}`
-            );
-
-        }
-
-
-        const answer =
-            extractAIResponse(data);
-
-
-        if(!answer){
-
-            throw new Error(
-                "Backend returned no AI answer."
-            );
-
-        }
-
-
-        return answer.trim();
-
-    }
-
-
-    function extractAIResponse(data){
-
-        if(typeof data === "string"){
-            return data;
-        }
-
-        if(!data){
-            return "";
-        }
-
-
-        const fields = [
-            "answer",
-            "response",
-            "reply",
-            "message",
-            "text",
-            "content",
-            "analysis"
-        ];
-
-
-        for(const key of fields){
-
-            if(
-                typeof data[key] === "string" &&
-                data[key].trim()
-            ){
-
-                return data[key].trim();
-
+            if(nested){
+                return nested;
             }
 
         }
 
-
-        if(
-            data.response &&
-            typeof data.response === "object"
-        ){
-
-            return extractAIResponse(
-                data.response
-            );
-
-        }
-
-
-        if(
-            data.answer &&
-            typeof data.answer === "object"
-        ){
-
-            return extractAIResponse(
-                data.answer
-            );
-
-        }
-
-
-        return "";
-
     }
 
 
-    /* =====================================================
-       IMAGE
-    ===================================================== */
+    return "";
 
-    function fileToDataURL(file){
-
-        return new Promise(
-            (resolve,reject) => {
-
-                const reader =
-                    new FileReader();
+}
 
 
-                reader.onload =
-                    () => resolve(
+/* =========================================================
+   FILE
+========================================================= */
+
+function fileToDataURL(file){
+
+    return new Promise(
+        (resolve,reject) => {
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                () => {
+
+                    if(
+                        typeof reader.result !==
+                        "string"
+                    ){
+
+                        reject(
+                            new Error(
+                                "Unable to convert image."
+                            )
+                        );
+
+                        return;
+
+                    }
+
+
+                    resolve(
                         reader.result
                     );
 
+                };
 
-                reader.onerror =
-                    () => reject(
+
+            reader.onerror =
+                () => {
+
+                    reject(
                         new Error(
                             "Unable to read image."
                         )
                     );
 
+                };
 
-                reader.readAsDataURL(file);
 
-            }
-        );
-
-    }
-
-
-    function showAttachment(file){
-
-        selectedFile =
-            file;
-
-        attachmentName.textContent =
-            file.name;
-
-        attachmentIcon.className =
-            "fa-solid fa-image";
-
-        attachmentPreview.classList.add(
-            "show"
-        );
-
-    }
-
-
-    function clearAttachment(){
-
-        selectedFile =
-            null;
-
-        attachmentPreview.classList.remove(
-            "show"
-        );
-
-        attachmentName.textContent =
-            "";
-
-    }
-
-
-    function resetFileInput(){
-
-        fileInput.value = "";
-
-        fileInput.setAttribute(
-            "accept",
-            "image/*"
-        );
-
-        fileInput.removeAttribute(
-            "capture"
-        );
-
-    }
-
-
-    /* =====================================================
-       VOICE RECOGNITION
-    ===================================================== */
-
-    function getSpeechRecognition(){
-
-        return window.SpeechRecognition ||
-               window.webkitSpeechRecognition ||
-               null;
-
-    }
-
-
-    function startVoiceInput(){
-
-        const SpeechRecognition =
-            getSpeechRecognition();
-
-
-        if(!SpeechRecognition){
-
-            showToast(
-                "Voice recognition is not supported in this browser."
-            );
-
-            return;
-
-        }
-
-
-        if(activeRecognition){
-
-            activeRecognition.stop();
-
-            activeRecognition = null;
-
-            setAssistantState(
-                "idle"
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * Stop current speech
-         */
-
-        stopSpeaking();
-
-
-        const recognition =
-            new SpeechRecognition();
-
-
-        activeRecognition =
-            recognition;
-
-
-        recognition.lang =
-            navigator.language || "en-US";
-
-
-        recognition.interimResults =
-            true;
-
-
-        recognition.continuous =
-            false;
-
-
-        setAssistantState(
-            "listening"
-        );
-
-
-        showToast(
-            "Listening... Speak now."
-        );
-
-
-        recognition.onresult =
-            event => {
-
-                let transcript = "";
-
-                for(
-                    let i =
-                        event.resultIndex;
-                    i <
-                        event.results.length;
-                    i++
-                ){
-
-                    transcript +=
-                        event.results[i][0]
-                            .transcript;
-
-                }
-
-
-                chatInput.value =
-                    transcript;
-
-
-                autoResizeTextarea();
-
-            };
-
-
-        recognition.onerror =
-            event => {
-
-                console.error(
-                    "Speech recognition error:",
-                    event
-                );
-
-
-                if(
-                    event.error ===
-                    "not-allowed"
-                ){
-
-                    showToast(
-                        "Microphone permission denied."
-                    );
-
-                }
-                else if(
-                    event.error ===
-                    "no-speech"
-                ){
-
-                    showToast(
-                        "No speech detected."
-                    );
-
-                }
-                else{
-
-                    showToast(
-                        "Voice input failed."
-                    );
-
-                }
-
-
-                setAssistantState(
-                    "idle"
-                );
-
-            };
-
-
-        recognition.onend =
-            () => {
-
-                activeRecognition =
-                    null;
-
-
-                voiceButton.classList.remove(
-                    "voice-active"
-                );
-
-
-                setAssistantState(
-                    "idle"
-                );
-
-
-                /*
-                 * Automatically send if
-                 * speech produced text.
-                 */
-
-                const spoken =
-                    chatInput.value.trim();
-
-
-                if(spoken){
-
-                    sendMessage();
-
-                }
-
-            };
-
-
-        voiceButton.classList.add(
-            "voice-active"
-        );
-
-
-        try{
-
-            recognition.start();
-
-        }
-
-        catch(error){
-
-            console.error(error);
-
-            activeRecognition =
-                null;
-
-            setAssistantState(
-                "idle"
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       VOICE ASSISTANT
-    ===================================================== */
-
-    function setAssistantState(
-        state
-    ){
-
-        voiceAssistant.classList.remove(
-            "listening",
-            "thinking",
-            "speaking"
-        );
-
-
-        if(state === "listening"){
-
-            voiceAssistant.classList.add(
-                "listening"
-            );
-
-            voiceLabel.textContent =
-                "Listening...";
-
-        }
-
-        else if(state === "thinking"){
-
-            voiceAssistant.classList.add(
-                "thinking"
-            );
-
-            voiceLabel.textContent =
-                "Thinking...";
-
-        }
-
-        else if(state === "speaking"){
-
-            voiceAssistant.classList.add(
-                "speaking"
-            );
-
-            voiceLabel.textContent =
-                "Speaking...";
-
-        }
-
-        else{
-
-            voiceLabel.textContent =
-                "Talk to CivicAI";
-
-        }
-
-    }
-
-
-    /*
-     * Main animated orb click
-     */
-
-    voiceAssistant.addEventListener(
-        "click",
-        () => {
-
-            if(
-                window.speechSynthesis &&
-                window.speechSynthesis.speaking
-            ){
-
-                stopSpeaking();
-
-                return;
-
-            }
-
-
-            startVoiceInput();
+            reader.readAsDataURL(file);
 
         }
     );
 
+}
 
-    /*
-     * Small microphone button
-     */
 
-    voiceButton.addEventListener(
-        "click",
-        startVoiceInput
+/* =========================================================
+   ATTACHMENT
+========================================================= */
+
+function showAttachment(file){
+
+    selectedFile =
+        file;
+
+
+    attachmentName.textContent =
+        file.name;
+
+
+    attachmentIcon.className =
+        file.type?.startsWith("image/")
+        ? "fa-solid fa-image"
+        : "fa-solid fa-file";
+
+
+    attachmentPreview.classList.add(
+        "show"
+    );
+
+}
+
+
+function clearAttachment(){
+
+    selectedFile =
+        null;
+
+    attachmentPreview.classList.remove(
+        "show"
+    );
+
+    attachmentName.textContent =
+        "";
+
+}
+
+
+function resetFileInput(){
+
+    fileInput.value = "";
+
+    fileInput.setAttribute(
+        "accept",
+        "image/*"
+    );
+
+    fileInput.removeAttribute(
+        "capture"
+    );
+
+}
+
+
+/* =========================================================
+   RECENT SEARCH
+========================================================= */
+
+function addRecentSearch(text){
+
+    const clean =
+        String(text).trim();
+
+
+    if(!clean){
+        return;
+    }
+
+
+    recentSearches =
+        recentSearches.filter(
+            item =>
+                item.toLowerCase() !==
+                clean.toLowerCase()
+        );
+
+
+    recentSearches.unshift(
+        clean
     );
 
 
-    /* =====================================================
-       TEXT TO SPEECH
-    ===================================================== */
-
-    function speakText(text){
-
-        return new Promise(
-            resolve => {
-
-                if(
-                    !("speechSynthesis" in window)
-                ){
-
-                    showToast(
-                        "Voice reply is not supported in this browser."
-                    );
-
-                    setAssistantState(
-                        "idle"
-                    );
-
-                    resolve();
-
-                    return;
-
-                }
-
-
-                stopSpeaking();
-
-
-                const clean =
-                    String(text || "")
-                        .replace(/\s+/g," ")
-                        .trim();
-
-
-                if(!clean){
-
-                    resolve();
-
-                    return;
-
-                }
-
-
-                const utterance =
-                    new SpeechSynthesisUtterance(
-                        clean
-                    );
-
-
-                utterance.lang =
-                    navigator.language ||
-                    "en-US";
-
-
-                utterance.rate =
-                    1.0;
-
-
-                utterance.pitch =
-                    1.0;
-
-
-                utterance.volume =
-                    1.0;
-
-
-                utterance.onstart =
-                    () => {
-
-                        setAssistantState(
-                            "speaking"
-                        );
-
-                    };
-
-
-                utterance.onend =
-                    () => {
-
-                        setAssistantState(
-                            "idle"
-                        );
-
-                        resolve();
-
-                    };
-
-
-                utterance.onerror =
-                    () => {
-
-                        setAssistantState(
-                            "idle"
-                        );
-
-                        resolve();
-
-                    };
-
-
-                window.speechSynthesis.speak(
-                    utterance
-                );
-
-            }
-        );
-
-    }
-
-
-    function stopSpeaking(){
-
-        if(
-            "speechSynthesis" in window
-        ){
-
-            window.speechSynthesis.cancel();
-
-        }
-
-
-        setAssistantState(
-            "idle"
-        );
-
-    }
-
-
-    function stripMarkdown(text){
-
-        return String(text || "")
-            .replace(/```[\s\S]*?```/g,"")
-            .replace(/[*_#>`]/g,"")
-            .replace(/•/g,"")
-            .replace(/\s+/g," ")
-            .trim();
-
-    }
-
-
-    /* =====================================================
-       VOICE MODE
-    ===================================================== */
-
-    function toggleVoiceMode(){
-
-        voiceMode =
-            !voiceMode;
-
-
-        localStorage.setItem(
-            STORAGE_VOICE,
-            String(voiceMode)
+    recentSearches =
+        recentSearches.slice(
+            0,
+            8
         );
 
 
-        if(voiceMode){
+    saveRecentSearches();
 
-            showToast(
-                "AI voice replies enabled."
+    renderRecentSearches();
+
+}
+
+
+function renderRecentSearches(){
+
+    recentSearchList.innerHTML =
+        "";
+
+
+    if(!recentSearches.length){
+
+        const empty =
+            document.createElement(
+                "div"
             );
 
-            voiceAssistant.style.display =
-                "block";
+        empty.className =
+            "empty-recent";
 
-        }
-        else{
+        empty.textContent =
+            "Your recent AI questions will appear here.";
 
-            showToast(
-                "AI voice replies disabled."
-            );
-
-            stopSpeaking();
-
-        }
-
-    }
-
-
-    /*
-     * Double-click orb = toggle automatic
-     * voice replies.
-     */
-
-    voiceAssistant.addEventListener(
-        "dblclick",
-        event => {
-
-            event.preventDefault();
-
-            toggleVoiceMode();
-
-        }
-    );
-
-
-    /* =====================================================
-       RECENT
-    ===================================================== */
-
-    function addRecentSearch(text){
-
-        const clean =
-            String(text).trim();
-
-
-        if(!clean){
-            return;
-        }
-
-
-        recentSearches =
-            recentSearches.filter(
-                item =>
-                    item.toLowerCase() !==
-                    clean.toLowerCase()
-            );
-
-
-        recentSearches.unshift(
-            clean
+        recentSearchList.appendChild(
+            empty
         );
 
-
-        recentSearches =
-            recentSearches.slice(
-                0,
-                8
-            );
-
-
-        saveRecentSearches();
-
-        renderRecentSearches();
+        return;
 
     }
 
 
-    function renderRecentSearches(){
+    recentSearches.forEach(
+        (
+            query,
+            index
+        ) => {
 
-        recentSearchList.innerHTML =
-            "";
-
-
-        if(!recentSearches.length){
-
-            const empty =
+            const item =
                 document.createElement(
                     "div"
                 );
 
+            item.className =
+                "recent-item";
 
-            empty.className =
-                "empty-recent";
+
+            item.innerHTML = `
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                <span></span>
+
+                <small>
+                    ${index === 0 ? "now" : "recent"}
+                </small>
+
+            `;
 
 
-            empty.textContent =
-                "Your recent AI questions will appear here.";
+            item.querySelector(
+                "span"
+            ).textContent =
+                query;
+
+
+            item.onclick =
+                () => {
+
+                    chatInput.value =
+                        query;
+
+                    autoResizeTextarea();
+
+                    chatInput.focus();
+
+                };
 
 
             recentSearchList.appendChild(
-                empty
+                item
             );
 
-
-            return;
-
         }
+    );
+
+}
 
 
-        recentSearches.forEach(
-            query => {
+/* =========================================================
+   NEW CHAT
+========================================================= */
 
-                const item =
-                    document.createElement(
-                        "div"
-                    );
+function startNewChat(){
 
-
-                item.className =
-                    "recent-item";
-
-
-                item.innerHTML = `
-
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-
-                    <span></span>
-
-                `;
-
-
-                item.querySelector(
-                    "span"
-                ).textContent =
-                    query;
-
-
-                item.onclick =
-                    () => {
-
-                        chatInput.value =
-                            query;
-
-                        autoResizeTextarea();
-
-                        chatInput.focus();
-
-                    };
-
-
-                recentSearchList.appendChild(
-                    item
-                );
-
-            }
-        );
-
-    }
-
-
-    /* =====================================================
-       NEW CHAT
-    ===================================================== */
-
-    function startNewChat(){
+    if(messages.length){
 
         if(
-            messages.length &&
             !confirm(
                 "Start a new conversation?"
             )
@@ -3052,48 +3719,1136 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-
-        stopSpeaking();
-
-        messages = [];
-
-        saveMessages();
-
-        chatContainer
-            .querySelectorAll(
-                ".message"
-            )
-            .forEach(
-                el => el.remove()
-            );
+    }
 
 
-        clearAttachment();
+    messages = [];
 
-        resetFileInput();
+    saveMessages();
 
-        chatInput.value = "";
+    removeChatMessages();
 
-        autoResizeTextarea();
+    clearAttachment();
 
-        showWelcome();
+    resetFileInput();
 
-        chatInput.focus();
+    chatInput.value = "";
+
+    autoResizeTextarea();
+
+    showWelcome();
+
+    keepInputEnabled();
+
+    chatInput.focus();
+
+    showToast(
+        "New conversation started."
+    );
+
+}
+
+
+function removeChatMessages(){
+
+    chatContainer
+    .querySelectorAll(
+        ".message"
+    )
+    .forEach(
+        element =>
+            element.remove()
+    );
+
+}
+
+
+/* =========================================================
+   CLEAR
+========================================================= */
+
+function clearHistory(){
+
+    if(!messages.length){
 
         showToast(
-            "New conversation started."
+            "There is no chat history."
         );
+
+        return;
 
     }
 
 
-    function clearHistory(){
+    if(
+        !confirm(
+            "Clear this conversation?"
+        )
+    ){
 
-        if(!messages.length){
+        return;
+
+    }
+
+
+    messages = [];
+
+    saveMessages();
+
+    removeChatMessages();
+
+    showWelcome();
+
+    showToast(
+        "Conversation cleared."
+    );
+
+}
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+function saveCurrentChat(){
+
+    if(!messages.length){
+
+        showToast(
+            "There is no conversation to save."
+        );
+
+        return;
+
+    }
+
+
+    const first =
+        messages.find(
+            item =>
+                item.role === "user"
+        );
+
+
+    const title =
+        first
+        ? String(first.content || "")
+            .slice(0,45)
+        : "CivicAI Conversation";
+
+
+    savedChats.unshift({
+
+        id:Date.now(),
+
+        title:
+            title ||
+            "CivicAI Conversation",
+
+        messages:[
+            ...messages
+        ],
+
+        savedAt:Date.now()
+
+    });
+
+
+    savedChats =
+        savedChats.slice(
+            0,
+            10
+        );
+
+
+    saveSavedChats();
+
+
+    showToast(
+        "Conversation saved."
+    );
+
+}
+
+
+/* =========================================================
+   COPY
+========================================================= */
+
+async function copyConversation(){
+
+    if(!messages.length){
+
+        showToast(
+            "There is no conversation to copy."
+        );
+
+        return;
+
+    }
+
+
+    const text =
+        messages
+        .map(
+            item =>
+                `${
+                    item.role === "user"
+                    ? "You"
+                    : "CivicAI"
+                }:\n${item.content}`
+        )
+        .join(
+            "\n\n--------------------\n\n"
+        );
+
+
+    await copyText(text);
+
+}
+
+
+async function copyText(text){
+
+    try{
+
+        await navigator.clipboard.writeText(
+            String(text)
+        );
+
+
+        showToast(
+            "Copied to clipboard."
+        );
+
+    }
+    catch{
+
+        const textarea =
+            document.createElement(
+                "textarea"
+            );
+
+
+        textarea.value =
+            String(text);
+
+
+        document.body.appendChild(
+            textarea
+        );
+
+
+        textarea.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+        textarea.remove();
+
+
+        showToast(
+            "Copied to clipboard."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function applySavedTheme(){
+
+    const theme =
+        localStorage.getItem(
+            STORAGE_THEME
+        );
+
+
+    document.body.classList.toggle(
+        "light-mode",
+        theme === "light"
+    );
+
+
+    updateThemeButton();
+
+}
+
+
+function updateThemeButton(){
+
+    const light =
+        document.body.classList.contains(
+            "light-mode"
+        );
+
+
+    themeButton.innerHTML =
+        light
+        ? '<i class="fa-solid fa-sun"></i>'
+        : '<i class="fa-solid fa-moon"></i>';
+
+}
+
+
+function toggleTheme(){
+
+    const light =
+        document.body.classList.toggle(
+            "light-mode"
+        );
+
+
+    localStorage.setItem(
+        STORAGE_THEME,
+        light
+        ? "light"
+        : "dark"
+    );
+
+
+    updateThemeButton();
+
+}
+
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
+function autoResizeTextarea(){
+
+    if(!chatInput){
+        return;
+    }
+
+
+    chatInput.style.height =
+        "auto";
+
+
+    chatInput.style.height =
+        Math.min(
+            chatInput.scrollHeight,
+            130
+        ) + "px";
+
+}
+
+
+/* =========================================================
+   VOICE LANGUAGE
+========================================================= */
+
+function getVoiceLanguage(){
+
+    const browserLanguage =
+        (
+            navigator.language ||
+            "en-US"
+        ).toLowerCase();
+
+
+    /*
+     * Bengali
+     */
+
+    if(
+        browserLanguage.startsWith("bn")
+    ){
+
+        return "bn-IN";
+
+    }
+
+
+    /*
+     * Hindi
+     */
+
+    if(
+        browserLanguage.startsWith("hi")
+    ){
+
+        return "hi-IN";
+
+    }
+
+
+    /*
+     * Tamil
+     */
+
+    if(
+        browserLanguage.startsWith("ta")
+    ){
+
+        return "ta-IN";
+
+    }
+
+
+    /*
+     * Telugu
+     */
+
+    if(
+        browserLanguage.startsWith("te")
+    ){
+
+        return "te-IN";
+
+    }
+
+
+    /*
+     * English India
+     */
+
+    if(
+        browserLanguage.startsWith("en")
+    ){
+
+        return browserLanguage.includes("gb")
+        ? "en-GB"
+        : "en-IN";
+
+    }
+
+
+    return navigator.language || "en-US";
+
+}
+
+
+/* =========================================================
+   VOICE RECOGNITION SETUP
+========================================================= */
+
+function setupVoiceRecognition(){
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    if(!SpeechRecognition){
+
+        console.warn(
+            "Speech Recognition unavailable."
+        );
+
+        voiceButton.title =
+            "Voice recognition is not supported";
+
+        return;
+
+    }
+
+
+    recognition =
+        new SpeechRecognition();
+
+
+    /*
+     * CONTINUOUS IS VERY IMPORTANT.
+     */
+
+    recognition.continuous =
+        true;
+
+
+    recognition.interimResults =
+        true;
+
+
+    recognition.maxAlternatives =
+        1;
+
+
+    recognition.lang =
+        getVoiceLanguage();
+
+
+    /* =====================================================
+       RESULT
+    ===================================================== */
+
+    recognition.onresult =
+        event => {
+
+            let finalText = "";
+
+
+            for(
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ){
+
+                const transcript =
+                    event.results[i][0]
+                        .transcript;
+
+
+                if(
+                    event.results[i].isFinal
+                ){
+
+                    finalText +=
+                        transcript;
+
+                }
+
+            }
+
+
+            /*
+             * ONLY FINAL RESULT GOES INTO TEXT BOX.
+             */
+
+            if(
+                finalText.trim()
+            ){
+
+                const existing =
+                    chatInput.value.trim();
+
+
+                if(existing){
+
+                    chatInput.value =
+                        existing +
+                        " " +
+                        finalText.trim();
+
+                }
+                else{
+
+                    chatInput.value =
+                        finalText.trim();
+
+                }
+
+
+                autoResizeTextarea();
+
+                keepInputEnabled();
+
+                chatInput.focus();
+
+            }
+
+        };
+
+
+    /* =====================================================
+       ERROR
+    ===================================================== */
+
+    recognition.onerror =
+        event => {
+
+            console.error(
+                "Voice recognition error:",
+                event.error
+            );
+
+
+            if(
+                event.error === "not-allowed" ||
+                event.error === "service-not-allowed"
+            ){
+
+                voiceAssistantEnabled =
+                    false;
+
+                voiceListening =
+                    false;
+
+                updateVoiceUI();
+
+                showToast(
+                    "Microphone permission denied."
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * For temporary errors,
+             * keep assistant alive.
+             */
+
+            if(
+                voiceAssistantEnabled &&
+                event.error !== "aborted"
+            ){
+
+                setTimeout(
+                    restartRecognition,
+                    500
+                );
+
+            }
+
+        };
+
+
+    /* =====================================================
+       END
+    ===================================================== */
+
+    recognition.onend =
+        () => {
+
+            voiceListening =
+                false;
+
+
+            /*
+             * DO NOT TURN OFF VOICE ASSISTANT.
+             */
+
+            if(
+                voiceAssistantEnabled
+            ){
+
+                setTimeout(
+                    restartRecognition,
+                    350
+                );
+
+            }
+            else{
+
+                updateVoiceUI();
+
+            }
+
+        };
+
+
+    recognition.onstart =
+        () => {
+
+            voiceListening =
+                true;
+
+            updateVoiceUI();
+
+        };
+
+}
+
+
+/* =========================================================
+   START LISTENING
+========================================================= */
+
+function startVoiceAssistant(){
+
+    if(!recognition){
+
+        showToast(
+            "Voice recognition is not supported in this browser. Try Chrome or Edge."
+        );
+
+        return;
+
+    }
+
+
+    voiceAssistantEnabled =
+        true;
+
+
+    updateVoiceUI();
+
+
+    restartRecognition();
+
+}
+
+
+/* =========================================================
+   RESTART RECOGNITION
+========================================================= */
+
+function restartRecognition(){
+
+    if(
+        !voiceAssistantEnabled ||
+        !recognition
+    ){
+
+        return;
+
+    }
+
+
+    if(voiceListening){
+
+        return;
+
+    }
+
+
+    /*
+     * Update language each time.
+     */
+
+    recognition.lang =
+        getVoiceLanguage();
+
+
+    try{
+
+        recognition.start();
+
+    }
+    catch(error){
+
+        /*
+         * Browser throws if recognition
+         * is already starting/running.
+         */
+
+        console.log(
+            "Recognition restart:",
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   STOP VOICE
+========================================================= */
+
+function stopVoiceAssistant(){
+
+    voiceAssistantEnabled =
+        false;
+
+    voiceListening =
+        false;
+
+
+    if(
+        "speechSynthesis" in window
+    ){
+
+        speechWasInterrupted =
+            true;
+
+        window.speechSynthesis.cancel();
+
+    }
+
+
+    if(recognition){
+
+        try{
+
+            recognition.stop();
+
+        }
+        catch(error){
+
+            console.log(error);
+
+        }
+
+    }
+
+
+    updateVoiceUI();
+
+
+    showToast(
+        "Voice assistant turned off."
+    );
+
+}
+
+
+/* =========================================================
+   VOICE UI
+========================================================= */
+
+function updateVoiceUI(){
+
+    if(
+        voiceAssistantEnabled
+    ){
+
+        voiceButton.classList.add(
+            "voice-active"
+        );
+
+
+        voiceButton.innerHTML =
+            '<i class="fa-solid fa-microphone-lines"></i>';
+
+
+        voiceButton.title =
+            "Voice assistant ON — click to turn off";
+
+
+        voiceStatus.classList.add(
+            "active"
+        );
+
+
+        voiceStatusText.textContent =
+            voiceListening
+            ? "Listening — speak naturally"
+            : "Voice assistant is ON";
+
+
+        document.body.classList.add(
+            "voice-active"
+        );
+
+    }
+    else{
+
+        voiceButton.classList.remove(
+            "voice-active"
+        );
+
+
+        voiceButton.innerHTML =
+            '<i class="fa-solid fa-microphone"></i>';
+
+
+        voiceButton.title =
+            "Start voice assistant";
+
+
+        voiceStatus.classList.remove(
+            "active"
+        );
+
+
+        voiceStatusText.textContent =
+            "Voice assistant is off";
+
+
+        document.body.classList.remove(
+            "voice-active"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   TEXT TO SPEECH
+========================================================= */
+
+function speakAIResponse(text){
+
+    if(
+        !voiceAssistantEnabled
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        !("speechSynthesis" in window)
+    ){
+
+        showToast(
+            "Your browser does not support AI voice output."
+        );
+
+        return;
+
+    }
+
+
+    const cleanText =
+        String(text || "")
+        .replace(
+            /```[\s\S]*?```/g,
+            ""
+        )
+        .replace(
+            /[*#_]/g,
+            ""
+        )
+        .replace(
+            /https?:\/\/\S+/g,
+            ""
+        )
+        .trim();
+
+
+    if(!cleanText){
+        return;
+    }
+
+
+    speechWasInterrupted =
+        false;
+
+
+    window.speechSynthesis.cancel();
+
+
+    /*
+     * Wait slightly after cancel()
+     * to avoid Chrome speech queue issues.
+     */
+
+    setTimeout(
+        () => {
+
+            if(
+                !voiceAssistantEnabled
+            ){
+
+                return;
+
+            }
+
+
+            const utterance =
+                new SpeechSynthesisUtterance(
+                    cleanText
+                );
+
+
+            const voices =
+                window.speechSynthesis
+                    .getVoices();
+
+
+            /*
+             * Prefer a female sounding
+             * available system voice.
+             */
+
+            const preferredVoice =
+                voices.find(
+                    voice =>
+                        /female|samantha|zira|google.*female|microsoft.*zira|microsoft.*sara/i
+                            .test(
+                                voice.name
+                            )
+                );
+
+
+            if(preferredVoice){
+
+                utterance.voice =
+                    preferredVoice;
+
+            }
+
+
+            /*
+             * Detect language from the
+             * actual text where possible.
+             */
+
+            if(
+                /[\u0980-\u09FF]/
+                    .test(cleanText)
+            ){
+
+                utterance.lang =
+                    "bn-IN";
+
+            }
+            else if(
+                /[\u0900-\u097F]/
+                    .test(cleanText)
+            ){
+
+                utterance.lang =
+                    "hi-IN";
+
+            }
+            else if(
+                /[\u0B80-\u0BFF]/
+                    .test(cleanText)
+            ){
+
+                utterance.lang =
+                    "ta-IN";
+
+            }
+            else{
+
+                utterance.lang =
+                    getVoiceLanguage();
+
+            }
+
+
+            utterance.rate =
+                0.94;
+
+
+            utterance.pitch =
+                1.08;
+
+
+            utterance.volume =
+                1;
+
+
+            utterance.onstart =
+                () => {
+
+                    document.body.classList.add(
+                        "voice-active"
+                    );
+
+                };
+
+
+            utterance.onend =
+                () => {
+
+                    /*
+                     * IMPORTANT:
+                     * Voice mode stays ON.
+                     *
+                     * After AI finishes speaking,
+                     * microphone starts listening again.
+                     */
+
+                    if(
+                        voiceAssistantEnabled &&
+                        !speechWasInterrupted
+                    ){
+
+                        setTimeout(
+                            restartRecognition,
+                            400
+                        );
+
+                    }
+
+                };
+
+
+            utterance.onerror =
+                error => {
+
+                    console.error(
+                        "Speech synthesis:",
+                        error
+                    );
+
+
+                    if(
+                        voiceAssistantEnabled
+                    ){
+
+                        setTimeout(
+                            restartRecognition,
+                            500
+                        );
+
+                    }
+
+                };
+
+
+            window.speechSynthesis.speak(
+                utterance
+            );
+
+
+        },
+        180
+    );
+
+}
+
+
+/* =========================================================
+   VOICE BUTTON
+========================================================= */
+
+voiceButton.addEventListener(
+    "click",
+    () => {
+
+        if(
+            voiceAssistantEnabled
+        ){
+
+            stopVoiceAssistant();
+
+        }
+        else{
+
+            startVoiceAssistant();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   FILE UPLOAD
+========================================================= */
+
+fileButton.addEventListener(
+    "click",
+    () => {
+
+        resetFileInput();
+
+        fileInput.click();
+
+    }
+);
+
+
+fileInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            fileInput.files?.[0];
+
+
+        if(!file){
+            return;
+        }
+
+
+        if(
+            file.size >
+            10 * 1024 * 1024
+        ){
 
             showToast(
-                "There is no chat history."
+                "Maximum image size is 10 MB."
             );
+
+            resetFileInput();
 
             return;
 
@@ -3101,574 +4856,288 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         if(
-            !confirm(
-                "Clear this conversation?"
-            )
+            !file.type ||
+            !file.type.startsWith("image/")
         ){
 
-            return;
-
-        }
-
-
-        messages = [];
-
-        saveMessages();
-
-        chatContainer
-            .querySelectorAll(
-                ".message"
-            )
-            .forEach(
-                el => el.remove()
-            );
-
-
-        showWelcome();
-
-        showToast(
-            "Conversation cleared."
-        );
-
-    }
-
-
-    /* =====================================================
-       SAVE
-    ===================================================== */
-
-    function saveCurrentChat(){
-
-        if(!messages.length){
-
             showToast(
-                "There is no conversation to save."
+                "Please select an image."
             );
-
-            return;
-
-        }
-
-
-        const first =
-            messages.find(
-                item =>
-                    item.role === "user"
-            );
-
-
-        const title =
-            first
-                ? String(first.content)
-                    .slice(0,45)
-                : "CivicAI Conversation";
-
-
-        savedChats.unshift({
-
-            id:Date.now(),
-
-            title,
-
-            messages:[
-                ...messages
-            ],
-
-            savedAt:Date.now()
-
-        });
-
-
-        savedChats =
-            savedChats.slice(
-                0,
-                10
-            );
-
-
-        saveSavedChats();
-
-
-        showToast(
-            "Conversation saved."
-        );
-
-    }
-
-
-    /* =====================================================
-       COPY
-    ===================================================== */
-
-    async function copyConversation(){
-
-        if(!messages.length){
-
-            showToast(
-                "There is no conversation to copy."
-            );
-
-            return;
-
-        }
-
-
-        const text =
-            messages
-                .map(
-                    item =>
-                        `${
-                            item.role === "user"
-                                ? "You"
-                                : "CivicAI"
-                        }:\n${item.content}`
-                )
-                .join(
-                    "\n\n--------------------\n\n"
-                );
-
-
-        copyText(text);
-
-    }
-
-
-    async function copyText(text){
-
-        try{
-
-            await navigator.clipboard.writeText(
-                String(text)
-            );
-
-
-            showToast(
-                "Copied to clipboard."
-            );
-
-        }
-
-        catch{
-
-            const textarea =
-                document.createElement(
-                    "textarea"
-                );
-
-
-            textarea.value =
-                String(text);
-
-
-            document.body.appendChild(
-                textarea
-            );
-
-
-            textarea.select();
-
-            document.execCommand(
-                "copy"
-            );
-
-
-            textarea.remove();
-
-
-            showToast(
-                "Copied to clipboard."
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       THEME
-    ===================================================== */
-
-    function applySavedTheme(){
-
-        const theme =
-            localStorage.getItem(
-                STORAGE_THEME
-            );
-
-
-        document.body.classList.toggle(
-            "light-mode",
-            theme === "light"
-        );
-
-
-        updateThemeButton();
-
-    }
-
-
-    function updateThemeButton(){
-
-        const light =
-            document.body.classList.contains(
-                "light-mode"
-            );
-
-
-        themeButton.innerHTML =
-            light
-                ? '<i class="fa-solid fa-sun"></i>'
-                : '<i class="fa-solid fa-moon"></i>';
-
-    }
-
-
-    function toggleTheme(){
-
-        const light =
-            document.body.classList.toggle(
-                "light-mode"
-            );
-
-
-        localStorage.setItem(
-            STORAGE_THEME,
-            light
-                ? "light"
-                : "dark"
-        );
-
-
-        updateThemeButton();
-
-    }
-
-
-    /* =====================================================
-       TEXTAREA
-    ===================================================== */
-
-    function autoResizeTextarea(){
-
-        chatInput.style.height =
-            "auto";
-
-
-        chatInput.style.height =
-            Math.min(
-                chatInput.scrollHeight,
-                130
-            ) + "px";
-
-    }
-
-
-    /* =====================================================
-       EVENTS
-    ===================================================== */
-
-    sendButton.addEventListener(
-        "click",
-        sendMessage
-    );
-
-
-    chatInput.addEventListener(
-        "input",
-        autoResizeTextarea
-    );
-
-
-    chatInput.addEventListener(
-        "keydown",
-        event => {
-
-            if(
-                event.key === "Enter" &&
-                !event.shiftKey
-            ){
-
-                event.preventDefault();
-
-                sendMessage();
-
-            }
-
-        }
-    );
-
-
-    /* =====================================================
-       FILE
-    ===================================================== */
-
-    fileButton.addEventListener(
-        "click",
-        () => {
 
             resetFileInput();
 
-            fileInput.click();
+            return;
 
         }
-    );
 
 
-    fileInput.addEventListener(
-        "change",
-        () => {
+        showAttachment(file);
 
-            const file =
-                fileInput.files?.[0];
+    }
+);
 
 
-            if(!file){
-                return;
-            }
+removeAttachment.addEventListener(
+    "click",
+    () => {
+
+        clearAttachment();
+
+        resetFileInput();
+
+    }
+);
 
 
-            if(
-                file.size >
-                10 * 1024 * 1024
-            ){
+/* =========================================================
+   CAMERA
+========================================================= */
 
-                showToast(
-                    "Maximum image size is 10 MB."
-                );
+cameraButton.addEventListener(
+    "click",
+    () => {
 
-                resetFileInput();
+        fileInput.value = "";
 
-                return;
+        fileInput.setAttribute(
+            "accept",
+            "image/*"
+        );
 
-            }
+        fileInput.setAttribute(
+            "capture",
+            "environment"
+        );
 
+        fileInput.click();
 
-            if(
-                !file.type ||
-                !file.type.startsWith("image/")
-            ){
-
-                showToast(
-                    "Please select an image."
-                );
-
-                resetFileInput();
-
-                return;
-
-            }
+    }
+);
 
 
-            showAttachment(file);
+/* =========================================================
+   SEND
+========================================================= */
 
-        }
-    );
-
-
-    removeAttachment.addEventListener(
-        "click",
-        () => {
-
-            clearAttachment();
-
-            resetFileInput();
-
-        }
-    );
+sendButton.addEventListener(
+    "click",
+    sendMessage
+);
 
 
-    /* =====================================================
-       CAMERA
-    ===================================================== */
+/* =========================================================
+   TEXT INPUT
+========================================================= */
 
-    cameraButton.addEventListener(
-        "click",
-        () => {
+chatInput.addEventListener(
+    "input",
+    () => {
 
-            fileInput.value = "";
+        keepInputEnabled();
 
-            fileInput.setAttribute(
-                "accept",
-                "image/*"
-            );
+        autoResizeTextarea();
 
-            fileInput.setAttribute(
-                "capture",
-                "environment"
-            );
-
-            fileInput.click();
-
-        }
-    );
+    }
+);
 
 
-    /* =====================================================
-       CONTROLS
-    ===================================================== */
+/* =========================================================
+   ENTER SEND
+========================================================= */
 
-    newChatButton.addEventListener(
-        "click",
-        startNewChat
-    );
+chatInput.addEventListener(
+    "keydown",
+    event => {
 
+        if(
+            event.key === "Enter" &&
+            !event.shiftKey
+        ){
 
-    sidebarNewChat.addEventListener(
-        "click",
-        startNewChat
-    );
+            event.preventDefault();
 
-
-    clearHistoryButton.addEventListener(
-        "click",
-        clearHistory
-    );
-
-
-    saveChatButton.addEventListener(
-        "click",
-        saveCurrentChat
-    );
-
-
-    exportChatButton.addEventListener(
-        "click",
-        copyConversation
-    );
-
-
-    themeButton.addEventListener(
-        "click",
-        toggleTheme
-    );
-
-
-    chatSearch.addEventListener(
-        "input",
-        () => {
-
-            const query =
-                chatSearch.value
-                    .trim()
-                    .toLowerCase();
-
-
-            document
-                .querySelectorAll(
-                    ".recent-item"
-                )
-                .forEach(item => {
-
-                    item.style.display =
-                        !query ||
-                        item.textContent
-                            .toLowerCase()
-                            .includes(query)
-                            ? "flex"
-                            : "none";
-
-                });
+            sendMessage();
 
         }
-    );
+
+    }
+);
 
 
-    /* =====================================================
-       MOBILE
-    ===================================================== */
+/* =========================================================
+   NEW CHAT
+========================================================= */
 
-    mobileMenu.addEventListener(
-        "click",
-        () => {
-
-            sidebar.classList.toggle(
-                "open"
-            );
-
-        }
-    );
+newChatButton.addEventListener(
+    "click",
+    startNewChat
+);
 
 
-    chatMessages.addEventListener(
-        "click",
-        () => {
-
-            sidebar.classList.remove(
-                "open"
-            );
-
-        }
-    );
+sidebarNewChat.addEventListener(
+    "click",
+    startNewChat
+);
 
 
-    /* =====================================================
-       KEYBOARD SHORTCUT
-    ===================================================== */
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-    document.addEventListener(
-        "keydown",
-        event => {
+clearHistoryButton.addEventListener(
+    "click",
+    clearHistory
+);
 
-            /*
-             * Ctrl + Shift + V
-             * = Voice assistant
-             */
 
-            if(
-                event.ctrlKey &&
-                event.shiftKey &&
-                event.key.toLowerCase() === "v"
-            ){
+saveChatButton.addEventListener(
+    "click",
+    saveCurrentChat
+);
 
-                event.preventDefault();
 
-                startVoiceInput();
+exportChatButton.addEventListener(
+    "click",
+    copyConversation
+);
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+themeButton.addEventListener(
+    "click",
+    toggleTheme
+);
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+chatSearch.addEventListener(
+    "input",
+    () => {
+
+        const query =
+            chatSearch.value
+            .trim()
+            .toLowerCase();
+
+
+        document
+        .querySelectorAll(
+            ".recent-item"
+        )
+        .forEach(
+            item => {
+
+                item.style.display =
+                    !query ||
+                    item.textContent
+                        .toLowerCase()
+                        .includes(query)
+                    ? "flex"
+                    : "none";
 
             }
+        );
 
-            /*
-             * Escape = stop speaking
-             */
-
-            if(event.key === "Escape"){
-
-                stopSpeaking();
-
-            }
-
-        }
-    );
+    }
+);
 
 
-    /* =====================================================
-       READY
-    ===================================================== */
+/* =========================================================
+   MOBILE
+========================================================= */
 
-    console.log(
-        "CivicAI Life Helper initialized."
-    );
+mobileMenu.addEventListener(
+    "click",
+    () => {
 
-    console.log(
-        "Chat endpoint:",
-        CHAT_API_ENDPOINT
-    );
+        sidebar.classList.toggle(
+            "open"
+        );
 
-    console.log(
-        "Analyze endpoint:",
-        ANALYZE_API_ENDPOINT
-    );
+    }
+);
 
-    console.log(
-        "Voice recognition:",
-        !!getSpeechRecognition()
-    );
 
-    console.log(
-        "Voice synthesis:",
-        "speechSynthesis" in window
-    );
+chatMessages.addEventListener(
+    "click",
+    () => {
+
+        sidebar.classList.remove(
+            "open"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   BROWSER VOICES
+========================================================= */
+
+if(
+    "speechSynthesis" in window
+){
+
+    window.speechSynthesis.onvoiceschanged =
+        () => {
+
+            window.speechSynthesis
+                .getVoices();
+
+        };
+
+}
+
+
+/* =========================================================
+   FINAL SAFETY
+========================================================= */
+
+setInterval(
+    keepInputEnabled,
+    1500
+);
+
+
+/* =========================================================
+   READY
+========================================================= */
+
+console.log(
+    "===================================="
+);
+
+console.log(
+    "CivicAI Life Helper initialized."
+);
+
+console.log(
+    "Chat:",
+    CHAT_API_ENDPOINT
+);
+
+console.log(
+    "Analyze:",
+    ANALYZE_API_ENDPOINT
+);
+
+console.log(
+    "Voice language:",
+    getVoiceLanguage()
+);
+
+console.log(
+    "===================================="
+);
 
 });
+
 </script>
 
 </body>
