@@ -1,125 +1,77 @@
-// =========================================================
-// CIVICAI — FULL BACKEND SERVER
-// Express + Google Gemini AI
-// Product Vision + Product Questions
-// Civic Reports + AI Analysis
-// =========================================================
+// ============================================================
+// CIVICAI — FINAL COMPLETE SERVER.JS
+// ============================================================
+//
+// CIVICAI BACKEND
+//
+// AI ARCHITECTURE
+// ------------------------------------------------------------
+//
+// AI LIFE HELPER        -> GROQ
+// NORMAL CHAT           -> GROQ
+// PRODUCT LIVE CHAT     -> GROQ
+// AUTHORITY ASSISTANT   -> GROQ
+// IMAGE CHAT            -> GROQ VISION
+//
+// CIVIC REPORT ANALYSIS -> GEMINI
+// PRODUCT SCANNER       -> GEMINI
+//
+// EMAIL OTP             -> GMAIL / NODEMAILER
+// PHONE OTP             -> TWILIO
+//
+// REPORT STORAGE        -> JSON FILE
+// REPORT EMAIL          -> GMAIL
+//
+// ============================================================
 
 "use strict";
 
-// =========================================================
+// ============================================================
 // IMPORTS
-// =========================================================
+// ============================================================
 
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+import twilio from "twilio";
 import { fileURLToPath } from "url";
-
-
-// =========================================================
-// ENVIRONMENT
-// =========================================================
+import multer from "multer";
 
 dotenv.config();
 
+// ============================================================
+// PATH
+// ============================================================
 
-// =========================================================
-// APP
-// =========================================================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ============================================================
+// EXPRESS APP
+// ============================================================
 
 const app = express();
+
+app.disable("x-powered-by");
 
 const PORT =
     Number(process.env.PORT) || 3000;
 
-
-// =========================================================
-// ES MODULE PATH
-// =========================================================
-
-const __filename =
-    fileURLToPath(import.meta.url);
-
-const __dirname =
-    path.dirname(__filename);
-
-
-// =========================================================
-// DIRECTORIES
-// =========================================================
-
-const FRONTEND_DIR =
-    __dirname;
+// ============================================================
+// DATA DIRECTORY
+// ============================================================
 
 const DATA_DIR =
-    path.join(
-        __dirname,
-        "data"
-    );
+    path.join(__dirname, "data");
 
 const REPORTS_FILE =
-    path.join(
-        DATA_DIR,
-        "reports.json"
-    );
+    path.join(DATA_DIR, "reports.json");
 
-
-// =========================================================
-// GEMINI CONFIG
-// =========================================================
-
-const GEMINI_API_KEY =
-    process.env.GEMINI_API_KEY || "";
-
-const GEMINI_MODEL =
-    process.env.GEMINI_MODEL ||
-    "gemini-3.1-flash-lite";
-
-
-// Gemini REST API
-const GEMINI_API_URL =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-
-// =========================================================
-// MIDDLEWARE
-// =========================================================
-
-app.use(
-    cors({
-        origin: true,
-        credentials: false
-    })
-);
-
-
-app.use(
-    express.json({
-        limit: "8mb"
-    })
-);
-
-
-app.use(
-    express.urlencoded({
-        extended: true,
-        limit: "8mb"
-    })
-);
-
-
-// =========================================================
-// DATA DIRECTORY
-// =========================================================
-
-if (
-    !fs.existsSync(
-        DATA_DIR
-    )
-) {
+if (!fs.existsSync(DATA_DIR)) {
 
     fs.mkdirSync(
         DATA_DIR,
@@ -130,16 +82,7 @@ if (
 
 }
 
-
-// =========================================================
-// REPORT FILE
-// =========================================================
-
-if (
-    !fs.existsSync(
-        REPORTS_FILE
-    )
-) {
+if (!fs.existsSync(REPORTS_FILE)) {
 
     fs.writeFileSync(
         REPORTS_FILE,
@@ -149,10 +92,33 @@ if (
 
 }
 
+// ============================================================
+// MIDDLEWARE
+// ============================================================
 
-// =========================================================
-// UTILITY
-// =========================================================
+app.use(
+    cors({
+        origin: true,
+        credentials: true
+    })
+);
+
+app.use(
+    express.json({
+        limit: "25mb"
+    })
+);
+
+app.use(
+    express.urlencoded({
+        extended: true,
+        limit: "25mb"
+    })
+);
+
+// ============================================================
+// GENERAL HELPERS
+// ============================================================
 
 function cleanText(value) {
 
@@ -165,229 +131,101 @@ function cleanText(value) {
 
     }
 
-    return String(value)
-        .trim();
+    return String(value).trim();
 
 }
 
+// ============================================================
+// SECURE ID
+// ============================================================
 
-// =========================================================
-// CHECK GEMINI KEY
-// =========================================================
+function generateSecureId(prefix = "") {
 
-function hasGeminiKey() {
-
-    return Boolean(
-        GEMINI_API_KEY &&
-        String(
-            GEMINI_API_KEY
-        ).trim()
+    return (
+        prefix +
+        crypto.randomBytes(16).toString("hex")
     );
 
 }
 
+// ============================================================
+// IMAGE HELPERS
+// ============================================================
 
-// =========================================================
-// HEALTH CHECK
-// =========================================================
+function isImageDataUrl(image) {
 
-app.get(
-    "/api/health",
-    (req, res) => {
+    return (
+        typeof image === "string" &&
+        /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(image)
+    );
 
-        return res.json({
-
-            success:
-                true,
-
-            status:
-                "online",
-
-            service:
-                "CivicAI Backend",
-
-            aiProvider:
-                "Google Gemini",
-
-            aiConfigured:
-                hasGeminiKey(),
-
-            geminiModel:
-                GEMINI_MODEL,
-
-            timestamp:
-                new Date().toISOString()
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// API INFORMATION
-// =========================================================
-
-app.get(
-    "/api",
-    (req, res) => {
-
-        return res.json({
-
-            success:
-                true,
-
-            message:
-                "CivicAI Gemini backend API is running.",
-
-            aiProvider:
-                "Google Gemini",
-
-            aiConfigured:
-                hasGeminiKey(),
-
-            model:
-                GEMINI_MODEL,
-
-            endpoints: {
-
-                health:
-                    "GET /api/health",
-
-                analyzeProduct:
-                    "POST /api/analyze-product",
-
-                productQuestion:
-                    "POST /api/product-question",
-
-                analyze:
-                    "POST /api/analyze",
-
-                createReport:
-                    "POST /api/reports",
-
-                reports:
-                    "GET /api/reports",
-
-                singleReport:
-                    "GET /api/reports/:reportId"
-
-            }
-
-        });
-
-    }
-);
-
-
-// =========================================================
-// IMAGE VALIDATION
-// =========================================================
+}
 
 function validateImage(image) {
 
-    if (
-        !image ||
-        typeof image !== "string"
-    ) {
+    if (!image) {
 
         return {
-
-            valid:
-                false,
-
-            error:
-                "Image is required."
-
+            valid: false,
+            error: "Image is required."
         };
 
     }
 
-
-    if (
-        !image.startsWith(
-            "data:image/"
-        )
-    ) {
+    if (!isImageDataUrl(image)) {
 
         return {
-
-            valid:
-                false,
-
-            error:
-                "Invalid image format. Please send a base64 image data URL."
-
+            valid: false,
+            error: "Invalid image format."
         };
 
     }
 
-
+    // Approximate base64 request safety limit.
+    // Groq vision has its own request limits.
     if (
         image.length >
-        7_000_000
+        5_000_000
     ) {
 
         return {
-
-            valid:
-                false,
-
+            valid: false,
             error:
-                "Image is too large. Please upload a smaller image."
-
+                "Image is too large. Please use a smaller image."
         };
 
     }
 
-
     return {
-
-        valid:
-            true
-
+        valid: true
     };
 
 }
 
-
-// =========================================================
-// DATA URL → GEMINI INLINE DATA
-// =========================================================
-
-function imageToGeminiPart(imageDataUrl) {
+function imageToGeminiPart(image) {
 
     const match =
-        imageDataUrl.match(
-            /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+        image.match(
+            /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i
         );
-
 
     if (!match) {
 
         throw new Error(
-            "Invalid base64 image data URL."
+            "Invalid image data."
         );
 
     }
-
-
-    const mimeType =
-        match[1];
-
-    const base64Data =
-        match[2];
-
 
     return {
 
         inline_data: {
 
             mime_type:
-                mimeType,
+                match[1],
 
             data:
-                base64Data
+                match[2]
 
         }
 
@@ -395,10 +233,1650 @@ function imageToGeminiPart(imageDataUrl) {
 
 }
 
+// ============================================================
+// GEMINI CONFIGURATION
+// ============================================================
+//
+// ONLY:
+// Civic Report Analysis
+// Product Scanner
+//
+// ============================================================
 
-// =========================================================
-// GEMINI REQUEST
-// =========================================================
+const GEMINI_API_KEY =
+    cleanText(
+        process.env.GEMINI_API_KEY
+    );
+
+//
+// Default kept configurable through .env.
+// If your existing Gemini model works, keep your
+// GEMINI_MODEL value in .env.
+//
+// Example:
+// GEMINI_MODEL=gemini-3.5-flash
+//
+
+const GEMINI_MODEL =
+    cleanText(
+        process.env.GEMINI_MODEL
+    ) ||
+    "gemini-3.5-flash";
+
+const GEMINI_API_URL =
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// ============================================================
+// GROQ CONFIGURATION
+// ============================================================
+//
+// NORMAL CHAT
+// PRODUCT CHAT
+// AUTHORITY
+// IMAGE CHAT
+//
+// ============================================================
+
+const GROQ_API_KEY =
+    cleanText(
+        process.env.GROQ_API_KEY
+    );
+
+//
+// Current production text model.
+//
+const GROQ_TEXT_MODEL =
+    cleanText(
+        process.env.GROQ_TEXT_MODEL
+    ) ||
+    "llama-3.3-70b-versatile";
+
+//
+// Current Groq multimodal model.
+//
+const GROQ_VISION_MODEL =
+    cleanText(
+        process.env.GROQ_VISION_MODEL
+    ) ||
+    "meta-llama/llama-4-scout-17b-16e-instruct";
+
+const GROQ_API_URL =
+    "https://api.groq.com/openai/v1/chat/completions";
+
+// ============================================================
+// GMAIL CONFIGURATION
+// ============================================================
+
+const EMAIL_USER =
+    cleanText(
+        process.env.EMAIL_USER
+    );
+
+const EMAIL_PASSWORD =
+    cleanText(
+        process.env.EMAIL_PASSWORD
+    );
+
+const EMAIL_FROM =
+    cleanText(
+        process.env.EMAIL_FROM
+    ) ||
+    EMAIL_USER;
+
+let emailTransporter = null;
+
+if (
+    EMAIL_USER &&
+    EMAIL_PASSWORD
+) {
+
+    try {
+
+        emailTransporter =
+            nodemailer.createTransport({
+
+                service: "gmail",
+
+                auth: {
+
+                    user:
+                        EMAIL_USER,
+
+                    pass:
+                        EMAIL_PASSWORD
+
+                },
+
+                connectionTimeout:
+                    20_000,
+
+                greetingTimeout:
+                    20_000,
+
+                socketTimeout:
+                    30_000
+
+            });
+
+    } catch (error) {
+
+        console.error(
+            "GMAIL INITIALIZATION ERROR:",
+            error?.message || error
+        );
+
+    }
+
+}
+
+// ============================================================
+// TWILIO CONFIGURATION
+// ============================================================
+
+const TWILIO_ACCOUNT_SID =
+    cleanText(
+        process.env.TWILIO_ACCOUNT_SID
+    );
+
+const TWILIO_AUTH_TOKEN =
+    cleanText(
+        process.env.TWILIO_AUTH_TOKEN
+    );
+
+const TWILIO_PHONE_NUMBER =
+    cleanText(
+        process.env.TWILIO_PHONE_NUMBER
+    );
+
+let twilioClient = null;
+
+if (
+    TWILIO_ACCOUNT_SID &&
+    TWILIO_AUTH_TOKEN &&
+    TWILIO_PHONE_NUMBER
+) {
+
+    try {
+
+        twilioClient =
+            twilio(
+                TWILIO_ACCOUNT_SID,
+                TWILIO_AUTH_TOKEN
+            );
+
+    } catch (error) {
+
+        console.error(
+            "TWILIO INITIALIZATION ERROR:",
+            error?.message || error
+        );
+
+    }
+
+}
+
+// ============================================================
+// CONFIG CHECK
+// ============================================================
+
+function hasGeminiKey() {
+
+    return Boolean(
+        GEMINI_API_KEY &&
+        GEMINI_API_KEY.length > 10
+    );
+
+}
+
+function hasGroqKey() {
+
+    return Boolean(
+        GROQ_API_KEY &&
+        GROQ_API_KEY.length > 10
+    );
+
+}
+
+function hasEmailConfig() {
+
+    return Boolean(
+        emailTransporter
+    );
+
+}
+
+function hasTwilioConfig() {
+
+    return Boolean(
+        twilioClient
+    );
+
+}
+
+// ============================================================
+// CHAT MEMORY
+// ============================================================
+
+const chatSessions =
+    new Map();
+
+const CHAT_SESSION_TTL =
+    30 * 60 * 1000;
+
+const MAX_CHAT_SESSIONS =
+    500;
+
+// ============================================================
+// CLEANUP CHAT MEMORY
+// ============================================================
+
+function cleanupChatSessions() {
+
+    const now =
+        Date.now();
+
+    for (
+        const [
+            id,
+            session
+        ]
+        of chatSessions
+    ) {
+
+        if (
+            !session ||
+            now -
+            session.updatedAt >
+            CHAT_SESSION_TTL
+        ) {
+
+            chatSessions.delete(
+                id
+            );
+
+        }
+
+    }
+
+    while (
+        chatSessions.size >
+        MAX_CHAT_SESSIONS
+    ) {
+
+        const oldest =
+            chatSessions
+                .keys()
+                .next()
+                .value;
+
+        if (!oldest) {
+
+            break;
+
+        }
+
+        chatSessions.delete(
+            oldest
+        );
+
+    }
+
+}
+
+// ============================================================
+// HISTORY NORMALIZER
+// ============================================================
+
+function normalizeHistory(history) {
+
+    if (
+        !Array.isArray(history)
+    ) {
+
+        return [];
+
+    }
+
+    return history
+        .slice(-20)
+        .map(
+            item => {
+
+                const role =
+                    item?.role === "assistant" ||
+                    item?.role === "model"
+                        ? "assistant"
+                        : "user";
+
+                const content =
+                    cleanText(
+                        item?.content ??
+                        item?.text ??
+                        item?.message
+                    );
+
+                if (!content) {
+
+                    return null;
+
+                }
+
+                return {
+
+                    role,
+
+                    content
+
+                };
+
+            }
+        )
+        .filter(Boolean);
+
+}
+
+// ============================================================
+// GET CHAT SESSION ID
+// ============================================================
+
+function getChatSessionId(body) {
+
+    const supplied =
+        cleanText(
+            body?.conversationId ||
+            body?.sessionId
+        );
+
+    const id =
+        supplied ||
+        generateSecureId(
+            "CHAT-"
+        );
+
+    if (
+        !chatSessions.has(id)
+    ) {
+
+        chatSessions.set(
+
+            id,
+
+            {
+
+                history: [],
+
+                updatedAt:
+                    Date.now()
+
+            }
+
+        );
+
+    }
+
+    return id;
+
+}
+
+// ============================================================
+// GROQ ERROR PARSER
+// ============================================================
+
+function getGroqErrorMessage(text) {
+
+    try {
+
+        const data =
+            JSON.parse(text);
+
+        return (
+            data?.error?.message ||
+            data?.error?.type ||
+            data?.message ||
+            "Groq API error."
+        );
+
+    } catch {
+
+        return (
+            text ||
+            "Groq API error."
+        );
+
+    }
+
+}
+
+// ============================================================
+// GROQ API
+// ============================================================
+
+async function callGroq({
+
+    systemPrompt,
+
+    userText,
+
+    history = [],
+
+    image = null,
+
+    temperature = 0.55,
+
+    maxTokens = 1800,
+
+    retries = 2
+
+}) {
+
+    if (
+        !hasGroqKey()
+    ) {
+
+        throw new Error(
+            "GROQ_API_KEY is missing. Add GROQ_API_KEY to your .env file."
+        );
+
+    }
+
+    const messages = [];
+
+    // --------------------------------------------------------
+    // SYSTEM
+    // --------------------------------------------------------
+
+    messages.push({
+
+        role: "system",
+
+        content:
+            systemPrompt ||
+            "You are a helpful AI assistant."
+
+    });
+
+    // --------------------------------------------------------
+    // HISTORY
+    // --------------------------------------------------------
+
+    const normalizedHistory =
+        normalizeHistory(
+            history
+        );
+
+    for (
+        const item
+        of normalizedHistory
+    ) {
+
+        messages.push({
+
+            role:
+                item.role === "assistant"
+                    ? "assistant"
+                    : "user",
+
+            content:
+                item.content
+
+        });
+
+    }
+
+    // --------------------------------------------------------
+    // USER
+    // --------------------------------------------------------
+
+    if (image) {
+
+        const validation =
+            validateImage(
+                image
+            );
+
+        if (
+            !validation.valid
+        ) {
+
+            throw new Error(
+                validation.error
+            );
+
+        }
+
+        messages.push({
+
+            role: "user",
+
+            content: [
+
+                {
+
+                    type: "text",
+
+                    text:
+                        userText ||
+                        "Please analyze this image."
+
+                },
+
+                {
+
+                    type: "image_url",
+
+                    image_url: {
+
+                        url:
+                            image
+
+                    }
+
+                }
+
+            ]
+
+        });
+
+    } else {
+
+        messages.push({
+
+            role: "user",
+
+            content:
+                userText || ""
+
+        });
+
+    }
+
+    // --------------------------------------------------------
+    // MODEL
+    // --------------------------------------------------------
+
+    const model =
+        image
+            ? GROQ_VISION_MODEL
+            : GROQ_TEXT_MODEL;
+
+    // --------------------------------------------------------
+    // RETRY LOOP
+    // --------------------------------------------------------
+
+    let lastError = null;
+
+    for (
+        let attempt = 0;
+        attempt <= retries;
+        attempt++
+    ) {
+
+        const controller =
+            new AbortController();
+
+        const timeout =
+            setTimeout(
+                () => {
+
+                    controller.abort();
+
+                },
+                60_000
+            );
+
+        try {
+
+            console.log(
+                `[GROQ] Request attempt ${attempt + 1}/${retries + 1}`
+            );
+
+            console.log(
+                `[GROQ] Model: ${model}`
+            );
+
+            const response =
+                await fetch(
+
+                    GROQ_API_URL,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            Authorization:
+                                `Bearer ${GROQ_API_KEY}`
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                model,
+
+                                messages,
+
+                                temperature,
+
+                                max_completion_tokens:
+                                    maxTokens,
+
+                                top_p:
+                                    1,
+
+                                stream:
+                                    false
+
+                            }),
+
+                        signal:
+                            controller.signal
+
+                    }
+
+                );
+
+            const responseText =
+                await response.text();
+
+            if (
+                !response.ok
+            ) {
+
+                const message =
+                    getGroqErrorMessage(
+                        responseText
+                    );
+
+                const error =
+                    new Error(
+                        `Groq API ${response.status}: ${message}`
+                    );
+
+                error.status =
+                    response.status;
+
+                throw error;
+
+            }
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(
+                        responseText
+                    );
+
+            } catch {
+
+                throw new Error(
+                    "Groq returned invalid JSON."
+                );
+
+            }
+
+            const answer =
+                data
+                    ?.choices?.[0]
+                    ?.message?.content;
+
+            if (
+                !answer ||
+                !String(answer).trim()
+            ) {
+
+                throw new Error(
+                    "Groq returned an empty response."
+                );
+
+            }
+
+            console.log(
+                "[GROQ] Response received successfully."
+            );
+
+            return {
+
+                answer:
+                    String(
+                        answer
+                    ).trim(),
+
+                model,
+
+                usage:
+                    data?.usage || null
+
+            };
+
+        } catch (error) {
+
+            lastError =
+                error;
+
+            console.error(
+                `[GROQ] Attempt ${attempt + 1} failed:`,
+                error?.message || error
+            );
+
+            // Do not retry authentication,
+            // bad request or permission errors.
+
+            const status =
+                Number(
+                    error?.status
+                );
+
+            if (
+                status === 400 ||
+                status === 401 ||
+                status === 403
+            ) {
+
+                break;
+
+            }
+
+            // Retry only if another attempt exists.
+
+            if (
+                attempt < retries
+            ) {
+
+                const delay =
+                    700 *
+                    Math.pow(
+                        2,
+                        attempt
+                    );
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            delay
+                        )
+                );
+
+            }
+
+        } finally {
+
+            clearTimeout(
+                timeout
+            );
+
+        }
+
+    }
+
+    if (
+        lastError?.name ===
+        "AbortError"
+    ) {
+
+        throw new Error(
+            "Groq request timed out after 60 seconds."
+        );
+
+    }
+
+    throw (
+        lastError ||
+        new Error(
+            "Groq request failed."
+        )
+    );
+
+}
+
+// ============================================================
+// AI LIFE HELPER PROMPT
+// ============================================================
+
+const NORMAL_CHAT_PROMPT = `
+
+You are CivicAI AI Life Helper.
+
+You are the main conversational AI assistant
+inside the CivicAI website.
+
+You are powered by Groq.
+
+============================================================
+CORE BEHAVIOR
+============================================================
+
+Have a completely natural conversation.
+
+Answer the user's actual question directly.
+
+Do not force users into a civic complaint.
+
+Do not automatically create reports.
+
+Do not automatically create formal complaints.
+
+Do not claim that a report was submitted
+unless the application actually submitted it.
+
+Do not invent actions that the application did not perform.
+
+============================================================
+YOU CAN HELP WITH
+============================================================
+
+General questions.
+
+Education.
+
+Study.
+
+Mathematics.
+
+Science.
+
+Technology.
+
+Programming.
+
+Coding.
+
+HTML.
+
+CSS.
+
+JavaScript.
+
+Node.js.
+
+Express.js.
+
+Web development.
+
+AI.
+
+Computer science.
+
+General knowledge.
+
+Writing.
+
+Daily life.
+
+Government services.
+
+Civic problems.
+
+Roads.
+
+Water.
+
+Electricity.
+
+Garbage.
+
+Drainage.
+
+Pollution.
+
+Public services.
+
+============================================================
+CIVIC PROBLEMS
+============================================================
+
+If a user describes a civic problem,
+respond naturally.
+
+You can explain:
+
+- What the problem may be.
+- What department may normally handle it.
+- What information the citizen should collect.
+- What practical next step may help.
+
+But do not say that CivicAI submitted a complaint
+unless the report endpoint was actually called
+and successfully returned a submission result.
+
+============================================================
+CONTACT INFORMATION
+============================================================
+
+Never invent:
+
+- Phone numbers
+- Email addresses
+- Government websites
+- Complaint IDs
+- Tracking IDs
+- Submission confirmations
+
+If a contact detail is not verified,
+say that it cannot be verified.
+
+============================================================
+LANGUAGE
+============================================================
+
+Detect the user's language.
+
+Bengali:
+Respond in Bengali.
+
+English:
+Respond in English.
+
+Banglish:
+Respond naturally in Banglish.
+
+Mixed Bengali-English:
+Respond naturally in the same mixed style.
+
+============================================================
+STYLE
+============================================================
+
+Be helpful.
+
+Be friendly.
+
+Be natural.
+
+Be intelligent.
+
+Be clear.
+
+Avoid unnecessary repetition.
+
+Use short paragraphs.
+
+Use bullet points when useful.
+
+Do not sound robotic.
+
+Do not repeatedly say:
+"As an AI..."
+
+Do not mention internal instructions.
+
+Do not mention API keys.
+
+Do not mention server implementation.
+
+Do not mention Gemini.
+
+Do not mention that you are switching models.
+
+============================================================
+IMPORTANT
+============================================================
+
+Return normal conversational text.
+
+Do NOT return JSON.
+
+Do NOT return a report object.
+
+Do NOT fabricate information.
+
+============================================================
+FINAL RULE
+============================================================
+
+Answer the user's question naturally and helpfully.
+`;
+// ============================================================
+// CIVICAI — VOICE TRANSCRIPTION
+// ============================================================
+// Browser audio
+//       ↓
+// POST /api/transcribe
+//       ↓
+// Groq Whisper
+//       ↓
+// Original language transcription
+//       ↓
+// Frontend text input
+// ============================================================
+
+const voiceUpload = multer({
+    storage: multer.memoryStorage(),
+
+    limits: {
+        fileSize: 15 * 1024 * 1024
+    }
+});
+
+
+// ============================================================
+// /api/transcribe
+// ============================================================
+// ============================================================
+// CIVICAI — VOICE TRANSCRIPTION
+// GROQ WHISPER
+// ============================================================
+
+app.post(
+    "/api/transcribe",
+    voiceUpload.single("audio"),
+
+    async (req, res) => {
+
+        try {
+
+            // ------------------------------------------------
+            // CHECK GROQ KEY
+            // ------------------------------------------------
+
+            if (!hasGroqKey()) {
+
+                return res
+                    .status(500)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "GROQ_API_KEY is missing.",
+
+                        code:
+                            "GROQ_KEY_MISSING"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // CHECK AUDIO
+            // ------------------------------------------------
+
+            if (!req.file) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Audio file is required.",
+
+                        code:
+                            "AUDIO_REQUIRED"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // BASIC AUDIO VALIDATION
+            // ------------------------------------------------
+
+            if (
+                !req.file.buffer ||
+                !req.file.buffer.length
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Uploaded audio is empty.",
+
+                        code:
+                            "EMPTY_AUDIO"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // MIME TYPE
+            // ------------------------------------------------
+
+            const mimeType =
+                req.file.mimetype ||
+                "audio/webm";
+
+
+            // ------------------------------------------------
+            // FILE EXTENSION
+            // ------------------------------------------------
+
+            let extension = "webm";
+
+
+            if (
+                mimeType.includes("wav")
+            ) {
+
+                extension = "wav";
+
+            }
+
+            else if (
+                mimeType.includes("mpeg") ||
+                mimeType.includes("mp3")
+            ) {
+
+                extension = "mp3";
+
+            }
+
+            else if (
+                mimeType.includes("mp4")
+            ) {
+
+                extension = "mp4";
+
+            }
+
+            else if (
+                mimeType.includes("ogg")
+            ) {
+
+                extension = "ogg";
+
+            }
+
+            else if (
+                mimeType.includes("m4a")
+            ) {
+
+                extension = "m4a";
+
+            }
+
+
+            // ------------------------------------------------
+            // CREATE AUDIO FILE
+            // ------------------------------------------------
+
+            const audioFile =
+                new File(
+                    [
+                        req.file.buffer
+                    ],
+                    `civicai-audio.${extension}`,
+                    {
+                        type: mimeType
+                    }
+                );
+
+
+            // ------------------------------------------------
+            // GROQ WHISPER TRANSCRIPTION
+            // ------------------------------------------------
+
+            const transcription =
+                await groq.audio.transcriptions.create({
+
+                    file:
+                        audioFile,
+
+                    model:
+                        "whisper-large-v3-turbo",
+
+                    response_format:
+                        "json"
+
+                });
+
+
+            // ------------------------------------------------
+            // EXTRACT TEXT
+            // ------------------------------------------------
+
+            const text =
+                cleanText(
+                    transcription?.text ||
+                    ""
+                );
+
+
+            // ------------------------------------------------
+            // CHECK RESULT
+            // ------------------------------------------------
+
+            if (!text) {
+
+                return res
+                    .status(422)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Could not understand the audio.",
+
+                        code:
+                            "TRANSCRIPTION_EMPTY"
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // SUCCESS
+            // ------------------------------------------------
+
+            return res.json({
+
+                success:
+                    true,
+
+                provider:
+                    "Groq",
+
+                model:
+                    "whisper-large-v3-turbo",
+
+                text:
+                    text,
+
+                transcript:
+                    text,
+
+                transcription:
+                    text
+
+            });
+
+
+        } catch (error) {
+
+            // ------------------------------------------------
+            // ERROR LOG
+            // ------------------------------------------------
+
+            console.error(
+                "================================================"
+            );
+
+            console.error(
+                "CIVICAI / GROQ TRANSCRIPTION ERROR"
+            );
+
+            console.error(
+                error?.message ||
+                error
+            );
+
+            console.error(
+                "================================================"
+            );
+
+
+            // ------------------------------------------------
+            // STATUS CODE
+            // ------------------------------------------------
+
+            const errorMessage =
+                String(
+                    error?.message ||
+                    ""
+                );
+
+
+            let statusCode =
+                500;
+
+
+            if (
+                errorMessage.includes("401")
+            ) {
+
+                statusCode =
+                    401;
+
+            }
+
+            else if (
+                errorMessage.includes("403")
+            ) {
+
+                statusCode =
+                    403;
+
+            }
+
+            else if (
+                errorMessage.includes("400")
+            ) {
+
+                statusCode =
+                    400;
+
+            }
+
+            else if (
+                errorMessage.includes("429")
+            ) {
+
+                statusCode =
+                    429;
+
+            }
+
+            else if (
+                errorMessage
+                    .toLowerCase()
+                    .includes("timeout")
+            ) {
+
+                statusCode =
+                    504;
+
+            }
+
+
+            // ------------------------------------------------
+            // ERROR RESPONSE
+            // ------------------------------------------------
+
+            return res
+                .status(statusCode)
+                .json({
+
+                    success:
+                        false,
+
+                    provider:
+                        "Groq",
+
+                    error:
+                        errorMessage ||
+                        "Groq transcription failed.",
+
+                    code:
+                        "GROQ_TRANSCRIPTION_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+// ============================================================
+// /api/chat
+// ============================================================
+//// ============================================================
+// CIVICAI — AI LIFE HELPER
+// GROQ ONLY
+// FRONTEND: POST /api/chat
+// ============================================================
+
+app.post("/api/chat", async (req, res) => {
+    try {
+
+        cleanupChatSessions();
+
+        const body = req.body || {};
+
+        // ----------------------------------------------------
+        // MESSAGE
+        // ----------------------------------------------------
+
+        const message = cleanText(
+            body.message ||
+            body.question ||
+            body.prompt ||
+            body.text ||
+            ""
+        );
+
+        // ----------------------------------------------------
+        // IMAGE
+        // ----------------------------------------------------
+
+        const image = isImageDataUrl(body.image)
+            ? body.image
+            : null;
+
+        // ----------------------------------------------------
+        // VALIDATION
+        // ----------------------------------------------------
+
+        if (!message && !image) {
+            return res.status(400).json({
+                success: false,
+                error: "Message or image is required.",
+                code: "MESSAGE_REQUIRED"
+            });
+        }
+
+        // ----------------------------------------------------
+        // SESSION
+        // ----------------------------------------------------
+
+        const conversationId = getChatSessionId(body);
+
+        const session = chatSessions.get(conversationId);
+
+        // ----------------------------------------------------
+        // HISTORY
+        // ----------------------------------------------------
+        // Your HTML sends "conversation"
+        // Older frontend may send "history"
+        // So support BOTH.
+
+        const incomingHistory =
+            Array.isArray(body.conversation)
+                ? body.conversation
+                : body.history;
+
+        const clientHistory =
+            normalizeHistory(incomingHistory);
+
+        const history =
+            clientHistory.length
+                ? clientHistory
+                : (
+                    session?.history || []
+                );
+
+        // ----------------------------------------------------
+        // GROQ
+        // ----------------------------------------------------
+
+        const result = await callGroq({
+
+            systemPrompt:
+                NORMAL_CHAT_PROMPT,
+
+            userText:
+                message ||
+                "Please understand the attached image and explain what you see.",
+
+            history,
+
+            image,
+
+            temperature: 0.55,
+
+            maxTokens: 1800,
+
+            retries: 2
+
+        });
+
+        // ----------------------------------------------------
+        // SAVE CHAT MEMORY
+        // ----------------------------------------------------
+
+        const updatedHistory = [
+
+            ...history,
+
+            {
+                role: "user",
+                content: message || "[Image]"
+            },
+
+            {
+                role: "assistant",
+                content: result.answer
+            }
+
+        ].slice(-20);
+
+        chatSessions.set(
+            conversationId,
+            {
+                history: updatedHistory,
+                updatedAt: Date.now()
+            }
+        );
+
+        // ----------------------------------------------------
+        // RESPONSE
+        // ----------------------------------------------------
+        // Multiple response names are intentionally kept
+        // because your frontend supports all of them.
+
+        return res.json({
+
+            success: true,
+
+            provider: "Groq",
+
+            model:
+                result.model || null,
+
+            answer:
+                result.answer || "",
+
+            message:
+                result.answer || "",
+
+            reply:
+                result.answer || "",
+
+            response:
+                result.answer || "",
+
+            conversationId,
+
+            usage:
+                result.usage || null
+
+        });
+
+    } catch (error) {
+
+        console.error("");
+        console.error(
+            "================================================"
+        );
+        console.error(
+            "CIVICAI AI LIFE HELPER — GROQ ERROR"
+        );
+        console.error(
+            error?.message || error
+        );
+        console.error(
+            "================================================"
+        );
+        console.error("");
+
+        const errorMessage =
+            String(
+                error?.message ||
+                "Groq AI failed to generate a response."
+            );
+
+        let statusCode = 500;
+
+        if (
+            errorMessage.includes("401")
+        ) {
+            statusCode = 401;
+        }
+        else if (
+            errorMessage.includes("403")
+        ) {
+            statusCode = 403;
+        }
+        else if (
+            errorMessage.includes("400")
+        ) {
+            statusCode = 400;
+        }
+        else if (
+            errorMessage.includes("429")
+        ) {
+            statusCode = 429;
+        }
+        else if (
+            /timeout|timed out|ETIMEDOUT/i.test(
+                errorMessage
+            )
+        ) {
+            statusCode = 504;
+        }
+
+        return res.status(statusCode).json({
+
+            success: false,
+
+            provider: "Groq",
+
+            error: errorMessage,
+
+            code: "GROQ_CHAT_ERROR"
+
+        });
+    }
+});
+// 
+// ============================================================
+// GEMINI ERROR
+// ============================================================
+
+function getGeminiError(text) {
+
+    try {
+
+        const data =
+            JSON.parse(text);
+
+        return (
+            data?.error?.message ||
+            data?.error?.status ||
+            "Gemini API error."
+        );
+
+    } catch {
+
+        return (
+            text ||
+            "Gemini API error."
+        );
+
+    }
+
+}
+
+// ============================================================
+// GEMINI API
+// ============================================================
 
 async function callGemini({
 
@@ -408,45 +1886,55 @@ async function callGemini({
 
     image = null,
 
-    temperature = 0.2,
+    jsonMode = false,
 
-    maxOutputTokens = 1200
+    responseSchema = null,
+
+    maxOutputTokens = 1800,
+
+    retries = 1
 
 }) {
 
-    // -------------------------------------------------------
-    // API KEY
-    // -------------------------------------------------------
-
-    if (!hasGeminiKey()) {
+    if (
+        !hasGeminiKey()
+    ) {
 
         throw new Error(
-            "GEMINI_API_KEY is missing. Add it to your .env file."
+            "GEMINI_API_KEY is missing."
         );
 
     }
 
-
-    // -------------------------------------------------------
-    // CONTENT PARTS
-    // -------------------------------------------------------
-
     const parts = [];
 
+    if (userText) {
 
-    // Text
-    parts.push({
+        parts.push({
 
-        text:
-            userText
+            text:
+                userText
 
-    });
+        });
 
+    }
 
-    // Image
-    if (
-        image
-    ) {
+    if (image) {
+
+        const validation =
+            validateImage(
+                image
+            );
+
+        if (
+            !validation.valid
+        ) {
+
+            throw new Error(
+                validation.error
+            );
+
+        }
 
         parts.push(
             imageToGeminiPart(
@@ -455,11 +1943,6 @@ async function callGemini({
         );
 
     }
-
-
-    // -------------------------------------------------------
-    // REQUEST BODY
-    // -------------------------------------------------------
 
     const requestBody = {
 
@@ -493,283 +1976,160 @@ async function callGemini({
 
         generationConfig: {
 
-            temperature,
-
-            maxOutputTokens,
-
-            responseMimeType:
-                "application/json"
+            maxOutputTokens
 
         }
 
     };
 
+    if (
+        jsonMode
+    ) {
 
-    // -------------------------------------------------------
-    // REQUEST
-    // -------------------------------------------------------
-
-    console.log("");
-    console.log(
-        "========================================"
-    );
-
-    console.log(
-        "GEMINI AI REQUEST"
-    );
-
-    console.log(
-        "Model:",
-        GEMINI_MODEL
-    );
-
-
-    const controller =
-        new AbortController();
-
-
-    const timeout =
-        setTimeout(
-            () => {
-
-                controller.abort();
-
-            },
-            60_000
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                GEMINI_API_URL,
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "x-goog-api-key":
-                            GEMINI_API_KEY
-
-                    },
-
-                    body:
-                        JSON.stringify(
-                            requestBody
-                        ),
-
-                    signal:
-                        controller.signal
-
-                }
-            );
-
-
-        const responseText =
-            await response.text();
-
-
-        // ---------------------------------------------------
-        // ERROR
-        // ---------------------------------------------------
+        requestBody
+            .generationConfig
+            .responseMimeType =
+            "application/json";
 
         if (
-            !response.ok
+            responseSchema
         ) {
 
-            console.error("");
-            console.error(
-                "========================================"
-            );
+            requestBody
+                .generationConfig
+                .responseSchema =
+                responseSchema;
 
-            console.error(
-                "GEMINI API ERROR"
-            );
+        }
 
-            console.error(
-                "STATUS:",
-                response.status
-            );
+    }
 
-            console.error(
-                "RESPONSE:",
-                responseText
-            );
+    let lastError = null;
 
-            console.error(
-                "========================================"
-            );
+    for (
+        let attempt = 0;
+        attempt <= retries;
+        attempt++
+    ) {
 
+        try {
 
-            let errorMessage =
-                responseText;
+            const response =
+                await fetch(
 
+                    GEMINI_API_URL,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "x-goog-api-key":
+                                GEMINI_API_KEY
+
+                        },
+
+                        body:
+                            JSON.stringify(
+                                requestBody
+                            )
+
+                    }
+
+                );
+
+            const responseText =
+                await response.text();
+
+            if (
+                !response.ok
+            ) {
+
+                throw new Error(
+                    `Gemini API ${response.status}: ${getGeminiError(responseText)}`
+                );
+
+            }
+
+            let data;
 
             try {
 
-                const errorData =
+                data =
                     JSON.parse(
                         responseText
                     );
 
+            } catch {
 
-                errorMessage =
-                    errorData
-                        ?.error
-                        ?.message ||
-                    responseText;
-
-            }
-            catch {
-
-                // Keep raw response
-
-            }
-
-
-            throw new Error(
-                `Gemini API returned ${response.status}: ${errorMessage}`
-            );
-
-        }
-
-
-        // ---------------------------------------------------
-        // PARSE HTTP RESPONSE
-        // ---------------------------------------------------
-
-        let data;
-
-        try {
-
-            data =
-                JSON.parse(
-                    responseText
+                throw new Error(
+                    "Gemini returned invalid JSON."
                 );
 
-        }
-        catch {
+            }
 
-            throw new Error(
-                "Gemini returned invalid JSON response."
-            );
+            const answer =
+                extractGeminiText(
+                    data
+                );
 
-        }
+            if (!answer) {
 
+                throw new Error(
+                    "Gemini returned an empty response."
+                );
 
-        // ---------------------------------------------------
-        // GEMINI CONTENT
-        // ---------------------------------------------------
+            }
 
-        const content =
-            data
-                ?.candidates
-                ?.[0]
-                ?.content
-                ?.parts
-                ?.map(
-                    part =>
-                        part.text || ""
-                )
-                .join("")
-                .trim();
+            return answer;
 
+        } catch (error) {
 
-        if (
-            !content
-        ) {
+            lastError =
+                error;
 
-            console.error(
-                "EMPTY GEMINI RESPONSE:"
-            );
+            if (
+                attempt < retries
+            ) {
 
-            console.error(
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                )
-            );
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            1000 *
+                            (attempt + 1)
+                        )
+                );
 
-
-            throw new Error(
-                "Gemini returned an empty AI response."
-            );
+            }
 
         }
-
-
-        console.log(
-            "Gemini response received successfully."
-        );
-
-        console.log(
-            "========================================"
-        );
-
-
-        return content;
 
     }
-    catch (error) {
 
-        if (
-            error?.name ===
-            "AbortError"
-        ) {
-
-            throw new Error(
-                "Gemini AI request timed out after 60 seconds."
-            );
-
-        }
-
-
-        throw error;
-
-    }
-    finally {
-
-        clearTimeout(
-            timeout
-        );
-
-    }
+    throw (
+        lastError ||
+        new Error(
+            "Gemini request failed."
+        )
+    );
 
 }
 
+// ============================================================
+// JSON PARSER
+// ============================================================
 
-// =========================================================
-// PARSE AI JSON
-// =========================================================
-
-function parseAIJson(content) {
-
-    if (
-        !content
-    ) {
-
-        throw new Error(
-            "AI returned an empty response."
-        );
-
-    }
-
+function parseAIJSON(text) {
 
     let cleaned =
-        String(
-            content
-        )
-        .trim();
+        cleanText(text);
 
-
-    // Remove markdown code fences
     cleaned =
         cleaned
             .replace(
@@ -783,74 +2143,39 @@ function parseAIJson(content) {
             .replace(
                 /\s*```$/i,
                 ""
-            )
-            .trim();
+            );
 
-
-    // Direct JSON
     try {
 
         return JSON.parse(
             cleaned
         );
 
-    }
-    catch {
+    } catch {}
 
-        // Continue
-
-    }
-
-
-    // Try extracting JSON object
     const start =
-        cleaned.indexOf(
-            "{"
-        );
+        cleaned.indexOf("{");
 
     const end =
-        cleaned.lastIndexOf(
-            "}"
-        );
-
+        cleaned.lastIndexOf("}");
 
     if (
         start !== -1 &&
-        end !== -1 &&
         end > start
     ) {
-
-        const possibleJSON =
-            cleaned.slice(
-                start,
-                end + 1
-            );
-
 
         try {
 
             return JSON.parse(
-                possibleJSON
+                cleaned.slice(
+                    start,
+                    end + 1
+                )
             );
 
-        }
-        catch {
-
-            // Continue
-
-        }
+        } catch {}
 
     }
-
-
-    console.error(
-        "INVALID AI JSON:"
-    );
-
-    console.error(
-        cleaned
-    );
-
 
     throw new Error(
         "AI returned invalid JSON."
@@ -858,246 +2183,207 @@ function parseAIJson(content) {
 
 }
 
+// ============================================================
+// CIVIC REPORT PROMPT
+// ============================================================
 
-// =========================================================
-// NORMALIZE PRODUCT ANALYSIS
-// =========================================================
+const CIVIC_SYSTEM_PROMPT = `
 
-function normalizeProductAnalysis(
-    analysis
-) {
+You are CivicAI Civic Report Analysis AI.
 
-    if (
-        !analysis ||
-        typeof analysis !== "object"
-    ) {
+Analyze the citizen's civic problem.
 
-        throw new Error(
-            "Invalid product AI response."
-        );
+Use the supplied:
 
-    }
+- description
+- image
+- location
+- reporter name
 
+Do not invent facts.
 
-    let confidence =
-        analysis.confidence;
+Determine:
 
+problem
+category
+severity
+risk
+urgency
+department
+responsibleAuthority
+location
+confidence
+summary
+recommendation
+authorityReason
+officialComplaint
+problemDescription
+requestedAction
 
-    if (
-        typeof confidence ===
-        "number"
-    ) {
+Severity must be one of:
 
-        confidence =
-            `${Math.round(
-                confidence
-            )}%`;
-
-    }
-    else {
-
-        confidence =
-            cleanText(
-                confidence
-            );
-
-    }
-
-
-    return {
-
-        productName:
-            cleanText(
-                analysis.productName
-            ) ||
-            "Product not clearly identified",
-
-
-        description:
-            cleanText(
-                analysis.description
-            ) ||
-            "The AI could not generate a detailed product description.",
-
-
-        category:
-            cleanText(
-                analysis.category
-            ) ||
-            "Unknown",
-
-
-        estimatedPrice:
-            cleanText(
-                analysis.estimatedPrice
-            ) ||
-            "Not available",
-
-
-        condition:
-            cleanText(
-                analysis.condition
-            ) ||
-            "Not determined",
-
-
-        expiry:
-            cleanText(
-                analysis.expiry
-            ) ||
-            "Not detected",
-
-
-        warning:
-            cleanText(
-                analysis.warning
-            ) ||
-            "No obvious safety information could be determined from the image.",
-
-
-        confidence:
-            confidence ||
-            "Medium",
-
-
-        visibleInformation:
-            cleanText(
-                analysis.visibleInformation
-            ) ||
-            "",
-
-
-        authenticity:
-            cleanText(
-                analysis.authenticity
-            ) ||
-            "Cannot be verified from image alone.",
-
-
-        recommendation:
-            cleanText(
-                analysis.recommendation
-            ) ||
-            "Verify official product information before purchase or use."
-
-    };
-
-}
-
-
-// =========================================================
-// PRODUCT SYSTEM PROMPT
-// =========================================================
-
-const PRODUCT_SYSTEM_PROMPT = `
-
-You are CivicAI Vision AI, a careful product analysis assistant.
-
-Analyze the product image supplied by the user.
-
-The image may contain:
-
-- product packaging
-- labels
-- bottles
-- food
-- electronics
-- medicine packaging
-- household products
-- clothing
-- tools
-- documents
-- barcodes
-
-IMPORTANT RULES:
-
-1. Carefully inspect the image.
-2. Do not invent information.
-3. Only use text that is reasonably visible.
-4. If the product cannot be confidently identified, say so.
-5. Never claim authenticity with certainty from an image alone.
-6. Never invent an expiry date.
-7. Never invent an exact market price.
-8. Price should be an estimate or range when possible.
-9. If expiry is not visible, return "Not detected".
-10. If condition cannot be determined, return "Not determined".
-11. Safety information must be based on visible evidence and reasonable general knowledge.
-12. If the image is blurry, reduce confidence.
-13. Do not pretend to have scanned a barcode if it is unreadable.
-14. Do not provide dangerous medical instructions.
-15. Return ONLY valid JSON.
-16. Do not use Markdown.
-17. Do not use code fences.
-18. Do not add any text outside JSON.
-
-Return exactly:
-
-{
-    "productName": "",
-    "description": "",
-    "category": "",
-    "estimatedPrice": "",
-    "condition": "",
-    "expiry": "",
-    "warning": "",
-    "confidence": "",
-    "visibleInformation": "",
-    "authenticity": "",
-    "recommendation": ""
-}
-
-confidence must be:
-
-High
-Medium
 Low
+Medium
+High
+Critical
+
+Use "Not provided" or "Not available"
+when information is unavailable.
+
+Do not invent government contact information.
+
+Return ONLY valid JSON.
 
 `;
 
+// ============================================================
+// CIVIC SCHEMA
+// ============================================================
 
-// =========================================================
-// POST /api/analyze-product
-// =========================================================
+const CIVIC_SCHEMA = {
+
+    type:
+        "object",
+
+    properties: {
+
+        problem: {
+            type:
+                "string"
+        },
+
+        category: {
+            type:
+                "string"
+        },
+
+        severity: {
+            type:
+                "string"
+        },
+
+        risk: {
+            type:
+                "string"
+        },
+
+        urgency: {
+            type:
+                "string"
+        },
+
+        department: {
+            type:
+                "string"
+        },
+
+        responsibleAuthority: {
+            type:
+                "string"
+        },
+
+        location: {
+            type:
+                "string"
+        },
+
+        confidence: {
+            type:
+                "string"
+        },
+
+        summary: {
+            type:
+                "string"
+        },
+
+        recommendation: {
+            type:
+                "string"
+        },
+
+        authorityReason: {
+            type:
+                "string"
+        },
+
+        officialComplaint: {
+            type:
+                "string"
+        },
+
+        problemDescription: {
+            type:
+                "string"
+        },
+
+        requestedAction: {
+            type:
+                "string"
+        }
+
+    },
+
+    required: [
+
+        "problem",
+        "category",
+        "severity",
+        "risk",
+        "urgency",
+        "department",
+        "responsibleAuthority",
+        "location",
+        "confidence",
+        "summary",
+        "recommendation",
+        "authorityReason",
+        "officialComplaint",
+        "problemDescription",
+        "requestedAction"
+
+    ]
+
+};
+
+// ============================================================
+// /api/analyze
+// ============================================================
 
 app.post(
-    "/api/analyze-product",
+    "/api/analyze",
     async (req, res) => {
 
         try {
 
-            console.log("");
-            console.log(
-                "========================================"
-            );
-
-            console.log(
-                "NEW PRODUCT AI REQUEST"
-            );
-
-            console.log(
-                new Date().toISOString()
-            );
-
-
-            const {
-                image,
-                productQuestion
-            } =
+            const body =
                 req.body || {};
 
-
-            // -------------------------------------------------
-            // IMAGE
-            // -------------------------------------------------
-
-            const imageCheck =
-                validateImage(
-                    image
+            const description =
+                cleanText(
+                    body.description
                 );
 
+            const location =
+                cleanText(
+                    body.location
+                );
+
+            const reporterName =
+                cleanText(
+                    body.reporterName
+                );
+
+            const image =
+                isImageDataUrl(
+                    body.image
+                )
+                    ? body.image
+                    : null;
 
             if (
-                !imageCheck.valid
+                !description &&
+                !image
             ) {
 
                 return res
@@ -1108,41 +2394,381 @@ app.post(
                             false,
 
                         error:
-                            imageCheck.error
+                            "Description or image is required."
 
                     });
 
             }
 
-
-            // -------------------------------------------------
-            // USER TEXT
-            // -------------------------------------------------
-
             const userText = `
 
-Analyze this product image.
+Citizen:
+${reporterName || "Citizen"}
 
-Additional user information:
+Description:
+${description || "No description provided."}
 
-${
-    productQuestion
-        ? cleanText(
-            productQuestion
-        )
-        : "No additional information was provided."
-}
+Location:
+${location || "Not provided."}
 
-Return exactly the JSON structure requested.
+Analyze this civic report.
 
 `;
 
+            const raw =
+                await callGemini({
 
-            // -------------------------------------------------
-            // GEMINI
-            // -------------------------------------------------
+                    systemPrompt:
+                        CIVIC_SYSTEM_PROMPT,
 
-            const aiContent =
+                    userText,
+
+                    image,
+
+                    jsonMode:
+                        true,
+
+                    responseSchema:
+                        CIVIC_SCHEMA,
+
+                    maxOutputTokens:
+                        2000,
+
+                    retries:
+                        1
+
+                });
+
+            const analysis =
+                parseAIJSON(
+                    raw
+                );
+
+            return res.json({
+
+                success:
+                    true,
+
+                provider:
+                    "Google Gemini",
+
+                model:
+                    GEMINI_MODEL,
+
+                analysis
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "GEMINI CIVIC ANALYSIS ERROR:",
+                error?.message || error
+            );
+
+            const message =
+                String(
+                    error?.message ||
+                    ""
+                );
+
+            return res
+                .status(
+                    message.includes("429")
+                        ? 429
+                        : 500
+                )
+                .json({
+
+                    success:
+                        false,
+
+                    provider:
+                        "Google Gemini",
+
+                    error:
+                        message ||
+                        "Civic analysis failed.",
+
+                    code:
+                        message.includes("429")
+                            ? "GEMINI_QUOTA"
+                            : "GEMINI_ANALYSIS_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+// ============================================================
+// PRODUCT SCANNER PROMPT
+// ============================================================
+
+const PRODUCT_SYSTEM_PROMPT = `
+
+You are CivicAI Product Scanner AI.
+
+Analyze the consumer product using:
+
+- image
+- product name
+- description
+
+Do not invent information.
+
+If information cannot be read,
+return "Not available".
+
+Analyze:
+
+productName
+brand
+category
+manufacturer
+price
+currency
+quantity
+ingredients
+manufacturingDate
+expiryDate
+batchNumber
+purpose
+benefits
+warnings
+consumerConcern
+visibleCondition
+missingInformation
+confidence
+summary
+recommendation
+message
+
+For medicine:
+
+Do not diagnose.
+
+Do not prescribe.
+
+Do not provide personalized dosage.
+
+Only explain visible label information
+and general safety information.
+
+Return ONLY valid JSON.
+
+`;
+
+// ============================================================
+// PRODUCT SCHEMA
+// ============================================================
+
+const PRODUCT_SCHEMA = {
+
+    type:
+        "object",
+
+    properties: {
+
+        productName: {
+            type:
+                "string"
+        },
+
+        brand: {
+            type:
+                "string"
+        },
+
+        category: {
+            type:
+                "string"
+        },
+
+        manufacturer: {
+            type:
+                "string"
+        },
+
+        price: {
+            type:
+                "string"
+        },
+
+        currency: {
+            type:
+                "string"
+        },
+
+        quantity: {
+            type:
+                "string"
+        },
+
+        ingredients: {
+            type:
+                "string"
+        },
+
+        manufacturingDate: {
+            type:
+                "string"
+        },
+
+        expiryDate: {
+            type:
+                "string"
+        },
+
+        batchNumber: {
+            type:
+                "string"
+        },
+
+        purpose: {
+            type:
+                "string"
+        },
+
+        benefits: {
+            type:
+                "string"
+        },
+
+        warnings: {
+            type:
+                "string"
+        },
+
+        consumerConcern: {
+            type:
+                "string"
+        },
+
+        visibleCondition: {
+            type:
+                "string"
+        },
+
+        missingInformation: {
+            type:
+                "string"
+        },
+
+        confidence: {
+            type:
+                "string"
+        },
+
+        summary: {
+            type:
+                "string"
+        },
+
+        recommendation: {
+            type:
+                "string"
+        },
+
+        message: {
+            type:
+                "string"
+        }
+
+    },
+
+    required: [
+
+        "productName",
+        "brand",
+        "category",
+        "manufacturer",
+        "price",
+        "currency",
+        "quantity",
+        "ingredients",
+        "manufacturingDate",
+        "expiryDate",
+        "batchNumber",
+        "purpose",
+        "benefits",
+        "warnings",
+        "consumerConcern",
+        "visibleCondition",
+        "missingInformation",
+        "confidence",
+        "summary",
+        "recommendation",
+        "message"
+
+    ]
+
+};
+
+// ============================================================
+// /api/analyze-product
+// ============================================================
+
+app.post(
+    "/api/analyze-product",
+    async (req, res) => {
+
+        try {
+
+            const body =
+                req.body || {};
+
+            const productName =
+                cleanText(
+                    body.productName
+                );
+
+            const description =
+                cleanText(
+                    body.description
+                );
+
+            const image =
+                isImageDataUrl(
+                    body.image
+                )
+                    ? body.image
+                    : null;
+
+            if (
+                !image &&
+                !productName &&
+                !description
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Product image, name or description is required."
+
+                    });
+
+            }
+
+            const userText = `
+
+Product name:
+${productName || "Not provided"}
+
+Description:
+${description || "Not provided"}
+
+Analyze this product.
+
+`;
+
+            const raw =
                 await callGemini({
 
                     systemPrompt:
@@ -1152,72 +2778,57 @@ Return exactly the JSON structure requested.
 
                     image,
 
-                    temperature:
-                        0.2,
+                    jsonMode:
+                        true,
+
+                    responseSchema:
+                        PRODUCT_SCHEMA,
 
                     maxOutputTokens:
-                        1200
+                        1800,
+
+                    retries:
+                        1
 
                 });
 
-
-            // -------------------------------------------------
-            // PARSE
-            // -------------------------------------------------
-
-            const rawAnalysis =
-                parseAIJson(
-                    aiContent
+            const result =
+                parseAIJSON(
+                    raw
                 );
-
-
-            const analysis =
-                normalizeProductAnalysis(
-                    rawAnalysis
-                );
-
-
-            console.log(
-                "Product:",
-                analysis.productName
-            );
-
 
             return res.json({
 
                 success:
                     true,
 
-                source:
-                    "google-gemini",
+                provider:
+                    "Google Gemini",
 
                 model:
                     GEMINI_MODEL,
 
-                analysis
+                result,
+
+                product:
+                    result,
+
+                analysis:
+                    result,
+
+                answer:
+                    result?.message ||
+                    result?.summary ||
+                    ""
 
             });
 
-        }
-        catch (error) {
-
-            console.error("");
-            console.error(
-                "========================================"
-            );
+        } catch (error) {
 
             console.error(
-                "PRODUCT AI ERROR"
+                "GEMINI PRODUCT SCANNER ERROR:",
+                error?.message || error
             );
-
-            console.error(
-                error
-            );
-
-            console.error(
-                "========================================"
-            );
-
 
             return res
                 .status(500)
@@ -1226,12 +2837,15 @@ Return exactly the JSON structure requested.
                     success:
                         false,
 
-                    source:
-                        "google-gemini",
+                    provider:
+                        "Google Gemini",
 
                     error:
                         error?.message ||
-                        "Product AI analysis failed."
+                        "Product analysis failed.",
+
+                    code:
+                        "GEMINI_PRODUCT_ERROR"
 
                 });
 
@@ -1240,10 +2854,95 @@ Return exactly the JSON structure requested.
     }
 );
 
+// ============================================================
+// PRODUCT LIVE HELPER
+// ============================================================
+//
+// GROQ ONLY
+//
+// ============================================================
 
-// =========================================================
-// POST /api/product-question
-// =========================================================
+const PRODUCT_CHAT_PROMPT = `
+
+You are CivicAI Product Live Helper.
+
+You are a conversational product assistant.
+
+Answer the user's actual product question directly.
+
+Use the supplied product analysis and image
+as context.
+
+Do not invent product information.
+
+Never invent:
+
+- price
+- ingredients
+- expiry date
+- manufacturer
+- batch number
+- specifications
+
+If information is unavailable,
+say:
+
+"I don't have enough verified information."
+
+============================================================
+MEDICINE SAFETY
+============================================================
+
+If the product is medicine:
+
+Do not diagnose.
+
+Do not prescribe.
+
+Do not provide personalized dosage.
+
+Do not tell the user to change medication.
+
+Only explain visible label information
+and general safety information.
+
+For urgent medical situations,
+recommend contacting a qualified healthcare professional
+or appropriate emergency service.
+
+============================================================
+STYLE
+============================================================
+
+Use the user's language.
+
+Bengali -> Bengali.
+
+English -> English.
+
+Banglish -> Banglish.
+
+Mixed language -> natural mixed language.
+
+Be natural.
+
+Be helpful.
+
+Do not force the user into a complaint.
+
+Do not return JSON.
+
+Do not mention Gemini.
+
+Do not mention API implementation.
+
+Return normal conversational text.
+
+`;
+
+// ============================================================
+// /api/product-question
+// ============================================================
 
 app.post(
     "/api/product-question",
@@ -1251,23 +2950,16 @@ app.post(
 
         try {
 
-            const {
-                image,
-                question,
-                product
-            } =
+            const body =
                 req.body || {};
 
-
-            const cleanQuestion =
+            const question =
                 cleanText(
-                    question
+                    body.question ||
+                    body.message
                 );
 
-
-            if (
-                !cleanQuestion
-            ) {
+            if (!question) {
 
                 return res
                     .status(400)
@@ -1277,154 +2969,118 @@ app.post(
                             false,
 
                         error:
-                            "Please enter a question."
+                            "Product question is required."
 
                     });
 
             }
 
-
-            const imageCheck =
-                validateImage(
-                    image
+            const productName =
+                cleanText(
+                    body.productName
                 );
 
+            let productContext =
+                "No product analysis available.";
 
             if (
-                !imageCheck.valid
+                body.product &&
+                typeof body.product === "object"
             ) {
 
-                return res
-                    .status(400)
-                    .json({
-
-                        success:
-                            false,
-
-                        error:
-                            imageCheck.error
-
-                    });
+                productContext =
+                    JSON.stringify(
+                        body.product,
+                        null,
+                        2
+                    );
 
             }
 
+            const image =
+                isImageDataUrl(
+                    body.image
+                )
+                    ? body.image
+                    : null;
 
-            const systemPrompt = `
-
-You are CivicAI Product Assistant.
-
-The user has scanned a product image.
-
-Use:
-
-1. Product image
-2. Supplied product information
-3. Reasonable general knowledge
-
-IMPORTANT:
-
-- Do not invent facts.
-- If something cannot be determined, say so.
-- Do not claim authenticity with certainty.
-- Do not invent prices.
-- Do not invent expiry dates.
-- For medical products, avoid diagnosis and dangerous instructions.
-- Answer the exact question.
-- Be concise and useful.
-- Return ONLY valid JSON.
-
-Return exactly:
-
-{
-    "answer": "",
-    "confidence": "High"
-}
-
-confidence must be:
-
-High
-Medium
-Low
-
-`;
-
+            const history =
+                normalizeHistory(
+                    body.history
+                );
 
             const userText = `
 
-Scanned product information:
+Product:
+${productName || "Unknown product"}
 
-${JSON.stringify(
-    product || {},
-    null,
-    2
-)}
+Product analysis:
+${productContext}
 
 User question:
+${question}
 
-${cleanQuestion}
-
-Answer the question based on the product image.
+Answer naturally.
 
 `;
 
+            const result =
+                await callGroq({
 
-            const aiContent =
-                await callGemini({
-
-                    systemPrompt,
+                    systemPrompt:
+                        PRODUCT_CHAT_PROMPT,
 
                     userText,
+
+                    history,
 
                     image,
 
                     temperature:
-                        0.3,
+                        0.45,
 
-                    maxOutputTokens:
-                        800
+                    maxTokens:
+                        1600,
+
+                    retries:
+                        2
 
                 });
-
-
-            const answer =
-                parseAIJson(
-                    aiContent
-                );
-
 
             return res.json({
 
                 success:
                     true,
 
-                source:
-                    "google-gemini",
+                provider:
+                    "Groq",
 
                 model:
-                    GEMINI_MODEL,
+                    result.model,
 
                 answer:
-                    cleanText(
-                        answer.answer
-                    ) ||
-                    "The AI could not determine an answer.",
+                    result.answer,
 
-                confidence:
-                    cleanText(
-                        answer.confidence
-                    ) ||
-                    "Medium"
+                message:
+                    result.answer,
+
+                reply:
+                    result.answer,
+
+                response:
+                    result.answer,
+
+                usage:
+                    result.usage || null
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "PRODUCT QUESTION ERROR:",
-                error
+                "GROQ PRODUCT CHAT ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -1433,12 +3089,15 @@ Answer the question based on the product image.
                     success:
                         false,
 
-                    source:
-                        "google-gemini",
+                    provider:
+                        "Groq",
 
                     error:
                         error?.message ||
-                        "Unable to answer the product question."
+                        "Product chat failed.",
+
+                    code:
+                        "GROQ_PRODUCT_CHAT_ERROR"
 
                 });
 
@@ -1447,121 +3106,75 @@ Answer the question based on the product image.
     }
 );
 
+// ============================================================
+// AUTHORITY ASSISTANT
+// ============================================================
 
-// =========================================================
-// CIVIC AI SYSTEM PROMPT
-// =========================================================
+const AUTHORITY_PROMPT = `
 
-const CIVIC_SYSTEM_PROMPT = `
+You are CivicAI Authority Assistant.
 
-You are CivicAI, an intelligent civic problem analysis assistant.
+Help identify the appropriate authority
+for a civic problem.
 
-Analyze public and civic problems reported by citizens.
+Use only the information supplied.
 
-The input may contain:
+Do not invent:
 
-1. Written description
-2. Location
-3. Uploaded image
-4. Image + description
+- phone numbers
+- email addresses
+- government websites
+- complaint links
 
-Examples:
+If contact information is not verified,
+say:
 
-- potholes
-- garbage
-- broken street lights
-- damaged roads
-- water leakage
-- drainage problems
-- illegal dumping
-- traffic problems
-- public infrastructure damage
-- unsafe public areas
-- pollution
-- civic maintenance problems
+"Not verified."
 
-Do not invent facts.
+Answer naturally.
 
-If the image does not clearly show something, say that confidence is limited.
+Use the user's language.
 
-Return ONLY valid JSON.
+Bengali -> Bengali.
 
-Return exactly:
+English -> English.
 
-{
-    "problem": "",
-    "category": "",
-    "severity": "Low",
-    "department": "",
-    "location": "",
-    "confidence": "Medium",
-    "summary": "",
-    "recommendation": ""
-}
-
-severity must be:
-
-Low
-Medium
-High
-Critical
-
-confidence must be:
-
-High
-Medium
-Low
+Banglish -> Banglish.
 
 `;
 
-
-// =========================================================
-// POST /api/analyze
-// =========================================================
+// ============================================================
+// /api/authority
+// ============================================================
 
 app.post(
-    "/api/analyze",
+    "/api/authority",
     async (req, res) => {
 
         try {
 
-            const {
-                description,
-                location,
-                reporterName,
-                image
-            } =
+            const body =
                 req.body || {};
 
-
-            const cleanDescription =
+            const problem =
                 cleanText(
-                    description
+                    body.problem ||
+                    body.description
                 );
 
-
-            const cleanLocation =
+            const category =
                 cleanText(
-                    location
+                    body.category
                 );
 
-
-            const cleanReporterName =
+            const location =
                 cleanText(
-                    reporterName
+                    body.location
                 );
-
-
-            const cleanImage =
-                typeof image ===
-                "string"
-                    ? image
-                    : null;
-
 
             if (
-                !cleanDescription &&
-                !cleanImage
+                !problem &&
+                !category
             ) {
 
                 return res
@@ -1572,143 +3185,73 @@ app.post(
                             false,
 
                         error:
-                            "Please provide a description or image."
+                            "Problem or category is required."
 
                     });
 
             }
 
-
             const userText = `
 
-Analyze this civic problem.
+Problem:
+${problem || "Not provided"}
 
-Description:
-
-${
-    cleanDescription ||
-    "No description provided"
-}
+Category:
+${category || "Not provided"}
 
 Location:
+${location || "Not provided"}
 
-${
-    cleanLocation ||
-    "No location provided"
-}
-
-Reporter:
-
-${
-    cleanReporterName ||
-    "Anonymous"
-}
-
-Return the exact JSON structure requested.
+Suggest the responsible authority.
 
 `;
 
-
-            const aiContent =
-                await callGemini({
+            const result =
+                await callGroq({
 
                     systemPrompt:
-                        CIVIC_SYSTEM_PROMPT,
+                        AUTHORITY_PROMPT,
 
                     userText,
 
-                    image:
-                        cleanImage,
+                    history: [],
 
                     temperature:
-                        0.2,
+                        0.25,
 
-                    maxOutputTokens:
-                        900
+                    maxTokens:
+                        1200,
+
+                    retries:
+                        2
 
                 });
-
-
-            const analysis =
-                parseAIJson(
-                    aiContent
-                );
-
 
             return res.json({
 
                 success:
                     true,
 
-                source:
-                    "google-gemini",
+                provider:
+                    "Groq",
 
                 model:
-                    GEMINI_MODEL,
+                    result.model,
 
-                analysis: {
+                authority:
+                    result.answer,
 
-                    problem:
-                        cleanText(
-                            analysis.problem
-                        ) ||
-                        "Public civic issue",
-
-                    category:
-                        cleanText(
-                            analysis.category
-                        ) ||
-                        "General Civic Issue",
-
-                    severity:
-                        cleanText(
-                            analysis.severity
-                        ) ||
-                        "Medium",
-
-                    department:
-                        cleanText(
-                            analysis.department
-                        ) ||
-                        "Municipal Authority",
-
-                    location:
-                        cleanText(
-                            analysis.location
-                        ) ||
-                        cleanLocation ||
-                        "Not provided",
-
-                    confidence:
-                        cleanText(
-                            analysis.confidence
-                        ) ||
-                        "Medium",
-
-                    summary:
-                        cleanText(
-                            analysis.summary
-                        ) ||
-                        "The reported civic issue was analyzed.",
-
-                    recommendation:
-                        cleanText(
-                            analysis.recommendation
-                        ) ||
-                        "The responsible civic authority should review the issue."
-
-                }
+                answer:
+                    result.answer
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "CIVIC ANALYZE ERROR:",
-                error
+                "AUTHORITY ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -1717,12 +3260,1054 @@ Return the exact JSON structure requested.
                     success:
                         false,
 
-                    source:
-                        "google-gemini",
+                    provider:
+                        "Groq",
 
                     error:
                         error?.message ||
-                        "AI analysis failed."
+                        "Authority lookup failed."
+
+                });
+
+        }
+
+    }
+);
+// ============================================================
+// CIVICAI — SECURE OTP SYSTEM
+// ============================================================
+//
+// EMAIL OTP  -> Nodemailer / Gmail
+// PHONE OTP  -> Twilio
+//
+// SECURITY:
+// - OTP is never returned to client
+// - OTP is hashed before storage
+// - 5 minute expiry
+// - 5 verification attempts
+// - resend cooldown
+// - request rate limiting
+// - one-time verification token
+// - verification token required for report submission
+//
+// ============================================================
+
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+
+const OTP_RESEND_COOLDOWN_MS =
+    60 * 1000;
+
+const OTP_MAX_ATTEMPTS = 5;
+
+const OTP_MAX_REQUESTS_PER_HOUR = 5;
+
+const VERIFICATION_TOKEN_EXPIRY_MS =
+    10 * 60 * 1000;
+
+
+// ============================================================
+// OTP MEMORY STORES
+// ============================================================
+
+const otpStore = new Map();
+
+const otpRateStore = new Map();
+
+const verificationTokens = new Map();
+
+
+// ============================================================
+// NORMALIZE EMAIL
+// ============================================================
+
+function normalizeEmail(value) {
+
+    return cleanText(value)
+        .toLowerCase();
+
+}
+
+
+// ============================================================
+// NORMALIZE PHONE
+// ============================================================
+//
+// Frontend should preferably send:
+// +919876543210
+//
+// We keep +, digits only.
+// ============================================================
+
+function normalizePhone(value) {
+
+    let phone =
+        cleanText(value);
+
+    phone =
+        phone.replace(
+            /[^\d+]/g,
+            ""
+        );
+
+    if (
+        phone.startsWith("00")
+    ) {
+
+        phone =
+            "+" +
+            phone.slice(2);
+
+    }
+
+    return phone;
+
+}
+
+
+// ============================================================
+// IDENTIFIER VALIDATION
+// ============================================================
+
+function isValidEmail(email) {
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        .test(email);
+
+}
+
+
+function isValidPhone(phone) {
+
+    return /^\+[1-9]\d{7,14}$/
+        .test(phone);
+
+}
+
+
+// ============================================================
+// OTP GENERATOR
+// ============================================================
+
+function generateOTP() {
+
+    return String(
+        crypto.randomInt(
+            100000,
+            1000000
+        )
+    );
+
+}
+
+
+// ============================================================
+// HASH SECRET
+// ============================================================
+
+function hashSecret(value) {
+
+    return crypto
+        .createHash("sha256")
+        .update(
+            String(value),
+            "utf8"
+        )
+        .digest("hex");
+
+}
+
+
+// ============================================================
+// TIMING SAFE HASH COMPARISON
+// ============================================================
+
+function safeCompare(
+    valueA,
+    valueB
+) {
+
+    const a =
+        Buffer.from(
+            String(valueA),
+            "utf8"
+        );
+
+    const b =
+        Buffer.from(
+            String(valueB),
+            "utf8"
+        );
+
+    if (
+        a.length !==
+        b.length
+    ) {
+
+        return false;
+
+    }
+
+    return crypto.timingSafeEqual(
+        a,
+        b
+    );
+
+}
+
+
+// ============================================================
+// OTP RATE LIMIT CLEANUP
+// ============================================================
+
+function cleanupOtpRateStore() {
+
+    const now =
+        Date.now();
+
+    for (
+        const [
+            identifier,
+            record
+        ]
+        of otpRateStore
+    ) {
+
+        if (
+            !record ||
+            now - record.firstRequestAt >
+            60 * 60 * 1000
+        ) {
+
+            otpRateStore.delete(
+                identifier
+            );
+
+        }
+
+    }
+
+}
+
+
+// ============================================================
+// CHECK OTP REQUEST RATE
+// ============================================================
+
+function checkOtpRequestRate(
+    identifier
+) {
+
+    cleanupOtpRateStore();
+
+    const now =
+        Date.now();
+
+    let record =
+        otpRateStore.get(
+            identifier
+        );
+
+    if (!record) {
+
+        record = {
+
+            firstRequestAt:
+                now,
+
+            requests:
+                0,
+
+            lastRequestAt:
+                0
+
+        };
+
+        otpRateStore.set(
+            identifier,
+            record
+        );
+
+    }
+
+    // --------------------------------------------------------
+    // Hourly limit
+    // --------------------------------------------------------
+
+    if (
+        now -
+        record.firstRequestAt >
+        60 * 60 * 1000
+    ) {
+
+        record.firstRequestAt =
+            now;
+
+        record.requests =
+            0;
+
+    }
+
+    if (
+        record.requests >=
+        OTP_MAX_REQUESTS_PER_HOUR
+    ) {
+
+        return {
+
+            allowed:
+                false,
+
+            error:
+                "Too many OTP requests. Please try again later."
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // Resend cooldown
+    // --------------------------------------------------------
+
+    if (
+        record.lastRequestAt &&
+        now -
+        record.lastRequestAt <
+        OTP_RESEND_COOLDOWN_MS
+    ) {
+
+        const remaining =
+            Math.ceil(
+                (
+                    OTP_RESEND_COOLDOWN_MS -
+                    (
+                        now -
+                        record.lastRequestAt
+                    )
+                ) / 1000
+            );
+
+        return {
+
+            allowed:
+                false,
+
+            error:
+                `Please wait ${remaining} seconds before requesting another OTP.`,
+
+            retryAfter:
+                remaining
+
+        };
+
+    }
+
+    record.requests++;
+
+    record.lastRequestAt =
+        now;
+
+    return {
+
+        allowed:
+            true
+
+    };
+
+}
+
+
+// ============================================================
+// SAVE OTP
+// ============================================================
+
+function saveOtp(
+    identifier,
+    otp
+) {
+
+    otpStore.set(
+
+        identifier,
+
+        {
+
+            otpHash:
+                hashSecret(otp),
+
+            createdAt:
+                Date.now(),
+
+            attempts:
+                0
+
+        }
+
+    );
+
+}
+
+
+// ============================================================
+// VERIFY STORED OTP
+// ============================================================
+
+function verifyStoredOtp(
+    identifier,
+    otp
+) {
+
+    const record =
+        otpStore.get(
+            identifier
+        );
+
+    if (!record) {
+
+        return {
+
+            success:
+                false,
+
+            error:
+                "OTP not found or expired.",
+
+            code:
+                "OTP_NOT_FOUND"
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // EXPIRY
+    // --------------------------------------------------------
+
+    if (
+        Date.now() -
+        record.createdAt >
+        OTP_EXPIRY_MS
+    ) {
+
+        otpStore.delete(
+            identifier
+        );
+
+        return {
+
+            success:
+                false,
+
+            error:
+                "OTP expired.",
+
+            code:
+                "OTP_EXPIRED"
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // ATTEMPT LIMIT
+    // --------------------------------------------------------
+
+    if (
+        record.attempts >=
+        OTP_MAX_ATTEMPTS
+    ) {
+
+        otpStore.delete(
+            identifier
+        );
+
+        return {
+
+            success:
+                false,
+
+            error:
+                "Too many incorrect OTP attempts.",
+
+            code:
+                "OTP_ATTEMPTS_EXCEEDED"
+
+        };
+
+    }
+
+    const submittedHash =
+        hashSecret(otp);
+
+    // --------------------------------------------------------
+    // SAFE COMPARISON
+    // --------------------------------------------------------
+
+    if (
+        !safeCompare(
+            submittedHash,
+            record.otpHash
+        )
+    ) {
+
+        record.attempts++;
+
+        return {
+
+            success:
+                false,
+
+            error:
+                "Invalid OTP.",
+
+            code:
+                "OTP_INVALID",
+
+            attemptsRemaining:
+                Math.max(
+                    0,
+                    OTP_MAX_ATTEMPTS -
+                    record.attempts
+                )
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // OTP SUCCESS
+    // --------------------------------------------------------
+
+    otpStore.delete(
+        identifier
+    );
+
+    // --------------------------------------------------------
+    // CREATE ONE-TIME VERIFICATION TOKEN
+    // --------------------------------------------------------
+
+    const verificationToken =
+        crypto.randomBytes(32)
+            .toString("hex");
+
+    verificationTokens.set(
+
+        verificationToken,
+
+        {
+
+            identifier,
+
+            createdAt:
+                Date.now(),
+
+            expiresAt:
+                Date.now() +
+                VERIFICATION_TOKEN_EXPIRY_MS,
+
+            used:
+                false
+
+        }
+
+    );
+
+    return {
+
+        success:
+            true,
+
+        verificationToken
+
+    };
+
+}
+
+
+// ============================================================
+// VERIFY SUBMISSION TOKEN
+// ============================================================
+
+function consumeVerificationToken(
+    token,
+    identifier
+) {
+
+    const cleanToken =
+        cleanText(token);
+
+    if (!cleanToken) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token is required."
+
+        };
+
+    }
+
+    const record =
+        verificationTokens.get(
+            cleanToken
+        );
+
+    if (!record) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token is invalid or expired."
+
+        };
+
+    }
+
+    if (
+        record.used
+    ) {
+
+        verificationTokens.delete(
+            cleanToken
+        );
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token has already been used."
+
+        };
+
+    }
+
+    if (
+        Date.now() >
+        record.expiresAt
+    ) {
+
+        verificationTokens.delete(
+            cleanToken
+        );
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token has expired."
+
+        };
+
+    }
+
+    if (
+        record.identifier !==
+        identifier
+    ) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token does not match the verified contact."
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // ONE TIME USE
+    // --------------------------------------------------------
+
+    record.used =
+        true;
+
+    verificationTokens.delete(
+        cleanToken
+    );
+
+    return {
+
+        valid:
+            true
+
+    };
+
+}
+
+
+// ============================================================
+// SEND EMAIL OTP
+// ============================================================
+
+async function sendEmailOtp(
+    email
+) {
+
+    if (
+        !emailTransporter
+    ) {
+
+        throw new Error(
+            "Gmail OTP is not configured. Check EMAIL_USER and EMAIL_PASSWORD."
+        );
+
+    }
+
+    const otp =
+        generateOTP();
+
+    saveOtp(
+        email,
+        otp
+    );
+
+    await emailTransporter.sendMail({
+
+        from:
+            EMAIL_FROM,
+
+        to:
+            email,
+
+        subject:
+            "CivicAI Verification OTP",
+
+        text:
+            `Your CivicAI verification OTP is ${otp}. This OTP expires in 5 minutes.`,
+
+        html:
+            `
+            <!DOCTYPE html>
+
+            <html>
+
+            <body
+                style="
+                    margin:0;
+                    padding:30px;
+                    background:#f4f7fb;
+                    font-family:Arial,sans-serif;
+                "
+            >
+
+                <div
+                    style="
+                        max-width:520px;
+                        margin:auto;
+                        background:#ffffff;
+                        border-radius:16px;
+                        padding:32px;
+                        box-shadow:0 8px 30px rgba(0,0,0,.08);
+                    "
+                >
+
+                    <h2>
+                        CivicAI Verification
+                    </h2>
+
+                    <p>
+                        Your verification code is:
+                    </p>
+
+                    <div
+                        style="
+                            font-size:36px;
+                            font-weight:bold;
+                            letter-spacing:10px;
+                            margin:25px 0;
+                        "
+                    >
+                        ${otp}
+                    </div>
+
+                    <p>
+                        This OTP expires in
+                        <strong>5 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not request this code,
+                        you can safely ignore this email.
+                    </p>
+
+                </div>
+
+            </body>
+
+            </html>
+            `
+
+    });
+
+}
+
+
+// ============================================================
+// SEND PHONE OTP
+// ============================================================
+
+async function sendPhoneOtp(
+    phone
+) {
+
+    if (
+        !twilioClient
+    ) {
+
+        throw new Error(
+            "Twilio is not configured correctly."
+        );
+
+    }
+
+    const otp =
+        generateOTP();
+
+    saveOtp(
+        phone,
+        otp
+    );
+
+    await twilioClient.messages.create({
+
+        body:
+            `CivicAI verification OTP: ${otp}. Valid for 5 minutes.`,
+
+        from:
+            TWILIO_PHONE_NUMBER,
+
+        to:
+            phone
+
+    });
+
+}
+
+
+// ============================================================
+// NEW UNIFIED OTP SEND ENDPOINT
+// ============================================================
+//
+// POST /api/otp/send
+//
+// {
+//   "type": "email",
+//   "identifier": "example@gmail.com"
+// }
+//
+// OR
+//
+// {
+//   "type": "phone",
+//   "identifier": "+919876543210"
+// }
+//
+// ============================================================
+
+app.post(
+    "/api/otp/send",
+    async (req, res) => {
+
+        try {
+
+            const type =
+                cleanText(
+                    req.body?.type
+                )
+                .toLowerCase();
+
+            let identifier =
+                cleanText(
+                    req.body?.identifier
+                );
+
+            if (
+                type !== "email" &&
+                type !== "phone"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP type must be email or phone."
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // NORMALIZE
+            // ------------------------------------------------
+
+            if (
+                type === "email"
+            ) {
+
+                identifier =
+                    normalizeEmail(
+                        identifier
+                    );
+
+                if (
+                    !isValidEmail(
+                        identifier
+                    )
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            success:
+                                false,
+
+                            error:
+                                "Valid email is required."
+
+                        });
+
+                }
+
+            } else {
+
+                identifier =
+                    normalizePhone(
+                        identifier
+                    );
+
+                if (
+                    !isValidPhone(
+                        identifier
+                    )
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            success:
+                                false,
+
+                            error:
+                                "Use a valid phone number with country code. Example: +919876543210"
+
+                        });
+
+                }
+
+            }
+
+            // ------------------------------------------------
+            // RATE LIMIT
+            // ------------------------------------------------
+
+            const rate =
+                checkOtpRequestRate(
+                    identifier
+                );
+
+            if (
+                !rate.allowed
+            ) {
+
+                if (
+                    rate.retryAfter
+                ) {
+
+                    res.setHeader(
+                        "Retry-After",
+                        String(
+                            rate.retryAfter
+                        )
+                    );
+
+                }
+
+                return res
+                    .status(429)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // SEND
+            // ------------------------------------------------
+
+            if (
+                type === "email"
+            ) {
+
+                await sendEmailOtp(
+                    identifier
+                );
+
+            } else {
+
+                await sendPhoneOtp(
+                    identifier
+                );
+
+            }
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    `OTP sent successfully to your ${type}.`,
+
+                type
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "OTP SEND ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Failed to send OTP.",
+
+                    code:
+                        "OTP_SEND_ERROR"
 
                 });
 
@@ -1732,40 +4317,688 @@ Return the exact JSON structure requested.
 );
 
 
-// =========================================================
-// READ REPORTS
-// =========================================================
+// ============================================================
+// NEW UNIFIED OTP VERIFY ENDPOINT
+// ============================================================
+//
+// POST /api/otp/verify
+//
+// {
+//   "type": "email",
+//   "identifier": "example@gmail.com",
+//   "otp": "123456"
+// }
+//
+// Response contains a one-time verificationToken.
+// ============================================================
+
+app.post(
+    "/api/otp/verify",
+    (req, res) => {
+
+        try {
+
+            const type =
+                cleanText(
+                    req.body?.type
+                )
+                .toLowerCase();
+
+            let identifier =
+                cleanText(
+                    req.body?.identifier
+                );
+
+            const otp =
+                cleanText(
+                    req.body?.otp
+                );
+
+            if (
+                type !== "email" &&
+                type !== "phone"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP type must be email or phone."
+
+                    });
+
+            }
+
+            if (!otp) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP is required."
+
+                    });
+
+            }
+
+            if (
+                !/^\d{6}$/.test(
+                    otp
+                )
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP must contain exactly 6 digits."
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // NORMALIZE IDENTIFIER
+            // ------------------------------------------------
+
+            identifier =
+                type === "email"
+                    ? normalizeEmail(
+                        identifier
+                    )
+                    : normalizePhone(
+                        identifier
+                    );
+
+            // ------------------------------------------------
+            // VERIFY
+            // ------------------------------------------------
+
+            const result =
+                verifyStoredOtp(
+                    identifier,
+                    otp
+                );
+
+            if (
+                !result.success
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        error:
+                            result.error,
+
+                        code:
+                            result.code,
+
+                        attemptsRemaining:
+                            result.attemptsRemaining
+
+                    });
+
+            }
+
+            return res.json({
+
+                success:
+                    true,
+
+                verified:
+                    true,
+
+                type,
+
+                identifier,
+
+                verificationToken:
+                    result.verificationToken,
+
+                message:
+                    `${type === "email" ? "Email" : "Phone"} verified successfully.`
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "OTP VERIFY ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        "OTP verification failed.",
+
+                    code:
+                        "OTP_VERIFY_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// BACKWARD COMPATIBILITY
+// ============================================================
+//
+// Existing frontend can continue using:
+//
+// POST /api/request-otp
+// POST /api/verify-otp
+//
+// ============================================================
+
+app.post(
+    "/api/request-otp",
+    async (req, res) => {
+
+        req.body =
+            {
+
+                type:
+                    "email",
+
+                identifier:
+                    req.body?.email
+
+            };
+
+        // Reuse unified handler logic
+        try {
+
+            const email =
+                normalizeEmail(
+                    req.body.identifier
+                );
+
+            if (
+                !isValidEmail(email)
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Valid email is required."
+
+                    });
+
+            }
+
+            const rate =
+                checkOtpRequestRate(
+                    email
+                );
+
+            if (
+                !rate.allowed
+            ) {
+
+                return res
+                    .status(429)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
+
+                    });
+
+            }
+
+            await sendEmailOtp(
+                email
+            );
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "OTP sent successfully."
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "REQUEST EMAIL OTP ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Failed to send OTP."
+
+                });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// BACKWARD COMPATIBILITY — VERIFY EMAIL
+// ============================================================
+
+app.post(
+    "/api/verify-otp",
+    (req, res) => {
+
+        const email =
+            normalizeEmail(
+                req.body?.email
+            );
+
+        const otp =
+            cleanText(
+                req.body?.otp
+            );
+
+        if (
+            !isValidEmail(email) ||
+            !otp
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Email and OTP are required."
+
+                });
+
+        }
+
+        const result =
+            verifyStoredOtp(
+                email,
+                otp
+            );
+
+        if (
+            !result.success
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        result.error,
+
+                    code:
+                        result.code,
+
+                    attemptsRemaining:
+                        result.attemptsRemaining
+
+                });
+
+        }
+
+        return res.json({
+
+            success:
+                true,
+
+            verified:
+                true,
+
+            verificationToken:
+                result.verificationToken,
+
+            message:
+                "Email verified successfully."
+
+        });
+
+    }
+);
+
+
+// ============================================================
+// BACKWARD COMPATIBILITY — PHONE OTP
+// ============================================================
+
+app.post(
+    "/api/request-phone-otp",
+    async (req, res) => {
+
+        try {
+
+            const phone =
+                normalizePhone(
+                    req.body?.phone
+                );
+
+            if (
+                !isValidPhone(phone)
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Use a valid phone number with country code. Example: +919876543210"
+
+                    });
+
+            }
+
+            const rate =
+                checkOtpRequestRate(
+                    phone
+                );
+
+            if (
+                !rate.allowed
+            ) {
+
+                return res
+                    .status(429)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
+
+                    });
+
+            }
+
+            await sendPhoneOtp(
+                phone
+            );
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Phone OTP sent successfully."
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "REQUEST PHONE OTP ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Failed to send phone OTP."
+
+                });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// BACKWARD COMPATIBILITY — VERIFY PHONE OTP
+// ============================================================
+
+app.post(
+    "/api/verify-phone-otp",
+    (req, res) => {
+
+        const phone =
+            normalizePhone(
+                req.body?.phone
+            );
+
+        const otp =
+            cleanText(
+                req.body?.otp
+            );
+
+        if (
+            !isValidPhone(phone) ||
+            !otp
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Valid phone number and OTP are required."
+
+                });
+
+        }
+
+        const result =
+            verifyStoredOtp(
+                phone,
+                otp
+            );
+
+        if (
+            !result.success
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        result.error,
+
+                    code:
+                        result.code,
+
+                    attemptsRemaining:
+                        result.attemptsRemaining
+
+                });
+
+        }
+
+        return res.json({
+
+            success:
+                true,
+
+            verified:
+                true,
+
+            verificationToken:
+                result.verificationToken,
+
+            message:
+                "Phone verified successfully."
+
+        });
+
+    }
+);
+
+
+// ============================================================
+// OTP CLEANUP
+// ============================================================
+
+setInterval(
+    () => {
+
+        const now =
+            Date.now();
+
+        // ----------------------------------------------------
+        // OTP STORE
+        // ----------------------------------------------------
+
+        for (
+            const [
+                identifier,
+                record
+            ]
+            of otpStore
+        ) {
+
+            if (
+                !record ||
+                now -
+                record.createdAt >
+                OTP_EXPIRY_MS
+            ) {
+
+                otpStore.delete(
+                    identifier
+                );
+
+            }
+
+        }
+
+        // ----------------------------------------------------
+        // VERIFICATION TOKENS
+        // ----------------------------------------------------
+
+        for (
+            const [
+                token,
+                record
+            ]
+            of verificationTokens
+        ) {
+
+            if (
+                !record ||
+                record.used ||
+                now >
+                record.expiresAt
+            ) {
+
+                verificationTokens.delete(
+                    token
+                );
+
+            }
+
+        }
+
+        cleanupOtpRateStore();
+
+    },
+    60 * 1000
+);
+
+// ============================================================
+// REPORT STORAGE
+// ============================================================
 
 function readReports() {
 
     try {
 
-        const content =
+        const raw =
             fs.readFileSync(
                 REPORTS_FILE,
                 "utf8"
             );
 
-
-        const reports =
+        const data =
             JSON.parse(
-                content
+                raw
             );
 
-
-        return Array.isArray(
-            reports
-        )
-            ? reports
+        return Array.isArray(data)
+            ? data
             : [];
 
-    }
-    catch (error) {
-
-        console.error(
-            "Unable to read reports:",
-            error
-        );
+    } catch {
 
         return [];
 
@@ -1773,12 +5006,11 @@ function readReports() {
 
 }
 
+// ============================================================
+// WRITE REPORTS
+// ============================================================
 
-// =========================================================
-// SAVE REPORTS
-// =========================================================
-
-function saveReports(
+function writeReports(
     reports
 ) {
 
@@ -1798,35 +5030,20 @@ function saveReports(
 
 }
 
-
-// =========================================================
-// GENERATE REPORT ID
-// =========================================================
-
-function generateReportId() {
-
-    const timestamp =
-        Date.now()
-            .toString()
-            .slice(-8);
-
-
-    const random =
-        Math.floor(
-            1000 +
-            Math.random() *
-            9000
-        );
-
-
-    return `CIVIC-${timestamp}-${random}`;
-
-}
-
-
-// =========================================================
-// POST /api/reports
-// =========================================================
+// ============================================================
+// CREATE REPORT
+// ============================================================
+// ============================================================
+// CREATE VERIFIED CIVIC REPORT
+// ============================================================
+//
+// IMPORTANT:
+// A report can ONLY be submitted after:
+//
+// 1. Email OR phone OTP verification
+// 2. Valid one-time verificationToken
+//
+// ============================================================
 
 app.post(
     "/api/reports",
@@ -1837,22 +5054,77 @@ app.post(
             const body =
                 req.body || {};
 
+            // ------------------------------------------------
+            // CONTACT
+            // ------------------------------------------------
 
-            const {
-                reporterName,
-                description,
-                location,
-                analysis,
-                submittedAt
-            } =
-                body;
+            const email =
+                normalizeEmail(
+                    body.email
+                );
 
+            const phone =
+                normalizePhone(
+                    body.phone
+                );
+
+            // ------------------------------------------------
+            // VERIFICATION TOKEN
+            // ------------------------------------------------
+
+            const verificationToken =
+                cleanText(
+                    body.verificationToken
+                );
 
             if (
-                !analysis ||
-                typeof analysis !==
-                "object"
+                !verificationToken
             ) {
+
+                return res
+                    .status(403)
+                    .json({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        error:
+                            "OTP verification is required before submitting the report.",
+
+                        code:
+                            "OTP_VERIFICATION_REQUIRED"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // DETERMINE VERIFIED CONTACT
+            // ------------------------------------------------
+
+            let verifiedIdentifier =
+                "";
+
+            if (
+                email &&
+                isValidEmail(email)
+            ) {
+
+                verifiedIdentifier =
+                    email;
+
+            } else if (
+                phone &&
+                isValidPhone(phone)
+            ) {
+
+                verifiedIdentifier =
+                    phone;
+
+            } else {
 
                 return res
                     .status(400)
@@ -1862,71 +5134,109 @@ app.post(
                             false,
 
                         error:
-                            "AI analysis is required."
+                            "A valid verified email or phone number is required."
 
                     });
 
             }
 
+            // ------------------------------------------------
+            // CONSUME ONE-TIME TOKEN
+            // ------------------------------------------------
+
+            const tokenResult =
+                consumeVerificationToken(
+                    verificationToken,
+                    verifiedIdentifier
+                );
 
             if (
-                !cleanText(
-                    location
-                )
+                !tokenResult.valid
             ) {
 
                 return res
-                    .status(400)
+                    .status(403)
                     .json({
 
                         success:
                             false,
 
+                        verified:
+                            false,
+
                         error:
-                            "Report location is required."
+                            tokenResult.error,
+
+                        code:
+                            "INVALID_VERIFICATION_TOKEN"
 
                     });
 
             }
 
-
-            const reports =
-                readReports();
-
-
-            const reportId =
-                generateReportId();
-
+            // ------------------------------------------------
+            // REPORT DATA
+            // ------------------------------------------------
 
             const report = {
 
-                reportId,
+                reportId:
+                    generateSecureId(
+                        "CIVIC-"
+                    ),
 
                 reporterName:
                     cleanText(
-                        reporterName
+                        body.reporterName
                     ) ||
                     "Anonymous",
 
+                email:
+                    email,
+
+                phone:
+                    phone,
+
+                verificationMethod:
+                    (
+                        email &&
+                        isValidEmail(email)
+                    )
+                        ? "email"
+                        : "phone",
+
                 description:
                     cleanText(
-                        description
+                        body.description
                     ),
 
                 location:
                     cleanText(
-                        location
+                        body.location
                     ),
 
-                analysis,
+                image:
+                    typeof body.image ===
+                    "string"
+                        ? body.image
+                        : null,
+
+                analysis:
+                    body.analysis &&
+                    typeof body.analysis ===
+                    "object"
+                        ? body.analysis
+                        : null,
+
+                authority:
+                    body.authority &&
+                    typeof body.authority ===
+                    "object"
+                        ? body.authority
+                        : null,
 
                 status:
                     "Submitted",
-
-                submittedAt:
-                    submittedAt ||
-                    new Date()
-                        .toISOString(),
 
                 createdAt:
                     new Date()
@@ -1934,174 +5244,73 @@ app.post(
 
             };
 
+            // ------------------------------------------------
+            // VALIDATE REPORT
+            // ------------------------------------------------
 
-            reports.push(
-                report
-            );
-
-
-            saveReports(
-                reports
-            );
-
-
-            console.log(
-                `New civic report submitted: ${reportId}`
-            );
-
-
-            return res
-                .status(201)
-                .json({
-
-                    success:
-                        true,
-
-                    message:
-                        "Civic report submitted successfully.",
-
-                    reportId,
-
-                    report
-
-                });
-
-        }
-        catch (error) {
-
-            console.error(
-                "REPORT SUBMISSION ERROR:",
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success:
-                        false,
-
-                    error:
-                        "Unable to save civic report."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// GET /api/reports
-// =========================================================
-
-app.get(
-    "/api/reports",
-    (req, res) => {
-
-        try {
-
-            const reports =
-                readReports();
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                count:
-                    reports.length,
-
-                reports
-
-            });
-
-        }
-        catch (error) {
-
-            console.error(
-                "GET REPORTS ERROR:",
-                error
-            );
-
-
-            return res
-                .status(500)
-                .json({
-
-                    success:
-                        false,
-
-                    error:
-                        "Unable to load reports."
-
-                });
-
-        }
-
-    }
-);
-
-
-// =========================================================
-// GET SINGLE REPORT
-// =========================================================
-
-app.get(
-    "/api/reports/:reportId",
-    (req, res) => {
-
-        try {
-
-            const reports =
-                readReports();
-
-
-            const report =
-                reports.find(
-                    item =>
-                        item.reportId ===
-                        req.params.reportId
-                );
-
-
-            if (!report) {
+            if (
+                !report.description &&
+                !report.image &&
+                !report.analysis
+            ) {
 
                 return res
-                    .status(404)
+                    .status(400)
                     .json({
 
                         success:
                             false,
 
                         error:
-                            "Report not found."
+                            "Report information is required."
 
                     });
 
             }
 
+            // ------------------------------------------------
+            // SAVE
+            // ------------------------------------------------
+
+            const reports =
+                readReports();
+
+            reports.push(
+                report
+            );
+
+            writeReports(
+                reports
+            );
+
+            // ------------------------------------------------
+            // RESPONSE
+            // ------------------------------------------------
 
             return res.json({
 
                 success:
                     true,
 
+                verified:
+                    true,
+
+                message:
+                    "Civic report submitted successfully.",
+
+                reportId:
+                    report.reportId,
+
                 report
 
             });
 
-        }
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "GET SINGLE REPORT ERROR:",
-                error
+                "CREATE VERIFIED REPORT ERROR:",
+                error?.message || error
             );
-
 
             return res
                 .status(500)
@@ -2111,7 +5320,7 @@ app.get(
                         false,
 
                     error:
-                        "Unable to load report."
+                        "Failed to submit civic report."
 
                 });
 
@@ -2120,62 +5329,759 @@ app.get(
     }
 );
 
+// ============================================================
+// GET ALL REPORTS
+// ============================================================
 
-// =========================================================
-// BLOCK PRIVATE FILES
-// =========================================================
+app.get(
+    "/api/reports",
+    (req, res) => {
 
-app.use(
-    (req, res, next) => {
+        const reports =
+            readReports();
 
-        const requestedPath =
-            req.path.toLowerCase();
+        return res.json({
 
+            success:
+                true,
 
-        const blocked =
-            requestedPath ===
-                "/server.js" ||
+            count:
+                reports.length,
 
-            requestedPath ===
-                "/package.json" ||
+            reports
 
-            requestedPath ===
-                "/package-lock.json" ||
+        });
 
-            requestedPath ===
-                "/.env" ||
+    }
+);
 
-            requestedPath.startsWith(
-                "/data/"
-            ) ||
+// ============================================================
+// GET SINGLE REPORT
+// ============================================================
 
-            requestedPath.startsWith(
-                "/node_modules/"
+app.get(
+    "/api/reports/:reportId",
+    (req, res) => {
+
+        const reports =
+            readReports();
+
+        const report =
+            reports.find(
+                item =>
+                    item.reportId ===
+                    req.params.reportId
             );
 
-
-        if (
-            blocked
-        ) {
+        if (!report) {
 
             return res
                 .status(404)
-                .send(
-                    "Not found"
-                );
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Report not found."
+
+                });
 
         }
 
+        return res.json({
+
+            success:
+                true,
+
+            report
+
+        });
+
+    }
+);
+
+// ============================================================
+// SEND REPORT EMAIL
+// ============================================================
+
+app.post(
+    "/api/send-report",
+    async (req, res) => {
+
+        try {
+
+            if (
+                !emailTransporter
+            ) {
+
+                return res
+                    .status(503)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Gmail is not configured."
+
+                    });
+
+            }
+
+            const body =
+                req.body || {};
+
+            const to =
+                cleanText(
+                    body.to ||
+                    body.email
+                );
+
+            if (!to) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Recipient email is required."
+
+                    });
+
+            }
+
+            const reportId =
+                cleanText(
+                    body.reportId
+                );
+
+            const description =
+                cleanText(
+                    body.description
+                );
+
+            const location =
+                cleanText(
+                    body.location
+                );
+
+            const analysis =
+                body.analysis &&
+                typeof body.analysis ===
+                "object"
+                    ? body.analysis
+                    : {};
+
+            const authority =
+                body.authority &&
+                typeof body.authority ===
+                "object"
+                    ? body.authority
+                    : {};
+
+            const text = `
+
+CIVICAI CIVIC COMPLAINT
+
+========================================
+
+Report ID:
+${reportId || "Not available"}
+
+Citizen:
+${cleanText(body.reporterName) || "Anonymous"}
+
+Email:
+${cleanText(body.email) || "Not provided"}
+
+Phone:
+${cleanText(body.phone) || "Not provided"}
+
+Location:
+${location || "Not provided"}
+
+========================================
+
+PROBLEM
+
+${description ||
+    analysis.problem ||
+    "Not provided"}
+
+Category:
+${analysis.category || "Not available"}
+
+Severity:
+${analysis.severity || "Not available"}
+
+Risk:
+${analysis.risk || "Not available"}
+
+Urgency:
+${analysis.urgency || "Not available"}
+
+========================================
+
+AUTHORITY
+
+Department:
+${analysis.department || "Not available"}
+
+Responsible Authority:
+${analysis.responsibleAuthority || "Not available"}
+
+Authority Result:
+${authority.authority || "Not available"}
+
+Authority Phone:
+${authority.phone || "Not verified"}
+
+Authority Email:
+${authority.email || "Not verified"}
+
+Authority Website:
+${authority.website || "Not verified"}
+
+========================================
+
+SUMMARY
+
+${analysis.summary || "Not available"}
+
+RECOMMENDATION
+
+${analysis.recommendation || "Not available"}
+
+========================================
+
+This complaint was generated through CivicAI.
+
+`;
+
+            await emailTransporter
+                .sendMail({
+
+                    from:
+                        EMAIL_FROM,
+
+                    to,
+
+                    subject:
+                        reportId
+                            ? `CivicAI Complaint - ${reportId}`
+                            : "CivicAI Civic Complaint",
+
+                    text
+
+                });
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Civic report sent successfully by email."
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "SEND REPORT EMAIL ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        error?.message ||
+                        "Failed to send report."
+
+                });
+
+        }
+
+    }
+);
+
+// ============================================================
+// TEST GMAIL
+// ============================================================
+
+app.post(
+    "/api/test-email",
+    async (req, res) => {
+
+        try {
+
+            if (
+                !emailTransporter
+            ) {
+
+                return res
+                    .status(503)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Gmail is not configured."
+
+                    });
+
+            }
+
+            const to =
+                cleanText(
+                    req.body?.email
+                ) ||
+                EMAIL_USER;
+
+            await emailTransporter
+                .sendMail({
+
+                    from:
+                        EMAIL_FROM,
+
+                    to,
+
+                    subject:
+                        "CivicAI Gmail Test",
+
+                    text:
+                        "CivicAI Gmail integration is working successfully."
+
+                });
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Test email sent successfully.",
+
+                to
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "TEST EMAIL ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        error?.message ||
+                        "Test email failed."
+
+                });
+
+        }
+
+    }
+);
+
+// ============================================================
+// AI STATUS
+// ============================================================
+
+app.get(
+    "/api/ai-status",
+    (req, res) => {
+
+        return res.json({
+
+            success:
+                true,
+
+            services: {
+
+                aiLifeHelper: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                normalChat: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                productChat: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                imageChat: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_VISION_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                },
+
+                civicAnalysis: {
+
+                    provider:
+                        "Google Gemini",
+
+                    model:
+                        GEMINI_MODEL,
+
+                    configured:
+                        hasGeminiKey()
+
+                },
+
+                productScanner: {
+
+                    provider:
+                        "Google Gemini",
+
+                    model:
+                        GEMINI_MODEL,
+
+                    configured:
+                        hasGeminiKey()
+
+                },
+
+                authorityLookup: {
+
+                    provider:
+                        "Groq",
+
+                    model:
+                        GROQ_TEXT_MODEL,
+
+                    configured:
+                        hasGroqKey()
+
+                }
+
+            },
+
+            otherServices: {
+
+                gmail: {
+
+                    configured:
+                        hasEmailConfig()
+
+                },
+
+                twilio: {
+
+                    configured:
+                        hasTwilioConfig()
+
+                }
+
+            },
+
+            serverTime:
+                new Date()
+                    .toISOString()
+
+        });
+
+    }
+);
+
+// ============================================================
+// HEALTH
+// ============================================================
+
+app.get(
+    "/api/health",
+    (req, res) => {
+
+        return res.json({
+
+            success:
+                true,
+
+            status:
+                "online",
+
+            service:
+                "CivicAI Backend",
+
+            ai: {
+
+                aiLifeHelper:
+                    "Groq",
+
+                normalChat:
+                    "Groq",
+
+                productChat:
+                    "Groq",
+
+                imageChat:
+                    "Groq",
+
+                civicAnalysis:
+                    "Google Gemini",
+
+                productScanner:
+                    "Google Gemini",
+
+                authority:
+                    "Groq"
+
+            },
+
+            configured: {
+
+                groq:
+                    hasGroqKey(),
+
+                gemini:
+                    hasGeminiKey(),
+
+                gmail:
+                    hasEmailConfig(),
+
+                twilio:
+                    hasTwilioConfig()
+
+            },
+
+            models: {
+
+                groqText:
+                    GROQ_TEXT_MODEL,
+
+                groqVision:
+                    GROQ_VISION_MODEL,
+
+                gemini:
+                    GEMINI_MODEL
+
+            },
+
+            timestamp:
+                new Date()
+                    .toISOString()
+
+        });
+
+    }
+);
+
+// ============================================================
+// API INFO
+// ============================================================
+
+app.get(
+    "/api",
+    (req, res) => {
+
+        return res.json({
+
+            success:
+                true,
+
+            message:
+                "CivicAI backend API is running.",
+
+            endpoints: {
+
+                chat:
+                    "POST /api/chat",
+
+                analyze:
+                    "POST /api/analyze",
+
+                productScanner:
+                    "POST /api/analyze-product",
+
+                productChat:
+                    "POST /api/product-question",
+
+                authority:
+                    "POST /api/authority",
+
+                health:
+                    "GET /api/health",
+
+                aiStatus:
+                    "GET /api/ai-status",
+
+                reports:
+                    "POST /api/reports",
+
+                getReports:
+                    "GET /api/reports",
+
+                singleReport:
+                    "GET /api/reports/:reportId",
+
+                sendReport:
+                    "POST /api/send-report",
+
+                testEmail:
+                    "POST /api/test-email",
+
+                requestOTP:
+                    "POST /api/request-otp",
+
+                verifyOTP:
+                    "POST /api/verify-otp",
+
+                requestPhoneOTP:
+                    "POST /api/request-phone-otp",
+
+                verifyPhoneOTP:
+                    "POST /api/verify-phone-otp"
+
+            }
+
+        });
+
+    }
+);
+
+// ============================================================
+// STATIC FRONTEND SECURITY
+// ============================================================
+
+app.use(
+    (
+        req,
+        res,
+        next
+    ) => {
+
+        const blocked =
+            new Set([
+
+                "/server.js",
+
+                "/.env",
+
+                "/package.json",
+
+                "/package-lock.json"
+
+            ]);
+
+        if (
+            blocked.has(
+                req.path
+            )
+        ) {
+
+            return res
+                .status(403)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Forbidden."
+
+                });
+
+        }
+
+        if (
+            req.path.startsWith(
+                "/data/"
+            )
+        ) {
+
+            return res
+                .status(403)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Forbidden."
+
+                });
+
+        }
 
         next();
 
     }
 );
 
+// ============================================================
+// STATIC FRONTEND
+// ============================================================
 
-// =========================================================
+app.use(
+    express.static(
+        __dirname,
+        {
+
+            dotfiles:
+                "deny",
+
+            index:
+                "index.html"
+
+        }
+    )
+);
+
+// ============================================================
 // API 404
-// =========================================================
+// ============================================================
 
 app.use(
     "/api",
@@ -2192,217 +6098,16 @@ app.use(
                     "API endpoint not found.",
 
                 path:
-                    req.originalUrl,
-
-                method:
-                    req.method
+                    req.originalUrl
 
             });
 
     }
 );
 
-
-// =========================================================
-// STATIC FRONTEND
-// =========================================================
-
-app.use(
-    express.static(
-        FRONTEND_DIR,
-        {
-            index:
-                false,
-
-            dotfiles:
-                "ignore",
-
-            fallthrough:
-                true
-
-        }
-    )
-);
-
-
-// =========================================================
-// FRONTEND ROUTES
-// =========================================================
-
-const frontendPages = [
-
-    "index.html",
-
-    "login.html",
-
-    "register.html",
-
-    "report.html",
-
-    "citizen.html",
-
-    "life-helper.html",
-
-    "track.html",
-
-    "admin.html"
-
-];
-
-
-for (
-    const page of
-    frontendPages
-) {
-
-    app.get(
-        `/${page}`,
-        (req, res) => {
-
-            const filePath =
-                path.join(
-                    FRONTEND_DIR,
-                    page
-                );
-
-
-            if (
-                !fs.existsSync(
-                    filePath
-                )
-            ) {
-
-                return res
-                    .status(404)
-                    .send(
-                        `${page} not found`
-                    );
-
-            }
-
-
-            return res.sendFile(
-                filePath
-            );
-
-        }
-    );
-
-}
-
-
-// =========================================================
-// ROOT
-// =========================================================
-
-app.get(
-    "/",
-    (req, res) => {
-
-        const indexPath =
-            path.join(
-                FRONTEND_DIR,
-                "index.html"
-            );
-
-
-        if (
-            !fs.existsSync(
-                indexPath
-            )
-        ) {
-
-            return res
-                .status(404)
-                .send(
-                    "index.html not found"
-                );
-
-        }
-
-
-        return res.sendFile(
-            indexPath
-        );
-
-    }
-);
-
-
-// =========================================================
-// FRONTEND FALLBACK
-// =========================================================
-
-app.use(
-    (req, res, next) => {
-
-        const extension =
-            path.extname(
-                req.path
-            );
-
-
-        if (
-            extension
-        ) {
-
-            return next();
-
-        }
-
-
-        const indexPath =
-            path.join(
-                FRONTEND_DIR,
-                "index.html"
-            );
-
-
-        if (
-            fs.existsSync(
-                indexPath
-            )
-        ) {
-
-            return res.sendFile(
-                indexPath
-            );
-
-        }
-
-
-        next();
-
-    }
-);
-
-
-// =========================================================
-// FINAL 404
-// =========================================================
-
-app.use(
-    (req, res) => {
-
-        return res
-            .status(404)
-            .json({
-
-                success:
-                    false,
-
-                error:
-                    "CivicAI: Page not found."
-
-            });
-
-    }
-);
-
-
-// =========================================================
+// ============================================================
 // GLOBAL ERROR HANDLER
-// =========================================================
+// ============================================================
 
 app.use(
     (
@@ -2417,6 +6122,35 @@ app.use(
             error
         );
 
+        if (
+            res.headersSent
+        ) {
+
+            return next(
+                error
+            );
+
+        }
+
+        if (
+            error instanceof SyntaxError &&
+            error.status === 400 &&
+            "body" in error
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Invalid JSON request body."
+
+                });
+
+        }
 
         return res
             .status(500)
@@ -2433,29 +6167,55 @@ app.use(
     }
 );
 
+// ============================================================
+// PROCESS ERROR HANDLING
+// ============================================================
 
-// =========================================================
+process.on(
+    "unhandledRejection",
+    error => {
+
+        console.error(
+            "UNHANDLED REJECTION:",
+            error
+        );
+
+    }
+);
+
+process.on(
+    "uncaughtException",
+    error => {
+
+        console.error(
+            "UNCAUGHT EXCEPTION:",
+            error
+        );
+
+    }
+);
+
+// ============================================================
 // START SERVER
-// =========================================================
+// ============================================================
 
 app.listen(
     PORT,
     () => {
 
         console.log("");
+
         console.log(
-            "=========================================="
+            "=================================================="
         );
 
         console.log(
-            "        CIVICAI BACKEND SERVER"
+            "                 CIVICAI BACKEND"
         );
 
         console.log(
-            "=========================================="
+            "=================================================="
         );
-
-        console.log("");
 
         console.log(
             `Server running on port: ${PORT}`
@@ -2468,81 +6228,139 @@ app.listen(
         console.log("");
 
         console.log(
-            "FRONTEND:"
+            "AI SERVICES"
         );
 
         console.log(
-            `INDEX:    http://localhost:${PORT}/`
+            "--------------------------------------------------"
         );
 
         console.log(
-            `LOGIN:    http://localhost:${PORT}/login.html`
+
+            "AI Life Helper     :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
         );
 
         console.log(
-            `REGISTER: http://localhost:${PORT}/register.html`
+
+            "Normal Chat        :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
         );
 
         console.log(
-            `AI HELPER: http://localhost:${PORT}/life-helper.html`
+
+            "Product Chat       :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Image Chat         :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_VISION_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Civic Report AI    :",
+
+            hasGeminiKey()
+                ? `GEMINI (${GEMINI_MODEL})`
+                : "GEMINI NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Product Scanner    :",
+
+            hasGeminiKey()
+                ? `GEMINI (${GEMINI_MODEL})`
+                : "GEMINI NOT CONFIGURED"
+
+        );
+
+        console.log(
+
+            "Authority Lookup   :",
+
+            hasGroqKey()
+                ? `GROQ (${GROQ_TEXT_MODEL})`
+                : "GROQ NOT CONFIGURED"
+
         );
 
         console.log("");
 
         console.log(
-            "AI API:"
+            "OTHER SERVICES"
         );
 
         console.log(
-            `HEALTH:   http://localhost:${PORT}/api/health`
+            "--------------------------------------------------"
         );
 
         console.log(
-            `API:      http://localhost:${PORT}/api`
+
+            "Gmail OTP          :",
+
+            hasEmailConfig()
+                ? "CONFIGURED"
+                : "NOT CONFIGURED"
+
         );
 
         console.log(
-            "PRODUCT:  POST /api/analyze-product"
-        );
 
-        console.log(
-            "QUESTION: POST /api/product-question"
-        );
+            "Twilio OTP         :",
 
-        console.log(
-            "CIVIC:    POST /api/analyze"
-        );
+            hasTwilioConfig()
+                ? "CONFIGURED"
+                : "NOT CONFIGURED"
 
-        console.log(
-            `REPORTS:  http://localhost:${PORT}/api/reports`
-        );
-
-        console.log("");
-
-        console.log(
-            "AI CONFIGURATION:"
-        );
-
-        console.log(
-            "AI Provider: Google Gemini"
-        );
-
-        console.log(
-            `Gemini API Key: ${
-                hasGeminiKey()
-                    ? "YES"
-                    : "NO"
-            }`
-        );
-
-        console.log(
-            `Gemini Model: ${GEMINI_MODEL}`
         );
 
         console.log("");
 
         console.log(
-            "=========================================="
+            "API ENDPOINTS"
+        );
+
+        console.log(
+            "--------------------------------------------------"
+        );
+
+        console.log(
+            `http://localhost:${PORT}/api`
+        );
+
+        console.log(
+            `http://localhost:${PORT}/api/health`
+        );
+
+        console.log(
+            `http://localhost:${PORT}/api/ai-status`
+        );
+
+        console.log("");
+
+        console.log(
+            "=================================================="
         );
 
         console.log("");
