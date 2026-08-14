@@ -253,14 +253,14 @@ const GEMINI_API_KEY =
 // GEMINI_MODEL value in .env.
 //
 // Example:
-// GEMINI_MODEL=gemini-2.5-flash
+// GEMINI_MODEL=gemini-3.5-flash
 //
 
 const GEMINI_MODEL =
     cleanText(
         process.env.GEMINI_MODEL
     ) ||
-    "gemini-3.1-flash-lite";
+    "gemini-3.5-flash";
 
 const GEMINI_API_URL =
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -3002,22 +3002,116 @@ Suggest the responsible authority.
 
     }
 );
+// ============================================================
+// CIVICAI — SECURE OTP SYSTEM
+// ============================================================
+//
+// EMAIL OTP  -> Nodemailer / Gmail
+// PHONE OTP  -> Twilio
+//
+// SECURITY:
+// - OTP is never returned to client
+// - OTP is hashed before storage
+// - 5 minute expiry
+// - 5 verification attempts
+// - resend cooldown
+// - request rate limiting
+// - one-time verification token
+// - verification token required for report submission
+//
+// ============================================================
+
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+
+const OTP_RESEND_COOLDOWN_MS =
+    60 * 1000;
+
+const OTP_MAX_ATTEMPTS = 5;
+
+const OTP_MAX_REQUESTS_PER_HOUR = 5;
+
+const VERIFICATION_TOKEN_EXPIRY_MS =
+    10 * 60 * 1000;
+
 
 // ============================================================
-// OTP SYSTEM
+// OTP MEMORY STORES
 // ============================================================
 
-const OTP_EXPIRY_MS =
-    5 * 60 * 1000;
+const otpStore = new Map();
 
-const MAX_OTP_ATTEMPTS =
-    5;
+const otpRateStore = new Map();
 
-const otpStore =
-    new Map();
+const verificationTokens = new Map();
 
-const verifiedUsers =
-    new Map();
+
+// ============================================================
+// NORMALIZE EMAIL
+// ============================================================
+
+function normalizeEmail(value) {
+
+    return cleanText(value)
+        .toLowerCase();
+
+}
+
+
+// ============================================================
+// NORMALIZE PHONE
+// ============================================================
+//
+// Frontend should preferably send:
+// +919876543210
+//
+// We keep +, digits only.
+// ============================================================
+
+function normalizePhone(value) {
+
+    let phone =
+        cleanText(value);
+
+    phone =
+        phone.replace(
+            /[^\d+]/g,
+            ""
+        );
+
+    if (
+        phone.startsWith("00")
+    ) {
+
+        phone =
+            "+" +
+            phone.slice(2);
+
+    }
+
+    return phone;
+
+}
+
+
+// ============================================================
+// IDENTIFIER VALIDATION
+// ============================================================
+
+function isValidEmail(email) {
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        .test(email);
+
+}
+
+
+function isValidPhone(phone) {
+
+    return /^\+[1-9]\d{7,14}$/
+        .test(phone);
+
+}
+
 
 // ============================================================
 // OTP GENERATOR
@@ -3034,11 +3128,228 @@ function generateOTP() {
 
 }
 
+
+// ============================================================
+// HASH SECRET
+// ============================================================
+
+function hashSecret(value) {
+
+    return crypto
+        .createHash("sha256")
+        .update(
+            String(value),
+            "utf8"
+        )
+        .digest("hex");
+
+}
+
+
+// ============================================================
+// TIMING SAFE HASH COMPARISON
+// ============================================================
+
+function safeCompare(
+    valueA,
+    valueB
+) {
+
+    const a =
+        Buffer.from(
+            String(valueA),
+            "utf8"
+        );
+
+    const b =
+        Buffer.from(
+            String(valueB),
+            "utf8"
+        );
+
+    if (
+        a.length !==
+        b.length
+    ) {
+
+        return false;
+
+    }
+
+    return crypto.timingSafeEqual(
+        a,
+        b
+    );
+
+}
+
+
+// ============================================================
+// OTP RATE LIMIT CLEANUP
+// ============================================================
+
+function cleanupOtpRateStore() {
+
+    const now =
+        Date.now();
+
+    for (
+        const [
+            identifier,
+            record
+        ]
+        of otpRateStore
+    ) {
+
+        if (
+            !record ||
+            now - record.firstRequestAt >
+            60 * 60 * 1000
+        ) {
+
+            otpRateStore.delete(
+                identifier
+            );
+
+        }
+
+    }
+
+}
+
+
+// ============================================================
+// CHECK OTP REQUEST RATE
+// ============================================================
+
+function checkOtpRequestRate(
+    identifier
+) {
+
+    cleanupOtpRateStore();
+
+    const now =
+        Date.now();
+
+    let record =
+        otpRateStore.get(
+            identifier
+        );
+
+    if (!record) {
+
+        record = {
+
+            firstRequestAt:
+                now,
+
+            requests:
+                0,
+
+            lastRequestAt:
+                0
+
+        };
+
+        otpRateStore.set(
+            identifier,
+            record
+        );
+
+    }
+
+    // --------------------------------------------------------
+    // Hourly limit
+    // --------------------------------------------------------
+
+    if (
+        now -
+        record.firstRequestAt >
+        60 * 60 * 1000
+    ) {
+
+        record.firstRequestAt =
+            now;
+
+        record.requests =
+            0;
+
+    }
+
+    if (
+        record.requests >=
+        OTP_MAX_REQUESTS_PER_HOUR
+    ) {
+
+        return {
+
+            allowed:
+                false,
+
+            error:
+                "Too many OTP requests. Please try again later."
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // Resend cooldown
+    // --------------------------------------------------------
+
+    if (
+        record.lastRequestAt &&
+        now -
+        record.lastRequestAt <
+        OTP_RESEND_COOLDOWN_MS
+    ) {
+
+        const remaining =
+            Math.ceil(
+                (
+                    OTP_RESEND_COOLDOWN_MS -
+                    (
+                        now -
+                        record.lastRequestAt
+                    )
+                ) / 1000
+            );
+
+        return {
+
+            allowed:
+                false,
+
+            error:
+                `Please wait ${remaining} seconds before requesting another OTP.`,
+
+            retryAfter:
+                remaining
+
+        };
+
+    }
+
+    record.requests++;
+
+    record.lastRequestAt =
+        now;
+
+    return {
+
+        allowed:
+            true
+
+    };
+
+}
+
+
 // ============================================================
 // SAVE OTP
 // ============================================================
 
-function saveOTP(
+function saveOtp(
     identifier,
     otp
 ) {
@@ -3049,7 +3360,8 @@ function saveOTP(
 
         {
 
-            otp,
+            otpHash:
+                hashSecret(otp),
 
             createdAt:
                 Date.now(),
@@ -3063,11 +3375,12 @@ function saveOTP(
 
 }
 
+
 // ============================================================
-// VERIFY OTP
+// VERIFY STORED OTP
 // ============================================================
 
-function verifyStoredOTP(
+function verifyStoredOtp(
     identifier,
     otp
 ) {
@@ -3085,11 +3398,18 @@ function verifyStoredOTP(
                 false,
 
             error:
-                "OTP not found or expired."
+                "OTP not found or expired.",
+
+            code:
+                "OTP_NOT_FOUND"
 
         };
 
     }
+
+    // --------------------------------------------------------
+    // EXPIRY
+    // --------------------------------------------------------
 
     if (
         Date.now() -
@@ -3107,15 +3427,22 @@ function verifyStoredOTP(
                 false,
 
             error:
-                "OTP expired."
+                "OTP expired.",
+
+            code:
+                "OTP_EXPIRED"
 
         };
 
     }
 
+    // --------------------------------------------------------
+    // ATTEMPT LIMIT
+    // --------------------------------------------------------
+
     if (
         record.attempts >=
-        MAX_OTP_ATTEMPTS
+        OTP_MAX_ATTEMPTS
     ) {
 
         otpStore.delete(
@@ -3128,15 +3455,27 @@ function verifyStoredOTP(
                 false,
 
             error:
-                "Too many OTP attempts."
+                "Too many incorrect OTP attempts.",
+
+            code:
+                "OTP_ATTEMPTS_EXCEEDED"
 
         };
 
     }
 
+    const submittedHash =
+        hashSecret(otp);
+
+    // --------------------------------------------------------
+    // SAFE COMPARISON
+    // --------------------------------------------------------
+
     if (
-        record.otp !==
-        String(otp)
+        !safeCompare(
+            submittedHash,
+            record.otpHash
+        )
     ) {
 
         record.attempts++;
@@ -3147,49 +3486,795 @@ function verifyStoredOTP(
                 false,
 
             error:
-                "Invalid OTP."
+                "Invalid OTP.",
+
+            code:
+                "OTP_INVALID",
+
+            attemptsRemaining:
+                Math.max(
+                    0,
+                    OTP_MAX_ATTEMPTS -
+                    record.attempts
+                )
 
         };
 
     }
 
+    // --------------------------------------------------------
+    // OTP SUCCESS
+    // --------------------------------------------------------
+
     otpStore.delete(
         identifier
     );
 
-    verifiedUsers.set(
-        identifier,
-        Date.now()
+    // --------------------------------------------------------
+    // CREATE ONE-TIME VERIFICATION TOKEN
+    // --------------------------------------------------------
+
+    const verificationToken =
+        crypto.randomBytes(32)
+            .toString("hex");
+
+    verificationTokens.set(
+
+        verificationToken,
+
+        {
+
+            identifier,
+
+            createdAt:
+                Date.now(),
+
+            expiresAt:
+                Date.now() +
+                VERIFICATION_TOKEN_EXPIRY_MS,
+
+            used:
+                false
+
+        }
+
     );
 
     return {
 
         success:
+            true,
+
+        verificationToken
+
+    };
+
+}
+
+
+// ============================================================
+// VERIFY SUBMISSION TOKEN
+// ============================================================
+
+function consumeVerificationToken(
+    token,
+    identifier
+) {
+
+    const cleanToken =
+        cleanText(token);
+
+    if (!cleanToken) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token is required."
+
+        };
+
+    }
+
+    const record =
+        verificationTokens.get(
+            cleanToken
+        );
+
+    if (!record) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token is invalid or expired."
+
+        };
+
+    }
+
+    if (
+        record.used
+    ) {
+
+        verificationTokens.delete(
+            cleanToken
+        );
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token has already been used."
+
+        };
+
+    }
+
+    if (
+        Date.now() >
+        record.expiresAt
+    ) {
+
+        verificationTokens.delete(
+            cleanToken
+        );
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token has expired."
+
+        };
+
+    }
+
+    if (
+        record.identifier !==
+        identifier
+    ) {
+
+        return {
+
+            valid:
+                false,
+
+            error:
+                "Verification token does not match the verified contact."
+
+        };
+
+    }
+
+    // --------------------------------------------------------
+    // ONE TIME USE
+    // --------------------------------------------------------
+
+    record.used =
+        true;
+
+    verificationTokens.delete(
+        cleanToken
+    );
+
+    return {
+
+        valid:
             true
 
     };
 
 }
 
+
 // ============================================================
-// EMAIL OTP
+// SEND EMAIL OTP
+// ============================================================
+
+async function sendEmailOtp(
+    email
+) {
+
+    if (
+        !emailTransporter
+    ) {
+
+        throw new Error(
+            "Gmail OTP is not configured. Check EMAIL_USER and EMAIL_PASSWORD."
+        );
+
+    }
+
+    const otp =
+        generateOTP();
+
+    saveOtp(
+        email,
+        otp
+    );
+
+    await emailTransporter.sendMail({
+
+        from:
+            EMAIL_FROM,
+
+        to:
+            email,
+
+        subject:
+            "CivicAI Verification OTP",
+
+        text:
+            `Your CivicAI verification OTP is ${otp}. This OTP expires in 5 minutes.`,
+
+        html:
+            `
+            <!DOCTYPE html>
+
+            <html>
+
+            <body
+                style="
+                    margin:0;
+                    padding:30px;
+                    background:#f4f7fb;
+                    font-family:Arial,sans-serif;
+                "
+            >
+
+                <div
+                    style="
+                        max-width:520px;
+                        margin:auto;
+                        background:#ffffff;
+                        border-radius:16px;
+                        padding:32px;
+                        box-shadow:0 8px 30px rgba(0,0,0,.08);
+                    "
+                >
+
+                    <h2>
+                        CivicAI Verification
+                    </h2>
+
+                    <p>
+                        Your verification code is:
+                    </p>
+
+                    <div
+                        style="
+                            font-size:36px;
+                            font-weight:bold;
+                            letter-spacing:10px;
+                            margin:25px 0;
+                        "
+                    >
+                        ${otp}
+                    </div>
+
+                    <p>
+                        This OTP expires in
+                        <strong>5 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not request this code,
+                        you can safely ignore this email.
+                    </p>
+
+                </div>
+
+            </body>
+
+            </html>
+            `
+
+    });
+
+}
+
+
+// ============================================================
+// SEND PHONE OTP
+// ============================================================
+
+async function sendPhoneOtp(
+    phone
+) {
+
+    if (
+        !twilioClient
+    ) {
+
+        throw new Error(
+            "Twilio is not configured correctly."
+        );
+
+    }
+
+    const otp =
+        generateOTP();
+
+    saveOtp(
+        phone,
+        otp
+    );
+
+    await twilioClient.messages.create({
+
+        body:
+            `CivicAI verification OTP: ${otp}. Valid for 5 minutes.`,
+
+        from:
+            TWILIO_PHONE_NUMBER,
+
+        to:
+            phone
+
+    });
+
+}
+
+
+// ============================================================
+// NEW UNIFIED OTP SEND ENDPOINT
+// ============================================================
+//
+// POST /api/otp/send
+//
+// {
+//   "type": "email",
+//   "identifier": "example@gmail.com"
+// }
+//
+// OR
+//
+// {
+//   "type": "phone",
+//   "identifier": "+919876543210"
+// }
+//
+// ============================================================
+
+app.post(
+    "/api/otp/send",
+    async (req, res) => {
+
+        try {
+
+            const type =
+                cleanText(
+                    req.body?.type
+                )
+                .toLowerCase();
+
+            let identifier =
+                cleanText(
+                    req.body?.identifier
+                );
+
+            if (
+                type !== "email" &&
+                type !== "phone"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP type must be email or phone."
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // NORMALIZE
+            // ------------------------------------------------
+
+            if (
+                type === "email"
+            ) {
+
+                identifier =
+                    normalizeEmail(
+                        identifier
+                    );
+
+                if (
+                    !isValidEmail(
+                        identifier
+                    )
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            success:
+                                false,
+
+                            error:
+                                "Valid email is required."
+
+                        });
+
+                }
+
+            } else {
+
+                identifier =
+                    normalizePhone(
+                        identifier
+                    );
+
+                if (
+                    !isValidPhone(
+                        identifier
+                    )
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            success:
+                                false,
+
+                            error:
+                                "Use a valid phone number with country code. Example: +919876543210"
+
+                        });
+
+                }
+
+            }
+
+            // ------------------------------------------------
+            // RATE LIMIT
+            // ------------------------------------------------
+
+            const rate =
+                checkOtpRequestRate(
+                    identifier
+                );
+
+            if (
+                !rate.allowed
+            ) {
+
+                if (
+                    rate.retryAfter
+                ) {
+
+                    res.setHeader(
+                        "Retry-After",
+                        String(
+                            rate.retryAfter
+                        )
+                    );
+
+                }
+
+                return res
+                    .status(429)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // SEND
+            // ------------------------------------------------
+
+            if (
+                type === "email"
+            ) {
+
+                await sendEmailOtp(
+                    identifier
+                );
+
+            } else {
+
+                await sendPhoneOtp(
+                    identifier
+                );
+
+            }
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    `OTP sent successfully to your ${type}.`,
+
+                type
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "OTP SEND ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Failed to send OTP.",
+
+                    code:
+                        "OTP_SEND_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// NEW UNIFIED OTP VERIFY ENDPOINT
+// ============================================================
+//
+// POST /api/otp/verify
+//
+// {
+//   "type": "email",
+//   "identifier": "example@gmail.com",
+//   "otp": "123456"
+// }
+//
+// Response contains a one-time verificationToken.
+// ============================================================
+
+app.post(
+    "/api/otp/verify",
+    (req, res) => {
+
+        try {
+
+            const type =
+                cleanText(
+                    req.body?.type
+                )
+                .toLowerCase();
+
+            let identifier =
+                cleanText(
+                    req.body?.identifier
+                );
+
+            const otp =
+                cleanText(
+                    req.body?.otp
+                );
+
+            if (
+                type !== "email" &&
+                type !== "phone"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP type must be email or phone."
+
+                    });
+
+            }
+
+            if (!otp) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP is required."
+
+                    });
+
+            }
+
+            if (
+                !/^\d{6}$/.test(
+                    otp
+                )
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "OTP must contain exactly 6 digits."
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // NORMALIZE IDENTIFIER
+            // ------------------------------------------------
+
+            identifier =
+                type === "email"
+                    ? normalizeEmail(
+                        identifier
+                    )
+                    : normalizePhone(
+                        identifier
+                    );
+
+            // ------------------------------------------------
+            // VERIFY
+            // ------------------------------------------------
+
+            const result =
+                verifyStoredOtp(
+                    identifier,
+                    otp
+                );
+
+            if (
+                !result.success
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        error:
+                            result.error,
+
+                        code:
+                            result.code,
+
+                        attemptsRemaining:
+                            result.attemptsRemaining
+
+                    });
+
+            }
+
+            return res.json({
+
+                success:
+                    true,
+
+                verified:
+                    true,
+
+                type,
+
+                identifier,
+
+                verificationToken:
+                    result.verificationToken,
+
+                message:
+                    `${type === "email" ? "Email" : "Phone"} verified successfully.`
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "OTP VERIFY ERROR:",
+                error?.message || error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        "OTP verification failed.",
+
+                    code:
+                        "OTP_VERIFY_ERROR"
+
+                });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// BACKWARD COMPATIBILITY
+// ============================================================
+//
+// Existing frontend can continue using:
+//
+// POST /api/request-otp
+// POST /api/verify-otp
+//
 // ============================================================
 
 app.post(
     "/api/request-otp",
     async (req, res) => {
 
+        req.body =
+            {
+
+                type:
+                    "email",
+
+                identifier:
+                    req.body?.email
+
+            };
+
+        // Reuse unified handler logic
         try {
 
             const email =
-                cleanText(
-                    req.body?.email
-                )
-                .toLowerCase();
+                normalizeEmail(
+                    req.body.identifier
+                );
 
             if (
-                !email ||
-                !email.includes("@")
+                !isValidEmail(email)
             ) {
 
                 return res
@@ -3206,99 +4291,35 @@ app.post(
 
             }
 
+            const rate =
+                checkOtpRequestRate(
+                    email
+                );
+
             if (
-                !emailTransporter
+                !rate.allowed
             ) {
 
                 return res
-                    .status(503)
+                    .status(429)
                     .json({
 
                         success:
                             false,
 
                         error:
-                            "Gmail OTP is not configured. Check EMAIL_USER and EMAIL_PASSWORD."
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
 
                     });
 
             }
 
-            const otp =
-                generateOTP();
-
-            saveOTP(
-                email,
-                otp
+            await sendEmailOtp(
+                email
             );
-
-            await emailTransporter
-                .sendMail({
-
-                    from:
-                        EMAIL_FROM,
-
-                    to:
-                        email,
-
-                    subject:
-                        "CivicAI Verification OTP",
-
-                    text:
-                        `Your CivicAI verification OTP is ${otp}. It expires in 5 minutes.`,
-
-                    html:
-                        `
-                        <!DOCTYPE html>
-
-                        <html>
-
-                        <body
-                            style="
-                                font-family:Arial,sans-serif;
-                                background:#f5f7fb;
-                                padding:30px;
-                            "
-                        >
-
-                            <div
-                                style="
-                                    max-width:500px;
-                                    margin:auto;
-                                    background:white;
-                                    padding:30px;
-                                    border-radius:12px;
-                                "
-                            >
-
-                                <h2>
-                                    CivicAI Verification
-                                </h2>
-
-                                <p>
-                                    Your CivicAI verification OTP is:
-                                </p>
-
-                                <h1
-                                    style="
-                                        letter-spacing:8px;
-                                    "
-                                >
-                                    ${otp}
-                                </h1>
-
-                                <p>
-                                    This OTP expires in 5 minutes.
-                                </p>
-
-                            </div>
-
-                        </body>
-
-                        </html>
-                        `
-
-                });
 
             return res.json({
 
@@ -3313,7 +4334,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "EMAIL OTP ERROR:",
+                "REQUEST EMAIL OTP ERROR:",
                 error?.message || error
             );
 
@@ -3325,7 +4346,6 @@ app.post(
                         false,
 
                     error:
-                        error?.message ||
                         "Failed to send OTP."
 
                 });
@@ -3335,8 +4355,9 @@ app.post(
     }
 );
 
+
 // ============================================================
-// VERIFY EMAIL OTP
+// BACKWARD COMPATIBILITY — VERIFY EMAIL
 // ============================================================
 
 app.post(
@@ -3344,10 +4365,9 @@ app.post(
     (req, res) => {
 
         const email =
-            cleanText(
+            normalizeEmail(
                 req.body?.email
-            )
-            .toLowerCase();
+            );
 
         const otp =
             cleanText(
@@ -3355,7 +4375,7 @@ app.post(
             );
 
         if (
-            !email ||
+            !isValidEmail(email) ||
             !otp
         ) {
 
@@ -3374,7 +4394,7 @@ app.post(
         }
 
         const result =
-            verifyStoredOTP(
+            verifyStoredOtp(
                 email,
                 otp
             );
@@ -3385,9 +4405,24 @@ app.post(
 
             return res
                 .status(400)
-                .json(
-                    result
-                );
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        result.error,
+
+                    code:
+                        result.code,
+
+                    attemptsRemaining:
+                        result.attemptsRemaining
+
+                });
 
         }
 
@@ -3399,6 +4434,9 @@ app.post(
             verified:
                 true,
 
+            verificationToken:
+                result.verificationToken,
+
             message:
                 "Email verified successfully."
 
@@ -3407,8 +4445,9 @@ app.post(
     }
 );
 
+
 // ============================================================
-// PHONE OTP
+// BACKWARD COMPATIBILITY — PHONE OTP
 // ============================================================
 
 app.post(
@@ -3418,11 +4457,13 @@ app.post(
         try {
 
             const phone =
-                cleanText(
+                normalizePhone(
                     req.body?.phone
                 );
 
-            if (!phone) {
+            if (
+                !isValidPhone(phone)
+            ) {
 
                 return res
                     .status(400)
@@ -3432,52 +4473,41 @@ app.post(
                             false,
 
                         error:
-                            "Phone number is required."
+                            "Use a valid phone number with country code. Example: +919876543210"
 
                     });
 
             }
 
+            const rate =
+                checkOtpRequestRate(
+                    phone
+                );
+
             if (
-                !twilioClient
+                !rate.allowed
             ) {
 
                 return res
-                    .status(503)
+                    .status(429)
                     .json({
 
                         success:
                             false,
 
                         error:
-                            "Twilio is not configured correctly."
+                            rate.error,
+
+                        code:
+                            "OTP_RATE_LIMIT"
 
                     });
 
             }
 
-            const otp =
-                generateOTP();
-
-            saveOTP(
-                phone,
-                otp
+            await sendPhoneOtp(
+                phone
             );
-
-            await twilioClient
-                .messages
-                .create({
-
-                    body:
-                        `CivicAI verification OTP: ${otp}. Valid for 5 minutes.`,
-
-                    from:
-                        TWILIO_PHONE_NUMBER,
-
-                    to:
-                        phone
-
-                });
 
             return res.json({
 
@@ -3492,7 +4522,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "PHONE OTP ERROR:",
+                "REQUEST PHONE OTP ERROR:",
                 error?.message || error
             );
 
@@ -3504,7 +4534,6 @@ app.post(
                         false,
 
                     error:
-                        error?.message ||
                         "Failed to send phone OTP."
 
                 });
@@ -3514,8 +4543,9 @@ app.post(
     }
 );
 
+
 // ============================================================
-// VERIFY PHONE OTP
+// BACKWARD COMPATIBILITY — VERIFY PHONE OTP
 // ============================================================
 
 app.post(
@@ -3523,7 +4553,7 @@ app.post(
     (req, res) => {
 
         const phone =
-            cleanText(
+            normalizePhone(
                 req.body?.phone
             );
 
@@ -3533,7 +4563,7 @@ app.post(
             );
 
         if (
-            !phone ||
+            !isValidPhone(phone) ||
             !otp
         ) {
 
@@ -3545,14 +4575,14 @@ app.post(
                         false,
 
                     error:
-                        "Phone and OTP are required."
+                        "Valid phone number and OTP are required."
 
                 });
 
         }
 
         const result =
-            verifyStoredOTP(
+            verifyStoredOtp(
                 phone,
                 otp
             );
@@ -3563,9 +4593,24 @@ app.post(
 
             return res
                 .status(400)
-                .json(
-                    result
-                );
+                .json({
+
+                    success:
+                        false,
+
+                    verified:
+                        false,
+
+                    error:
+                        result.error,
+
+                    code:
+                        result.code,
+
+                    attemptsRemaining:
+                        result.attemptsRemaining
+
+                });
 
         }
 
@@ -3577,12 +4622,86 @@ app.post(
             verified:
                 true,
 
+            verificationToken:
+                result.verificationToken,
+
             message:
                 "Phone verified successfully."
 
         });
 
     }
+);
+
+
+// ============================================================
+// OTP CLEANUP
+// ============================================================
+
+setInterval(
+    () => {
+
+        const now =
+            Date.now();
+
+        // ----------------------------------------------------
+        // OTP STORE
+        // ----------------------------------------------------
+
+        for (
+            const [
+                identifier,
+                record
+            ]
+            of otpStore
+        ) {
+
+            if (
+                !record ||
+                now -
+                record.createdAt >
+                OTP_EXPIRY_MS
+            ) {
+
+                otpStore.delete(
+                    identifier
+                );
+
+            }
+
+        }
+
+        // ----------------------------------------------------
+        // VERIFICATION TOKENS
+        // ----------------------------------------------------
+
+        for (
+            const [
+                token,
+                record
+            ]
+            of verificationTokens
+        ) {
+
+            if (
+                !record ||
+                record.used ||
+                now >
+                record.expiresAt
+            ) {
+
+                verificationTokens.delete(
+                    token
+                );
+
+            }
+
+        }
+
+        cleanupOtpRateStore();
+
+    },
+    60 * 1000
 );
 
 // ============================================================
@@ -3643,6 +4762,17 @@ function writeReports(
 // ============================================================
 // CREATE REPORT
 // ============================================================
+// ============================================================
+// CREATE VERIFIED CIVIC REPORT
+// ============================================================
+//
+// IMPORTANT:
+// A report can ONLY be submitted after:
+//
+// 1. Email OR phone OTP verification
+// 2. Valid one-time verificationToken
+//
+// ============================================================
 
 app.post(
     "/api/reports",
@@ -3652,6 +4782,130 @@ app.post(
 
             const body =
                 req.body || {};
+
+            // ------------------------------------------------
+            // CONTACT
+            // ------------------------------------------------
+
+            const email =
+                normalizeEmail(
+                    body.email
+                );
+
+            const phone =
+                normalizePhone(
+                    body.phone
+                );
+
+            // ------------------------------------------------
+            // VERIFICATION TOKEN
+            // ------------------------------------------------
+
+            const verificationToken =
+                cleanText(
+                    body.verificationToken
+                );
+
+            if (
+                !verificationToken
+            ) {
+
+                return res
+                    .status(403)
+                    .json({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        error:
+                            "OTP verification is required before submitting the report.",
+
+                        code:
+                            "OTP_VERIFICATION_REQUIRED"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // DETERMINE VERIFIED CONTACT
+            // ------------------------------------------------
+
+            let verifiedIdentifier =
+                "";
+
+            if (
+                email &&
+                isValidEmail(email)
+            ) {
+
+                verifiedIdentifier =
+                    email;
+
+            } else if (
+                phone &&
+                isValidPhone(phone)
+            ) {
+
+                verifiedIdentifier =
+                    phone;
+
+            } else {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "A valid verified email or phone number is required."
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // CONSUME ONE-TIME TOKEN
+            // ------------------------------------------------
+
+            const tokenResult =
+                consumeVerificationToken(
+                    verificationToken,
+                    verifiedIdentifier
+                );
+
+            if (
+                !tokenResult.valid
+            ) {
+
+                return res
+                    .status(403)
+                    .json({
+
+                        success:
+                            false,
+
+                        verified:
+                            false,
+
+                        error:
+                            tokenResult.error,
+
+                        code:
+                            "INVALID_VERIFICATION_TOKEN"
+
+                    });
+
+            }
+
+            // ------------------------------------------------
+            // REPORT DATA
+            // ------------------------------------------------
 
             const report = {
 
@@ -3667,14 +4921,18 @@ app.post(
                     "Anonymous",
 
                 email:
-                    cleanText(
-                        body.email
-                    ),
+                    email,
 
                 phone:
-                    cleanText(
-                        body.phone
-                    ),
+                    phone,
+
+                verificationMethod:
+                    (
+                        email &&
+                        isValidEmail(email)
+                    )
+                        ? "email"
+                        : "phone",
 
                 description:
                     cleanText(
@@ -3715,6 +4973,10 @@ app.post(
 
             };
 
+            // ------------------------------------------------
+            // VALIDATE REPORT
+            // ------------------------------------------------
+
             if (
                 !report.description &&
                 !report.image &&
@@ -3735,6 +4997,10 @@ app.post(
 
             }
 
+            // ------------------------------------------------
+            // SAVE
+            // ------------------------------------------------
+
             const reports =
                 readReports();
 
@@ -3746,13 +5012,23 @@ app.post(
                 reports
             );
 
+            // ------------------------------------------------
+            // RESPONSE
+            // ------------------------------------------------
+
             return res.json({
 
                 success:
                     true,
 
+                verified:
+                    true,
+
                 message:
-                    "Civic report created successfully.",
+                    "Civic report submitted successfully.",
+
+                reportId:
+                    report.reportId,
 
                 report
 
@@ -3761,7 +5037,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "CREATE REPORT ERROR:",
+                "CREATE VERIFIED REPORT ERROR:",
                 error?.message || error
             );
 
@@ -3773,7 +5049,7 @@ app.post(
                         false,
 
                     error:
-                        "Failed to create report."
+                        "Failed to submit civic report."
 
                 });
 
