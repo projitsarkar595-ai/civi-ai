@@ -114,6 +114,186 @@ body{
  .message-body{max-width:82%}.assistant-dock{right:6px;bottom:155px;transform:scale(.72)}
 }
 @media(max-width:600px){.assistant-dock{right:0;bottom:148px;transform:scale(.62)}.message-body{max-width:84%}.header-title{font-size:13px}}
+
+
+/* =========================================================
+   FINAL INPUT + HEADER FIX
+========================================================= */
+.input-wrapper{
+    z-index:10000 !important;
+    pointer-events:auto !important;
+}
+
+.input-container,
+.input-row,
+.chat-input,
+.input-actions,
+.tool-btn,
+.send-btn,
+.attachment-preview{
+    pointer-events:auto !important;
+}
+
+.chat-input{
+    position:relative !important;
+    z-index:10002 !important;
+    cursor:text !important;
+    pointer-events:auto !important;
+    -webkit-user-select:text !important;
+    user-select:text !important;
+}
+
+.send-btn,
+.tool-btn,
+.icon-btn{
+    position:relative;
+    z-index:10003;
+}
+
+.header{
+    position:relative;
+    z-index:10010;
+}
+
+.header-actions{
+    position:relative;
+    z-index:10020;
+}
+
+.header-menu{
+    display:none;
+    position:absolute;
+    top:58px;
+    right:20px;
+    width:220px;
+    padding:7px;
+    border:1px solid var(--border2);
+    border-radius:14px;
+    background:rgba(13,20,36,.98);
+    box-shadow:0 18px 45px rgba(0,0,0,.38);
+    backdrop-filter:blur(18px);
+    z-index:10030;
+}
+
+.header-menu.show{
+    display:block;
+}
+
+.header-menu button{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--text2);
+    padding:11px 12px;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    cursor:pointer;
+    font:13px inherit;
+}
+
+.header-menu button:hover{
+    background:rgba(255,255,255,.06);
+    color:var(--text);
+}
+
+body.light-mode .header-menu{
+    background:rgba(255,255,255,.98);
+}
+
+@media(max-width:600px){
+    .header-menu{
+        top:58px;
+        right:10px;
+        width:205px;
+    }
+}
+
+/* Assistant stays visually beside the prompt, but never blocks typing. */
+.assistant-dock{
+    z-index:999 !important;
+}
+
+/* =========================================================
+   CIVICAI ASSISTANT — RESPONSIVE + DRAGGABLE
+========================================================= */
+
+.assistant-dock{
+    position:fixed !important;
+    z-index:9999 !important;
+    width:118px;
+    right:calc(50% - 570px);
+    bottom:132px;
+    text-align:center;
+    pointer-events:auto !important;
+    user-select:none;
+    touch-action:none;
+    cursor:grab;
+}
+
+.assistant-dock.dragging{
+    cursor:grabbing;
+}
+
+.assistant-dock .ai-orb{
+    pointer-events:auto;
+    cursor:grab;
+}
+
+.assistant-dock.dragging .ai-orb{
+    cursor:grabbing;
+}
+
+.assistant-dock .assistant-label,
+.assistant-dock .voice-toggle,
+.assistant-dock .voice-wave{
+    pointer-events:auto;
+}
+
+@media(max-width:1250px){
+    .assistant-dock{
+        right:18px;
+        bottom:132px;
+    }
+}
+
+@media(max-width:850px){
+    .assistant-dock{
+        width:100px;
+        right:10px;
+        bottom:150px;
+        transform:scale(.82);
+        transform-origin:right bottom;
+    }
+
+    .chat-area{
+        padding-bottom:210px !important;
+    }
+
+    .input-wrapper{
+        padding:10px 10px calc(18px + env(safe-area-inset-bottom)) !important;
+    }
+}
+
+@media(max-width:500px){
+    .assistant-dock{
+        width:92px;
+        right:8px;
+        bottom:145px;
+        transform:scale(.72);
+        transform-origin:right bottom;
+    }
+
+    .chat-area{
+        padding-bottom:195px !important;
+    }
+
+    .input-wrapper{
+        padding-bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -135,7 +315,23 @@ body{
  <div class="header-left"><button class="mobile-menu" id="mobileMenu"><i class="fa-solid fa-bars"></i></button>
   <div><div class="header-title">CivicAI Life Helper</div><div class="status"><span class="status-dot"></span> AI assistant online</div></div>
  </div>
- <div class="header-actions"><button class="icon-btn" id="newChatButton"><i class="fa-solid fa-plus"></i></button><button class="icon-btn" id="themeButton"><i class="fa-solid fa-moon"></i></button></div>
+ <div class="header-actions">
+  <button class="icon-btn" id="headerMenuButton" title="More options" aria-label="More options">
+    <i class="fa-solid fa-ellipsis"></i>
+  </button>
+  <button class="icon-btn" id="newChatButton" title="New conversation" aria-label="New conversation">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+  <button class="icon-btn" id="themeButton" title="Toggle theme" aria-label="Toggle theme">
+    <i class="fa-solid fa-moon"></i>
+  </button>
+</div>
+
+<div class="header-menu" id="headerMenu">
+  <button id="headerSaveButton"><i class="fa-regular fa-bookmark"></i> Save conversation</button>
+  <button id="headerCopyButton"><i class="fa-regular fa-copy"></i> Copy conversation</button>
+  <button id="headerClearButton"><i class="fa-regular fa-trash-can"></i> Clear conversation</button>
+</div>
 </header>
 
 <section class="chat-area" id="chatMessages">
@@ -190,6 +386,11 @@ const fileInput=$("fileInput"),fileButton=$("fileButton"),cameraButton=$("camera
 const voiceToggle=$("voiceToggle"),voiceStatus=$("voiceStatus"),aiOrb=$("aiOrb"),voiceWave=$("voiceWave");
 const attachmentPreview=$("attachmentPreview"),attachmentName=$("attachmentName"),attachmentIcon=$("attachmentIcon");
 const toast=$("helperToast"),recentList=$("recentSearchList"),chatSearch=$("chatSearch");
+const headerMenuButton=$("headerMenuButton");
+const headerMenu=$("headerMenu");
+const headerSaveButton=$("headerSaveButton");
+const headerCopyButton=$("headerCopyButton");
+const headerClearButton=$("headerClearButton");
 
 const CHAT_API_ENDPOINT="/api/chat", ANALYZE_API_ENDPOINT="/api/analyze";
 const STORAGE_MESSAGES="civicai_messages",STORAGE_RECENT="civicai_recent",STORAGE_THEME="civicai_theme";
@@ -237,10 +438,34 @@ function renderRecent(){
 }
 async function copyText(t){try{await navigator.clipboard.writeText(String(t));showToast("Copied.")}catch{}}
 
-/* ---------- text input: always works ---------- */
-function resize(){chatInput.style.height="auto";chatInput.style.height=Math.min(chatInput.scrollHeight,130)+"px"}
+/* ---------- TEXT INPUT — ALWAYS ACTIVE ---------- */
+function resize(){
+    if(!chatInput)return;
+    chatInput.style.height="auto";
+    chatInput.style.height=Math.min(chatInput.scrollHeight,130)+"px";
+}
+
+chatInput.disabled=false;
+chatInput.readOnly=false;
+chatInput.tabIndex=0;
+chatInput.setAttribute("aria-disabled","false");
+
 chatInput.addEventListener("input",resize);
-chatInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});
+
+chatInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&!e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+chatInput.addEventListener("focus",()=>{
+    chatInput.style.pointerEvents="auto";
+});
+
+chatInput.addEventListener("click",()=>{
+    chatInput.focus();
+});
 
 /* ---------- backend ---------- */
 async function serverResponse(r){
@@ -263,7 +488,7 @@ async function getAI(text,file){
 }
 async function sendMessage(){
  if(isSending)return;
- const text=chatInput.value.trim(),file=selectedFile;
+ const text=String(chatInput.value||"").trim(),file=selectedFile;
  if(!text&&!file){showToast("Write a message or speak first.");return}
  isSending=true;sendButton.disabled=true;
  const shown=file?(text?text+"\n\n📎 Attached: "+file.name:"📎 Attached: "+file.name):text;
@@ -385,20 +610,268 @@ function stopVoiceMode(){
 voiceToggle.onclick=()=>voiceMode?stopVoiceMode():startVoiceMode();
 
 /* ---------- controls ---------- */
-$("newChatButton").onclick=startNewChat;$("sidebarNewChat").onclick=startNewChat;
-$("clearHistoryButton").onclick=()=>{if(confirm("Clear this conversation?")){messages=[];saveMessages();chatContainer.querySelectorAll(".message").forEach(x=>x.remove());welcome.style.display="flex"}};
-$("exportChatButton").onclick=()=>copyText(messages.map(x=>(x.role==="user"?"You":"CivicAI")+": "+x.content).join("\n\n"));
+function clearCurrentConversation(){
+    if(!messages.length){
+        showToast("There is no conversation to clear.");
+        return;
+    }
+
+    if(!confirm("Clear this conversation?"))return;
+
+    messages=[];
+    saveMessages();
+    chatContainer.querySelectorAll(".message").forEach(x=>x.remove());
+    welcome.style.display="flex";
+    closeHeaderMenu();
+    showToast("Conversation cleared.");
+}
+
+$("newChatButton").onclick=startNewChat;
+$("sidebarNewChat").onclick=startNewChat;
+
+$("clearHistoryButton").onclick=clearCurrentConversation;
+
+$("exportChatButton").onclick=()=>copyText(
+    messages.map(x=>(x.role==="user"?"You":"CivicAI")+": "+x.content).join("\n\n")
+);
+
 $("saveChatButton").onclick=()=>showToast("Conversation is already stored in this browser.");
+
 $("mobileMenu").onclick=()=>sidebar.classList.toggle("open");
+
 chatMessages.onclick=()=>sidebar.classList.remove("open");
-chatSearch.oninput=()=>{const q=chatSearch.value.toLowerCase();document.querySelectorAll(".recent-item").forEach(x=>x.style.display=x.textContent.toLowerCase().includes(q)?"block":"none")};
-$("themeButton").onclick=()=>{document.body.classList.toggle("light-mode");localStorage.setItem(STORAGE_THEME,document.body.classList.contains("light-mode")?"light":"dark")};
-if(localStorage.getItem(STORAGE_THEME)==="light")document.body.classList.add("light-mode");
+
+chatSearch.oninput=()=>{
+    const q=chatSearch.value.toLowerCase();
+    document.querySelectorAll(".recent-item").forEach(x=>{
+        x.style.display=x.textContent.toLowerCase().includes(q)?"flex":"none";
+    });
+};
+
+function updateThemeIcon(){
+    const light=document.body.classList.contains("light-mode");
+    $("themeButton").innerHTML=light
+        ? '<i class="fa-solid fa-sun"></i>'
+        : '<i class="fa-solid fa-moon"></i>';
+}
+
+$("themeButton").onclick=()=>{
+    document.body.classList.toggle("light-mode");
+    localStorage.setItem(
+        STORAGE_THEME,
+        document.body.classList.contains("light-mode")?"light":"dark"
+    );
+    updateThemeIcon();
+};
+
+function closeHeaderMenu(){
+    if(headerMenu)headerMenu.classList.remove("show");
+}
+
+if(headerMenuButton){
+    headerMenuButton.onclick=e=>{
+        e.stopPropagation();
+        headerMenu.classList.toggle("show");
+    };
+}
+
+if(headerSaveButton){
+    headerSaveButton.onclick=()=>{
+        closeHeaderMenu();
+        $("saveChatButton").click();
+    };
+}
+
+if(headerCopyButton){
+    headerCopyButton.onclick=()=>{
+        closeHeaderMenu();
+        $("exportChatButton").click();
+    };
+}
+
+if(headerClearButton){
+    headerClearButton.onclick=()=>{
+        closeHeaderMenu();
+        clearCurrentConversation();
+    };
+}
+
+document.addEventListener("click",e=>{
+    if(headerMenu && !headerMenu.contains(e.target) && e.target!==headerMenuButton){
+        closeHeaderMenu();
+    }
+});
+
+if(localStorage.getItem(STORAGE_THEME)==="light"){
+    document.body.classList.add("light-mode");
+}
+updateThemeIcon();
 
 /* ---------- init ---------- */
 loadStorage();resize();
 console.log("CivicAI Life Helper ready. Text:",CHAT_API_ENDPOINT,"Image:",ANALYZE_API_ENDPOINT);
 });
+
+
+
+
+/* =========================================================
+   CIVICAI ASSISTANT — DRAG ANYWHERE, STAY ON SCREEN
+========================================================= */
+(function setupAssistantDrag(){
+    const assistant = document.querySelector(".assistant-dock");
+    if(!assistant) return;
+
+    const STORAGE_KEY = "civicai_assistant_position_v3";
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function clampPosition(x, y){
+        const rect = assistant.getBoundingClientRect();
+        const margin = 8;
+
+        const maxX = Math.max(
+            margin,
+            window.innerWidth - rect.width - margin
+        );
+
+        const maxY = Math.max(
+            margin,
+            window.innerHeight - rect.height - margin
+        );
+
+        return {
+            x: Math.max(margin, Math.min(x, maxX)),
+            y: Math.max(margin, Math.min(y, maxY))
+        };
+    }
+
+    function setPosition(x, y, save=true){
+        const p = clampPosition(x, y);
+
+        assistant.style.left = p.x + "px";
+        assistant.style.top = p.y + "px";
+        assistant.style.right = "auto";
+        assistant.style.bottom = "auto";
+        assistant.style.transform = "none";
+
+        if(save){
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(p)
+            );
+        }
+    }
+
+    function defaultPosition(){
+        const rect = assistant.getBoundingClientRect();
+        const mobile = window.innerWidth <= 850;
+
+        const x = window.innerWidth - rect.width - (mobile ? 10 : 24);
+        const y = window.innerHeight - rect.height - (mobile ? 145 : 132);
+
+        setPosition(x, y, false);
+    }
+
+    function restore(){
+        try{
+            const saved = JSON.parse(
+                localStorage.getItem(STORAGE_KEY) || "null"
+            );
+
+            if(
+                saved &&
+                Number.isFinite(saved.x) &&
+                Number.isFinite(saved.y)
+            ){
+                setPosition(saved.x, saved.y, false);
+                return;
+            }
+        }catch(error){
+            console.warn("Assistant position restore failed:", error);
+        }
+
+        defaultPosition();
+    }
+
+    function startDrag(event){
+        if(event.pointerType === "mouse" && event.button !== 0) return;
+
+        const rect = assistant.getBoundingClientRect();
+
+        offsetX = event.clientX - rect.left;
+        offsetY = event.clientY - rect.top;
+
+        dragging = true;
+        assistant.classList.add("dragging");
+
+        try{
+            assistant.setPointerCapture(event.pointerId);
+        }catch(_){}
+
+        event.preventDefault();
+    }
+
+    function moveDrag(event){
+        if(!dragging) return;
+
+        setPosition(
+            event.clientX - offsetX,
+            event.clientY - offsetY,
+            true
+        );
+
+        event.preventDefault();
+    }
+
+    function stopDrag(event){
+        if(!dragging) return;
+
+        dragging = false;
+        assistant.classList.remove("dragging");
+
+        try{
+            assistant.releasePointerCapture(event.pointerId);
+        }catch(_){}
+
+        event.preventDefault();
+    }
+
+    assistant.addEventListener(
+        "pointerdown",
+        startDrag,
+        {passive:false}
+    );
+
+    assistant.addEventListener(
+        "pointermove",
+        moveDrag,
+        {passive:false}
+    );
+
+    assistant.addEventListener(
+        "pointerup",
+        stopDrag,
+        {passive:false}
+    );
+
+    assistant.addEventListener(
+        "pointercancel",
+        stopDrag,
+        {passive:false}
+    );
+
+    window.addEventListener("resize", ()=>{
+        const rect = assistant.getBoundingClientRect();
+        setPosition(rect.left, rect.top, true);
+    });
+
+    requestAnimationFrame(()=>{
+        requestAnimationFrame(restore);
+    });
+})();
+
 </script>
 </body>
 </html>
