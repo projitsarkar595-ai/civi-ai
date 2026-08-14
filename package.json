@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@google/genai": "^2.16.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
     "groq-sdk": "^0.15.0",
+    "multer": "^2.2.0",
     "nodemailer": "^9.0.5",
     "twilio": "^6.1.0"
   },
